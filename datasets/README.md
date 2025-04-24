@@ -15,20 +15,23 @@ To avoid overloading SAST tool's environment, we extract the minimal data from t
 - `parents`: checkout to the vulnerable version,
 - `filenames`: compare with SAST output.
 
-With following filter:
-```sql
-[...]
-WHERE repository.repo_language = '$LANG'
-  AND cwe.cwe_id GLOB 'CWE-[0-9]*'                -- Need CWE id to compare with SAST output
-  AND file_change.filename GLOB '*.$EXT'
-  AND file_change.filename NOT GLOB '*[Tt]est*'   -- Exclude test files
-[...]
-```
+We use Github REST API to get an estimate of the repository size:
+- `repo_size`: repository size in bytes
 
-### Java
+You need to provide a Github OAuth access token because the rate limit for unauthenticated users is only `60 reqs/hour` vs `5000 reqs/hour` for authenticated users.
+
+To generate one:
+- Go to [New personal access token (classic)](https://github.com/settings/tokens/new)
+- Select scopes: `repo` -> `public_repo`
+- Copy the token and paste it when prompted
+- Once all extraction done, delete the token
 
 ```bash
-# Generate CVEfixes_Java.csv
-sqlite3 CVEfixes.db < CVEfixes_Java.sql
+$ python3 ./datasets/CVEfixes/extract.py 
+Token: ghp_************************************
+Available languages
+- java
+Select lang: java
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 394/394 [02:13<00:00,  2.95it/s]
+Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
 ```
- 
