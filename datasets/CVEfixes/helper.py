@@ -1,5 +1,7 @@
 from utils import *
 
+DATASET_NAME = "CVEfixes"
+CVEfixes_DATASET_DIR = os.path.join("datasets", DATASET_NAME)
 
 class CVE:
     def __init__(self, cve_id, cwe_ids, cwe_descriptions, repo_url, parents, filenames, repo_size):
@@ -13,9 +15,18 @@ class CVE:
         self.repo_size = repo_size
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.cve_id})"
+        return f"""{self.__class__.__name__}(
+    id: \t{self.cve_id}
+    files: \t{self.filenames}
+    cwe_ids: \t{self.cwe_ids}
+    repo_size: \t{self.repo_size}
+)"""
 
-CVEfixes_DATASET_DIR = os.path.join("datasets", "CVEfixes")
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.cve_id == other
+        elif isinstance(other, self.__class__):
+            return self.cve_id == other.cve_id
 
 ## Methods
 def list_dataset():

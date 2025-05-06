@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import CATs.Coverity.main as Coverity
+import SASTs.Coverity.main as Coverity
 from utils import *
 
 
@@ -11,7 +11,7 @@ from utils import *
     help='Show all debug messages'
 )
 def cli(debug):
-    """CATBenchmark"""
+    """SAST Benchmark"""
     if debug:
         os.environ["DEBUG"] = "1"
 

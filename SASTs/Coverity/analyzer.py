@@ -1,4 +1,4 @@
-from CATs.Coverity.constants import *
+from SASTs.Coverity.constants import *
 from utils import *
 
 
@@ -41,13 +41,16 @@ def run_single_project_buildless(lang, project_dir, result_dir):
     save_results(project_dir, result_dir)
 
 ## Datasets
-import datasets.CVEfixes.main as CVEfixes
+import datasets.CVEfixes.helper as CVEfixes
 
 
 # TODO: max repo size
-def run_CVEfixes(lang):
+def run_CVEfixes(lang, small_first=False):
     cves = CVEfixes.load_dataset(lang=lang)
     os.makedirs(CVEfixes_RESULT_DIR, exist_ok=True)
+
+    if small_first:
+        cves = sorted(cves, key=lambda cve: cve.repo_size)
 
     for cve in cves:
         print("=================================")
@@ -61,8 +64,8 @@ def run_CVEfixes(lang):
 
         print(f"Repo size: {humanize.naturalsize(cve.repo_size)}")
 
-        if cve.repo_size > 200 * 1e6:
-            print("Repo size exceeding 200 MB, skiping...")
+        if cve.repo_size > 1 * 1e9:
+            print("Repo size exceeding 1 GB, skiping...")
             continue
 
         # Create temporary directory for the project
@@ -70,8 +73,13 @@ def run_CVEfixes(lang):
         repo_path = temp_dir.name
 
         # Clone and checkout to the vulnerable commit
-        repo = Repo.clone_from(cve.repo_url, repo_path)
-        repo.git.checkout(cve.parents[0])
+        try:
+            repo = git.Repo.clone_from(cve.repo_url, repo_path)
+            repo.git.checkout(cve.parents[0])
+        except git.exc.GitCommandError as e:
+            print(e)
+            print("Skipping")
+            continue
 
         # Run analysis
         run_single_project_buildless(lang, repo_path, result_path)

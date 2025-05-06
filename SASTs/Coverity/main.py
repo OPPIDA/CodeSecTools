@@ -1,7 +1,8 @@
-import CATs.Coverity.analyzer as Analyzer
-import CATs.Coverity.parser as Parser
-import CATs.Coverity.wrapper.main as Wrapper
-from CATs.Coverity.constants import *
+import datasets.CVEfixes.stats as CVEfixesStats
+import SASTs.Coverity.analyzer as Analyzer
+import SASTs.Coverity.parser as Parser
+import SASTs.Coverity.wrapper.main as Wrapper
+from SASTs.Coverity.constants import *
 from utils import *
 
 
@@ -45,11 +46,17 @@ def analyze(lang, mode, force):
     required=True,
     type=click.Choice(Analyzer.list_all_datasets(), case_sensitive=False),
 )
-def benchmark(dataset):
+@click.option(
+    '--small-first',
+    required=True,
+    is_flag=True,
+    help='Analyze smaller project of a dataset first'
+)
+def benchmark(dataset, small_first):
     """Benchmark Coverity on a dataset"""
     if match:=re.search("CVEfixes_(.*).csv", dataset):
         lang = match.groups()[0]
-        Analyzer.run_CVEfixes(lang)
+        Analyzer.run_CVEfixes(lang, small_first)
 
 @cli.command(name="import")
 @click.option(
@@ -104,8 +111,8 @@ def parse(project, format):
     out = Parser.export(results, format)
     print(out)
 
-@cli.command()
-def list():
+@cli.command(name="list")
+def list_():
     """List existing analysis results"""
     if results:=Parser.list_results():
         print("Available analysis results:")
@@ -118,18 +125,61 @@ def list():
 @click.option(
     '--project',
     required=True,
-    type=click.Choice(Parser.list_results() or ['No project available'], case_sensitive=False),
+    type=click.Choice(Parser.list_results(limit=10) or ['No project available'], case_sensitive=False),
     show_choices=True,
     help='Name of the project',
 )
-def plot(project):
+@click.option(
+    '--force',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Force overwriting existing figures'
+)
+@click.option(
+    '--pgf',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Export figures to pgf format (for LaTex document)'
+)
+def plot(project, force, pgf):
     """Generate plot for visualization"""
-    results = Parser.process_results(os.path.join(RESULT_DIR, project))
-    Parser.plot(results, results['lang'])
+    project_dir = os.path.join(RESULT_DIR, project)
+    Parser.plot(project_dir, force=force, pgf=pgf)
+
+## Stats
+@cli.command()
+@click.option(
+    '--dataset',
+    required=True,
+    type=click.Choice(Analyzer.list_all_datasets() or ['No dataset available'], case_sensitive=False),
+    show_choices=True,
+    help='Name of the dataset',
+)
+@click.option(
+    '--force',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Force overwriting existing figures'
+)
+@click.option(
+    '--pgf',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Export figures to pgf format (for LaTex document)'
+)
+def stats(dataset, force, pgf):
+    """Display benchmark stats"""
+    if match:=re.search("CVEfixes_(.*).csv", dataset):
+        lang = match.groups()[0]
+        CVEfixesStats.plot(lang, 'coverity', force, pgf)
 
 ## Wrapper
 @cli.command()
 def wrapper():
-    """Interact with Coverity commands"""
+    """Interact with Coverity commands (Build Capture)"""
     os.chdir(WORKING_DIR)
     Wrapper.main()

@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
-
-from CATs.Coverity.constants import *
+import SASTs.Coverity.parser as Parser
+from SASTs.Coverity.constants import *
 from utils import *
 
 
+# TODO: Parent class: Defect
 class CoverityDefect:
     def __init__(self, xml_dict):
         self.xml_dict = xml_dict
@@ -26,7 +26,7 @@ class CoverityDefect:
             print(self.checker)
 
         self.type = xml_dict['type']
-        self.cwe = TYPE_TO_CWE.get(self.type, None)
+        self.cwe_id = TYPE_TO_CWE.get(self.type, None)
         self.file = os.path.basename(xml_dict['file'])
         self.function = xml_dict['function']
 
@@ -37,7 +37,7 @@ class CoverityDefect:
     type: \t{self.type}
     checker: \t{self.checker}
     category: \t{self.category}
-    cwe_id: \t{self.cwe}
+    cwe_id: \t{self.cwe_id}
 )"""
 
     @classmethod
@@ -51,11 +51,16 @@ class CoverityAnalysisStats:
         for metric in xml_dict['coverity']['metrics']['metric']:
             self.metrics[metric['name']] = metric['value']
 
-        self.time = self.metrics['time']
+        self.time = int(self.metrics['time'])
         self.analysis_cmd = self.metrics['args']
 
         self.defect_count = self.metrics['total-new-defect-count']
         self.defect = None # Mandatory
+
+        self.code_lines = {}
+        for key in self.metrics.keys():
+            if r:=re.search(r'(.*)-code-lines', key):
+                self.code_lines[r.group(1)] = int(self.metrics[key])
 
         self.TSF = None # Optional
 
@@ -113,11 +118,11 @@ class CoverityAnalysisStats:
     def stats_by_cwes(self):
         stats = {}
         for defect in self.defects:
-            if defect.cwe not in stats.keys():
-                stats[defect.cwe] = {'count': 1, 'files': {defect.file}}
+            if defect.cwe_id not in stats.keys():
+                stats[defect.cwe_id] = {'count': 1, 'files': {defect.file}}
             else:
-                stats[defect.cwe]['files'].add(defect.file)
-                stats[defect.cwe]['count'] = len(stats[defect.cwe]['files'])
+                stats[defect.cwe_id]['files'].add(defect.file)
+                stats[defect.cwe_id]['count'] = len(stats[defect.cwe]['files'])
 
         return stats
 
@@ -142,7 +147,7 @@ class CapturedSrcFiles:
                 temp_counter = len(files)
                 self.main_lang = lang
 
-def list_results():
+def list_results(limit=None):
     result_dirs = []
     if os.path.isdir(RESULT_DIR):
         for child in os.listdir(RESULT_DIR):
@@ -153,13 +158,17 @@ def list_results():
 
                 # Dataset projects
                 for child2 in os.listdir(child_path):
+                    if child2.startswith("_"): continue
                     subdir = os.path.join(RESULT_DIR, child, child2)
                     if os.path.isdir(subdir):
                         if os.listdir(subdir):
                             result_dirs.append(os.path.join(child, child2))
                             child in result_dirs and result_dirs.remove(child) # Remove parent directory
 
-    return sorted(result_dirs)
+    result_dirs = sorted(result_dirs)
+    if limit and limit < len(result_dirs):
+        result_dirs = result_dirs[:limit] + [f'{len(result_dirs)-limit} more projects in ./results...']
+    return result_dirs
 
 def process_results(result_dir):
     results = {}
@@ -186,7 +195,10 @@ def process_results(result_dir):
     defects = []
     for file in glob.glob(os.path.join(result_dir, "*errors.xml")):
         f = open(file, "r")
-        errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())['root']['error']
+        try:
+            errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())['root']['error']
+        except TypeError:
+            pass
 
         if isinstance(errors, list):
             for error in errors:
@@ -215,6 +227,25 @@ def export(results, format):
     if format == "json":
         return json.dumps(data, default=list, indent=2)
 
+def export_for(dataset, lang):
+    """Export the results for comparison with the actual dataset values"""
+    if dataset == "CVEfixes":
+        defects = []
+        for cve_result_dir in glob.glob(os.path.join(CVEfixes_RESULT_DIR, "CVE-*")):
+            results = process_results(cve_result_dir)
+            if results['lang'] == lang:
+                defects.append(
+                    (
+                        os.path.basename(cve_result_dir),
+                        results['stats'].defects,
+                        {
+                            "time": results['stats'].time,
+                            "code_lines": results['stats'].code_lines,
+                        }
+                    )
+                )
+        return defects
+
 ## Ploting helpers
 def map_colors(labels, lang):
     colors = []
@@ -242,7 +273,12 @@ def map_colors(labels, lang):
 
     return colors
 
-def plot(results, lang, limit=10):
+## Plot
+def plot(project_dir, force, pgf, limit=10):
+    results = Parser.process_results(project_dir)
+    project_name = os.path.basename(project_dir)
+    lang = results['lang']
+
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
     files = results['stats'].stats_by_files()
     checkers = results['stats'].stats_by_checkers()
@@ -297,15 +333,28 @@ def plot(results, lang, limit=10):
     ax3.set_title(f"Stats by categories (limit to {limit})")
 
     # Figure
-    fig.suptitle(f'Analysis result: {len(files)} files, {len(checkers)} checkers triggered', fontsize=16)
+    fig.suptitle(f'Project {project_name} ({len(files)} files analyzed, {len(checkers)} checkers triggered)', fontsize=16)
     labels = list(COLOR_MAPPING.keys())
     handles = [plt.Rectangle((0,0),1,1, color=COLOR_MAPPING[label]) for label in labels]
     plt.legend(handles, labels)
-    plt.show()
 
-## Specific to each dataset
-def parse_CVEfixes():
-    for cve_dir in os.listdir(CVEfixes_RESULT_DIR):
-        cve_result_dir = os.path.join(CVEfixes_RESULT_DIR, cve_dir)
-        results = process_results(cve_result_dir)
-    # TODO: Confusion matrix
+    # Export
+    name = "overview"
+    figure_dir = os.path.join(project_dir, "_figures")
+    os.makedirs(figure_dir, exist_ok=True)
+    figure_path = os.path.join(figure_dir, f"{name}.png")
+    if os.path.isfile(figure_path) and not force:
+        if not click.confirm(f"Found existing figure at {figure_path}, would you like to overwrite?"):
+            print(f"{name} not saved")
+            return
+
+    fig.set_size_inches(12, 7)
+    fig.savefig(figure_path, bbox_inches='tight')
+    print(f"Figure {name} saved at {figure_path}")
+
+    if pgf:
+        figure_path_pgf = os.path.join(figure_dir, f"{name}.pgf")
+        fig.savefig(figure_path_pgf, bbox_inches='tight')
+        print(f"Figure {name} exported to pgf")
+
+    click.launch(figure_path, wait=False)

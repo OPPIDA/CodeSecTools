@@ -2,7 +2,21 @@
 
 You will find here datasets used for the benchmark.
 
-## [CVEfixes](https://github.com/secureIT-project/CVEfixes)
+## Dataset components
+- `helper`:
+  - load dataset
+  - constants
+- `stats`:
+  - compare SAST results with expected results
+  - generate plots for visualization
+- `extractor` (optional):
+  - extract minimal useful data from a dataset
+
+## [CVEfixes](./CVEfixes/)
+
+*Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software*
+
+[Project page - Github](https://github.com/secureIT-project/CVEfixes)
 
 Version: `v1.0.8`
 
@@ -10,10 +24,10 @@ CVEfixes dataset is ~50 GB big.
 
 To avoid overloading SAST tool's environment, we extract the minimal data from the dataset:
 - `cve_id`: for reference only,
-- `cwe_ids`: compare with SAST output,
+- `cwe_ids`: **compare** with SAST output,
 - `repo_url`: download the project,
 - `parents`: checkout to the vulnerable version,
-- `filenames`: compare with SAST output.
+- `filenames`: **compare** with SAST output.
 
 We use Github REST API to get an estimate of the repository size:
 - `repo_size`: repository size in bytes
