@@ -131,4 +131,5 @@ def plot(project):
 @cli.command()
 def wrapper():
     """Interact with Coverity commands"""
+    os.chdir(WORKING_DIR)
     Wrapper.main()

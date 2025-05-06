@@ -110,9 +110,16 @@ class CoverityAnalysisStats:
 
         return stats
 
-    # TODO
-    def stats_by_cwe(self):
-        pass
+    def stats_by_cwes(self):
+        stats = {}
+        for defect in self.defects:
+            if defect.cwe not in stats.keys():
+                stats[defect.cwe] = {'count': 1, 'files': {defect.file}}
+            else:
+                stats[defect.cwe]['files'].add(defect.file)
+                stats[defect.cwe]['count'] = len(stats[defect.cwe]['files'])
+
+        return stats
 
 class CapturedSrcFiles:
     def __init__(self, f):
@@ -193,7 +200,7 @@ def process_results(result_dir):
 
 def export(results, format):
     data = {
-        'lang': results['stats'].lang,
+        'lang': results['lang'],
         'config' : results.get('config', {}),
         'files': results['captured'].files_by_lang,
         'defects': {
@@ -201,6 +208,7 @@ def export(results, format):
             'per_checker': results['stats'].stats_by_checkers(),
             'per_file': results['stats'].stats_by_files(),
             'per_category': results['stats'].stats_by_categories(),
+            'per_cwe': results['stats'].stats_by_cwes(),
         }
     }
 
@@ -295,14 +303,9 @@ def plot(results, lang, limit=10):
     plt.legend(handles, labels)
     plt.show()
 
-# Testing
-if __name__ == "__main__":
-    results = process_results(os.path.join(RESULT_DIR, "CVEfixes", "CVE-2010-10006"))
-    plot(results, "java")
-
 ## Specific to each dataset
 def parse_CVEfixes():
     for cve_dir in os.listdir(CVEfixes_RESULT_DIR):
         cve_result_dir = os.path.join(CVEfixes_RESULT_DIR, cve_dir)
-        results = parse_results(cve_result_dir)
+        results = process_results(cve_result_dir)
     # TODO: Confusion matrix
