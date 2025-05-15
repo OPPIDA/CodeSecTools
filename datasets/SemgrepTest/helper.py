@@ -1,6 +1,6 @@
 from utils import *
 
-DATASET_NAME = "Semgrep"
+DATASET_NAME = "SemgrepTest"
 Semgrep_DATASET_DIR = os.path.join("datasets", DATASET_NAME)
 
 class Rule:

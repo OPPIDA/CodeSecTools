@@ -116,5 +116,5 @@ def run_SemgrepTest(lang, overwrite=False):
 def list_all_datasets():
     all_datasets = []
     all_datasets.extend(CVEfixes.list_dataset())
-    all_datasets.extend(Semgrep.list_dataset())
+    all_datasets.extend(SemgrepTest.list_dataset())
     return all_datasets
