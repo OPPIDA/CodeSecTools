@@ -48,15 +48,24 @@ def analyze(lang, mode, force):
 )
 @click.option(
     '--small-first',
-    required=True,
+    required=False,
     is_flag=True,
-    help='Analyze smaller project of a dataset first'
+    help='Analyze smaller project of a dataset first (only for CVEfixes)'
 )
-def benchmark(dataset, small_first):
+@click.option(
+    '--overwrite',
+    required=False,
+    is_flag=True,
+    help='Overwrite existing results (not applicable on CVEfixes)'
+)
+def benchmark(dataset, small_first, overwrite):
     """Benchmark Coverity on a dataset"""
     if match:=re.search("CVEfixes_(.*).csv", dataset):
         lang = match.groups()[0]
         Analyzer.run_CVEfixes(lang, small_first)
+    elif match:=re.search("SemgrepTest_(.*)", dataset):
+        lang = match.groups()[0]
+        Analyzer.run_SemgrepTest(lang, overwrite)
 
 @cli.command(name="import")
 @click.option(
@@ -137,16 +146,23 @@ def list_():
     help='Force overwriting existing figures'
 )
 @click.option(
+    '--show',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Show figures'
+)
+@click.option(
     '--pgf',
     required=False,
     is_flag=True,
     default=False,
     help='Export figures to pgf format (for LaTex document)'
 )
-def plot(project, force, pgf):
+def plot(project, force, show, pgf):
     """Generate plot for visualization"""
     project_dir = os.path.join(RESULT_DIR, project)
-    Parser.plot(project_dir, force=force, pgf=pgf)
+    Parser.plot(project_dir, force=force, show=show, pgf=pgf)
 
 ## Stats
 @cli.command()
@@ -165,17 +181,24 @@ def plot(project, force, pgf):
     help='Force overwriting existing figures'
 )
 @click.option(
+    '--show',
+    required=False,
+    is_flag=True,
+    default=False,
+    help='Show figures'
+)
+@click.option(
     '--pgf',
     required=False,
     is_flag=True,
     default=False,
     help='Export figures to pgf format (for LaTex document)'
 )
-def stats(dataset, force, pgf):
+def stats(dataset, force, show, pgf):
     """Display benchmark stats"""
     if match:=re.search("CVEfixes_(.*).csv", dataset):
         lang = match.groups()[0]
-        CVEfixesStats.plot(lang, 'coverity', force, pgf)
+        CVEfixesStats.plot(lang, 'coverity', force=force, show=show, pgf=pgf)
 
 ## Wrapper
 @cli.command()

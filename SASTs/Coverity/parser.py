@@ -274,7 +274,7 @@ def map_colors(labels, lang):
     return colors
 
 ## Plot
-def plot(project_dir, force, pgf, limit=10):
+def plot(project_dir, force, show, pgf, limit=10):
     results = Parser.process_results(project_dir)
     project_name = os.path.basename(project_dir)
     lang = results['lang']
@@ -357,4 +357,5 @@ def plot(project_dir, force, pgf, limit=10):
         fig.savefig(figure_path_pgf, bbox_inches='tight')
         print(f"Figure {name} exported to pgf")
 
-    click.launch(figure_path, wait=False)
+    if show:
+        click.launch(figure_path, wait=False)
