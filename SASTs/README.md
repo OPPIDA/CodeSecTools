@@ -5,6 +5,8 @@
 - We mainly evaluate if the SAST can find the vulnerabilities.
 
 ## SAST components
+*None of them are mandatory; they are provided solely as templates*
+
 - `analyzer`: 
   - analyze project with the SAST
   - save SAST results (SAST's own format)
@@ -23,10 +25,10 @@
 
 ## List of SASTs
 
-### 1. [Coverity Static Analysis](./Coverity/)
+### 1. Coverity Static Analysis
 
 *The most trusted solution for finding code quality defects in large-scale, complex software*
 
-[Homepage - Black Duck](https://www.blackduck.com/static-analysis-tools-sast/coverity.html)
+**Homepage**: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
 
-License: `Commercial`
+**Licence**: `Commercial` (*Consequently, the analysis results are omitted*)
