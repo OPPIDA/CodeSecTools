@@ -42,6 +42,7 @@ def run_single_project_buildless(lang, project_dir, result_dir):
 
 ## Datasets
 import datasets.CVEfixes.helper as CVEfixes
+import datasets.SemgrepTest.helper as SemgrepTest
 
 
 # TODO: max repo size
@@ -87,7 +88,33 @@ def run_CVEfixes(lang, small_first=False):
         # Clear temporary directory
         temp_dir.cleanup()
 
+def run_SemgrepTest(lang, overwrite=False):
+    _, testcodes = SemgrepTest.load_dataset(lang)
+
+    result_path = SemgrepTest_RESULT_DIR
+    os.makedirs(result_path, exist_ok=True)
+
+    if os.path.isdir(result_path):
+        if os.listdir(result_path) and not overwrite:
+            print("Results already exist, please use --overwrite to delete old results")
+            return
+
+    # Create temporary directory for the project
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_path = temp_dir.name
+
+    # Copy test files into the temporary directory
+    for testcode in testcodes:
+        testcode.save(temp_path)
+
+    # Run analysis
+    run_single_project_buildless(lang, temp_path, result_path)
+
+    # Clear temporary directory
+    temp_dir.cleanup()
+
 def list_all_datasets():
     all_datasets = []
     all_datasets.extend(CVEfixes.list_dataset())
+    all_datasets.extend(Semgrep.list_dataset())
     return all_datasets
