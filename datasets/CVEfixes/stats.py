@@ -134,9 +134,9 @@ def plot_top_cwes():
     ax.set_xticklabels(X)
     ax.set_yscale('log')
     width = 0.25
-    bars1 = ax.bar([i-width for i in range(len(X))], Y1, width=width, label='Actual (unique)', color='blue')
-    bars2 = ax.bar([i for i in range(len(X))], Y2, width=width, label='Good prediction', color='green')
-    bars3 = ax.bar([i+width for i in range(len(X))], Y3, width=width, label='Wrong prediction', color='red')
+    bars1 = ax.bar([i-width for i in range(len(X))], Y1, width=width, label='Actual (one per CVE)', color='blue')
+    bars2 = ax.bar([i for i in range(len(X))], Y2, width=width, label='Good prediction (multiple per CVE)', color='green')
+    bars3 = ax.bar([i+width for i in range(len(X))], Y3, width=width, label='Wrong prediction (multiple per CVE)', color='red')
     ax.bar_label(bars1, padding=0)
     ax.bar_label(bars2, padding=0)
     ax.bar_label(bars3, padding=0)
@@ -189,7 +189,7 @@ def plot_coverity_time():
     for match in matches:
         if match['code_lines'].get(lang) and match['time']:
             X.append(match['code_lines'].get(lang))
-            Y.append(match['time'])
+            Y.append(match['time']/60)
 
     ax.set_xscale('log')
     ax.scatter(X, Y)
@@ -206,7 +206,7 @@ def plot_coverity_time():
     return fig
 
 ## Main
-def plot(lang_, sast_, force, pgf):
+def plot(lang_, sast_, force, show, pgf):
     global lang, sast, limit, results, project_number, defect_number, matches, cve_found_number
 
     limit = 10
@@ -216,7 +216,7 @@ def plot(lang_, sast_, force, pgf):
     project_number = results['project_number']
     defect_number = results['defect_number']
     matches = results['matches']
-    cve_found_number = len([match for match in matches if match['full_match']])
+    cve_found_number = len([match for match in matches if len(match['full_match']) > 0])
 
     export_dir = None
     figures = [
@@ -252,4 +252,5 @@ def plot(lang_, sast_, force, pgf):
                 fig.savefig(figure_path_pgf, bbox_inches='tight')
                 print(f"Figure {name} exported to pgf")
 
-            click.launch(figure_path, wait=False)
+            if show:
+                click.launch(figure_path, wait=False)
