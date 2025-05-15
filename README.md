@@ -4,9 +4,9 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 
 ## Available SASTs and Datasets
 
-|SASTs|Datasets|Language|Results|
+|SASTs|Datasets|Language|Exisiting results|
 |:---:|:---:|:---:|:---:|
-|Coverity|CVEfixes|Java|[Figures](./results/Coverity/CVEfixes/_figures/)|
+|[`Coverity`](./SASTs/README.md#1-coverity-static-analysis)|[`CVEfixes`](./datasets/README.md#2-semgrep-test-code)|Java|✅[View Results](./results/Coverity/CVEfixes/README.md)|
 
 ## Benchmark workflow
 
