@@ -1,4 +1,5 @@
 import datasets.CVEfixes.stats as CVEfixesStats
+import datasets.SemgrepTest.stats as SemgrepTestStats
 import SASTs.Coverity.analyzer as Analyzer
 import SASTs.Coverity.parser as Parser
 import SASTs.Coverity.wrapper.main as Wrapper
@@ -26,16 +27,16 @@ def cli():
     is_flag=True,
     help='Overwrite existing analysis results for current project'
 )
-def analyze(lang, mode, force):
+def analyze(lang, force):
     """Quick analyze using Coverity Buildless capture"""
     result_dir = os.path.join(RESULT_DIR, os.path.basename(WORKING_DIR))
     if os.path.isdir(result_dir):
-        print(f"Found existing analysis result at {result_dir}")
+        click.echo(f"Found existing analysis result at {result_dir}")
         if force:
             shutil.rmtree(result_dir)
             Analyzer.run_single_project_buildless(lang, ".", result_dir)
         else:
-            print("Use --force/-f to overwrite it")
+            click.echo("Use --force to overwrite it")
             sys.exit(1)
     else:
         Analyzer.run_single_project_buildless(lang, ".", result_dir)
@@ -86,12 +87,12 @@ def import_(suffix, force):
     if suffix: suffix = f"_{suffix}"
     result_dir = os.path.join(RESULT_DIR, os.path.basename(WORKING_DIR) + suffix)
     if os.path.isdir(result_dir):
-        print(f"Current project's result already imported at {result_dir}")
+        click.echo(f"Current project's result already imported at {result_dir}")
         if force:
             shutil.rmtree(result_dir)
             Analyzer.save_results(WORKING_DIR, result_dir)
         else:
-            print("Use --force/-f to overwrite it or --suffix to chnage directory name")
+            click.echo("Use --force/-f to overwrite it or --suffix to chnage directory name")
             sys.exit(1)
     else:
         Analyzer.save_results(WORKING_DIR, result_dir)
@@ -118,17 +119,17 @@ def parse(project, format):
     """Parse Coverity results (aggregate and export)"""
     results = Parser.process_results(os.path.join(RESULT_DIR, project))
     out = Parser.export(results, format)
-    print(out)
+    click.echo(out)
 
 @cli.command(name="list")
 def list_():
     """List existing analysis results"""
     if results:=Parser.list_results():
-        print("Available analysis results:")
+        click.echo("Available analysis results:")
         for result in results:
-            print(f"- {result}")
+            click.echo(f"- {result}")
     else:
-        print("No analysis result available")
+        click.echo("No analysis result available")
 
 @cli.command()
 @click.option(
@@ -199,6 +200,9 @@ def stats(dataset, force, show, pgf):
     if match:=re.search("CVEfixes_(.*).csv", dataset):
         lang = match.groups()[0]
         CVEfixesStats.plot(lang, 'coverity', force=force, show=show, pgf=pgf)
+    elif match:=re.search("SemgrepTest_(.*)", dataset):
+        lang = match.groups()[0]
+        SemgrepTestStats.plot(lang, 'coverity', force=force, show=show, pgf=pgf)
 
 ## Wrapper
 @cli.command()

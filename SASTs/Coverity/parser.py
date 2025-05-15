@@ -23,7 +23,7 @@ class CoverityDefect:
                         break
 
         if self.category == "None":
-            print(self.checker)
+            click.echo(self.checker)
 
         self.type = xml_dict['type']
         self.cwe_id = TYPE_TO_CWE.get(self.type, None)
@@ -153,21 +153,11 @@ def list_results(limit=None):
         for child in os.listdir(RESULT_DIR):
             child_path = os.path.join(RESULT_DIR, child)
             if os.path.isdir(child_path):
-                # Standalone project
-                result_dirs.append(child)
-
-                # Dataset projects
-                for child2 in os.listdir(child_path):
-                    if child2.startswith("_"): continue
-                    subdir = os.path.join(RESULT_DIR, child, child2)
-                    if os.path.isdir(subdir):
-                        if os.listdir(subdir):
-                            result_dirs.append(os.path.join(child, child2))
-                            child in result_dirs and result_dirs.remove(child) # Remove parent directory
+                # Exclude dataset results
+                if not child in DATASETS:
+                    result_dirs.append(child)
 
     result_dirs = sorted(result_dirs)
-    if limit and limit < len(result_dirs):
-        result_dirs = result_dirs[:limit] + [f'{len(result_dirs)-limit} more projects in ./results...']
     return result_dirs
 
 def process_results(result_dir):
@@ -244,7 +234,13 @@ def export_for(dataset, lang):
                         }
                     )
                 )
-        return defects
+    elif dataset == "SemgrepTest":
+        results = process_results(SemgrepTest_RESULT_DIR)
+        return results['stats'].defects
+    else:
+        raise Exception("Dataset not supported")
+
+    return defects
 
 ## Ploting helpers
 def map_colors(labels, lang):
@@ -274,6 +270,7 @@ def map_colors(labels, lang):
     return colors
 
 ## Plot
+# TODO: Per CWE
 def plot(project_dir, force, show, pgf, limit=10):
     results = Parser.process_results(project_dir)
     project_name = os.path.basename(project_dir)
@@ -345,17 +342,17 @@ def plot(project_dir, force, show, pgf, limit=10):
     figure_path = os.path.join(figure_dir, f"{name}.png")
     if os.path.isfile(figure_path) and not force:
         if not click.confirm(f"Found existing figure at {figure_path}, would you like to overwrite?"):
-            print(f"{name} not saved")
+            click.echo(f"{name} not saved")
             return
 
     fig.set_size_inches(12, 7)
     fig.savefig(figure_path, bbox_inches='tight')
-    print(f"Figure {name} saved at {figure_path}")
+    click.echo(f"Figure {name} saved at {figure_path}")
 
     if pgf:
         figure_path_pgf = os.path.join(figure_dir, f"{name}.pgf")
         fig.savefig(figure_path_pgf, bbox_inches='tight')
-        print(f"Figure {name} exported to pgf")
+        click.echo(f"Figure {name} exported to pgf")
 
     if show:
         click.launch(figure_path, wait=False)

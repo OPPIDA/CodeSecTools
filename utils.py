@@ -31,9 +31,6 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
 })
 
-# Replace default print with click.echo
-print = click.echo
-
 # Differentiate project directory and this tool directory
 WORKING_DIR = os.getcwd()
 if sys.path[0]: os.chdir(sys.path[0])

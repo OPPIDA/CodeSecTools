@@ -1,5 +1,11 @@
 # SAST
 
+- [SAST](#sast)
+  - [Overview](#overview)
+  - [SAST components](#sast-components)
+  - [List of SASTs](#list-of-sasts)
+    - [1. Coverity Static Analysis](#1-coverity-static-analysis)
+
 ## Overview
 - We only use the `security` preset of each tool.
 - We mainly evaluate if the SAST can find the vulnerabilities.
@@ -32,3 +38,5 @@
 **Homepage**: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
 
 **Licence**: `Commercial` (*Consequently, the analysis results are omitted*)
+
+**Included**: ❌ (Existing installation needed)

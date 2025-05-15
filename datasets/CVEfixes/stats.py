@@ -43,6 +43,10 @@ def parse(lang, sast):
         good_cwes = []
         wrong_cwes = []
         for defect in defects:
+            # Ignore defect without cwe_id
+            if not defect.cwe_id:
+                continue
+
             # Found vulnerable file and the right CWE
             if defect.file in actual_files and defect.cwe_id in actual_cwes:
                 full_match.append(defect)
@@ -145,7 +149,7 @@ def plot_top_cwes():
     return fig
 
 ## Coverity specific
-def plot_coverity_defects():
+def plot_coverity_classification():
     fig, ax = plt.subplots(1, 1, layout="constrained")
     set_names = ['full_match', 'partial_match', 'false_match']
     X, Y = ["Correct (file and cwe id)", "Partial (file only)", "False"], [0, 0, 0]
@@ -182,12 +186,36 @@ def plot_coverity_defects():
     plt.legend(handles, labels)
     return fig
 
+def plot_coverity_defects():
+    fig, ax = plt.subplots(1, 1, layout="constrained")
+    set_names = ['full_match', 'partial_match', 'false_match']
+    X, Y = [], []
+    for match in matches:
+        defect_number = sum(len(match[name]) for name in set_names)
+        if match['code_lines'].get(lang) and match['time'] > 180:
+            X.append(match['code_lines'].get(lang))
+            Y.append(defect_number)
+
+    ax.set_xscale('log')
+    ax.scatter(X, Y)
+
+    log_X = np.log10(X)
+    coeffs = np.polyfit(log_X, Y, deg=1)
+    trend = np.poly1d(coeffs)
+    ax.plot(X, trend(log_X), color='red', label=f'Trend (Defects = {coeffs[0]:.4f} * log10(LoC) + {coeffs[1]:.4f})')
+
+    ax.set_xlabel('Code lines')
+    ax.set_ylabel('Defects')
+    ax.set_title(f'Defects against {lang} code lines')
+    ax.legend()
+    return fig
+
 def plot_coverity_time():
     fig, ax = plt.subplots(1, 1, layout="constrained")
     X, Y = [], []
 
     for match in matches:
-        if match['code_lines'].get(lang) and match['time']:
+        if match['code_lines'].get(lang) and match['time'] > 180:
             X.append(match['code_lines'].get(lang))
             Y.append(match['time']/60)
 
@@ -228,6 +256,7 @@ def plot(lang_, sast_, force, show, pgf):
         export_dir = CoverityConstants.CVEfixes_RESULT_DIR
         figures.extend(
             [
+                (plot_coverity_classification(), "coverity_classification"),
                 (plot_coverity_defects(), "coverity_defects"),
                 (plot_coverity_time(), "coverity_time"),
             ]
@@ -240,17 +269,17 @@ def plot(lang_, sast_, force, show, pgf):
             figure_path = os.path.join(figure_dir, f"{name}.png")
             if os.path.isfile(figure_path) and not force:
                 if not click.confirm(f"Found existing figure at {figure_path}, would you like to overwrite?"):
-                    print(f"{name} not saved")
+                    click.echo(f"{name} not saved")
                     continue
 
             fig.set_size_inches(12, 7)
             fig.savefig(figure_path, bbox_inches='tight')
-            print(f"Figure {name} saved at {figure_path}")
+            click.echo(f"Figure {name} saved at {figure_path}")
 
             if pgf:
                 figure_path_pgf = os.path.join(figure_dir, f"{name}.pgf")
                 fig.savefig(figure_path_pgf, bbox_inches='tight')
-                print(f"Figure {name} exported to pgf")
+                click.echo(f"Figure {name} exported to pgf")
 
             if show:
                 click.launch(figure_path, wait=False)

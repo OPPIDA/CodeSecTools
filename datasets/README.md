@@ -2,6 +2,12 @@
 
 You will find here datasets used for the benchmark.
 
+- [Datasets](#datasets)
+  - [Dataset components](#dataset-components)
+  - [List of datasets](#list-of-datasets)
+    - [1. CVEfixes](#1-cvefixes)
+    - [2. Semgrep Test Code](#2-semgrep-test-code)
+
 ## Dataset components
 *None of them are mandatory; they are provided solely as templates*
 
@@ -27,6 +33,9 @@ You will find here datasets used for the benchmark.
 **Version**: `v1.0.8`
 
 **Licence**: `CC BY 4.0`
+
+**Included**: ✅ (Partial)
+  - [`CVEfixes_java.csv`](./CVEfixes/CVEfixes_java.csv)
 
 CVEfixes dataset is ~50 GB big.
 
@@ -67,6 +76,9 @@ Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
 **Version**: `15/05/2025` (*download date*)
 
 **Licence**: [`Semgrep Rules License v. 1.0`](https://semgrep.dev/legal/rules-license/) (*for both Community Edition and Pro*)
+
+**Included**: ✅ (Full)
+- [`Semgrep_all.json`](./SemgrepTest/Semgrep_all.json)
 
 Community Edition rules are available [here](https://github.com/semgrep/semgrep-rules) but Pro rules are only available in Semgrep AppSec Platform (log in required).
 

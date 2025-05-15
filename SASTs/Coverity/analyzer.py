@@ -28,15 +28,19 @@ def save_results(project_dir, result_dir):
             full_dst_path = os.path.join(result_dir, filename)
             shutil.copy2(full_src_path, full_dst_path)
 
-    print(f"Results are saved in {result_dir}")
+    click.echo(f"Results are saved in {result_dir}")
 
 def run_single_project_buildless(lang, project_dir, result_dir):
     # Coverity buildless capture
     start = time.time()
     _ = run_command(f"coverity capture --disable-build-command-inference --language {lang}", project_dir)
-    _ = run_command("cov-analyze --dir idir --all-security --enable-callgraph-metrics", project_dir)
+
+    # Support Java only
+    # TODO: C/C++, support config flag -co
+    full_analyze_command = "cov-analyze --dir idir --enable-callgraph-metrics".split(" ") + ALL_SECURITY + SPOTBUGS + JAVA_CHECKERS_CRITIQUES + JAVA_CHECKERS_IMPORTANTS + JAVA_CHECKERS_MODERES
+    _ = run_command(" ".join(full_analyze_command), project_dir)
     end = time.time()
-    print("Time taken (capture + analysis):", timedelta(seconds=end-start))
+    click.echo(f"Time taken (capture + analysis): {timedelta(seconds=end-start)}")
 
     save_results(project_dir, result_dir)
 
@@ -54,19 +58,19 @@ def run_CVEfixes(lang, small_first=False):
         cves = sorted(cves, key=lambda cve: cve.repo_size)
 
     for cve in cves:
-        print("=================================")
-        print(cve)
+        click.echo("=================================")
+        click.echo(cve)
 
         result_path = os.path.join(CVEfixes_RESULT_DIR, cve.cve_id)
         if os.path.isdir(result_path):
             if os.listdir(result_path):
-                print("Results already exist, skiping...")
+                click.echo("Results already exist, skiping...")
                 continue
 
-        print(f"Repo size: {humanize.naturalsize(cve.repo_size)}")
+        click.echo(f"Repo size: {humanize.naturalsize(cve.repo_size)}")
 
         if cve.repo_size > 1 * 1e9:
-            print("Repo size exceeding 1 GB, skiping...")
+            click.echo("Repo size exceeding 1 GB, skiping...")
             continue
 
         # Create temporary directory for the project
@@ -78,8 +82,8 @@ def run_CVEfixes(lang, small_first=False):
             repo = git.Repo.clone_from(cve.repo_url, repo_path)
             repo.git.checkout(cve.parents[0])
         except git.exc.GitCommandError as e:
-            print(e)
-            print("Skipping")
+            click.echo(e)
+            click.echo("Skipping")
             continue
 
         # Run analysis
@@ -96,7 +100,7 @@ def run_SemgrepTest(lang, overwrite=False):
 
     if os.path.isdir(result_path):
         if os.listdir(result_path) and not overwrite:
-            print("Results already exist, please use --overwrite to delete old results")
+            click.echo("Results already exist, please use --overwrite to delete old results")
             return
 
     # Create temporary directory for the project
