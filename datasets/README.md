@@ -3,22 +3,30 @@
 You will find here datasets used for the benchmark.
 
 ## Dataset components
+*None of them are mandatory; they are provided solely as templates*
+
 - `helper`:
   - load dataset
   - constants
 - `stats`:
   - compare SAST results with expected results
   - generate plots for visualization
-- `extractor` (optional):
+- `extractor`:
   - extract minimal useful data from a dataset
+- `downloader`:
+  - download and generate a dataset
 
-## [CVEfixes](./CVEfixes/)
+## List of datasets
+
+### 1. CVEfixes
 
 *Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software*
 
-[Project page - Github](https://github.com/secureIT-project/CVEfixes)
+**Homepage**: https://github.com/secureIT-project/CVEfixes
 
-Version: `v1.0.8`
+**Version**: `v1.0.8`
+
+**Licence**: `CC BY 4.0`
 
 CVEfixes dataset is ~50 GB big.
 
@@ -48,4 +56,31 @@ Available languages
 Select lang: java
 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 394/394 [02:13<00:00,  2.95it/s]
 Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
+```
+
+### 2. Semgrep Test Code
+
+*Test code for Semgrep's Community Edition and Pro rules*
+
+**Homepage**: https://github.com/semgrep/semgrep
+
+**Version**: `15/05/2025` (*download date*)
+
+**Licence**: [`Semgrep Rules License v. 1.0`](https://semgrep.dev/legal/rules-license/) (*for both Community Edition and Pro*)
+
+Community Edition rules are available [here](https://github.com/semgrep/semgrep-rules) but Pro rules are only available in Semgrep AppSec Platform (log in required).
+
+It is possible to download rules and test codes using Semgrep API.
+
+The provided script `downloader.py` downloads all and store in `./datasets/Semgrep/Semgrep_all.json`.
+
+To get the token:
+1. Log into your account
+2. Open dev tools
+3. Navigate to any pages to perform requests
+4. Apply filter: `https://semgrep.dev/api`
+5. Get the Bearer token from the request header
+
+```bash
+$ SEMGREP_TOKEN=YOUR_TOKEN python3 ./datasets/Semgrep/downloader.py
 ```
