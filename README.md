@@ -9,6 +9,24 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`CVEfixes`](/datasets/README.md#1-cvefixes)|Java|✅[View Results](./results/Coverity/CVEfixes/README.md)|
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`SemgrepTest`](/datasets/README.md#2-semgrep-test-code)|Java|✅[View Results](./results/Coverity/SemgrepTest/README.md)|
 
+## Getting started
+
+- Install [uv](https://github.com/astral-sh/uv) package and project manager:
+  ```bash
+  pip install uv
+  ```
+
+- Setup virtual environnement and install dependencies:
+  ```bash
+  uv sync
+  ```
+
+- Run CLI:
+  ```bash
+  chmod +x sastb.sh
+  ./sastb.sh
+  ```
+
 ## Benchmark workflow
 
 ```mermaid

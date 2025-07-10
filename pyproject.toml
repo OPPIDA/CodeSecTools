@@ -1,0 +1,20 @@
+[project]
+name = "SASTBenchmark"
+version = "1.0.0"
+description = "A collection of scripts and wrappers around SASTs and datasets for benchmarking and project testing purposes."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "blessed>=1.21.0",
+    "click>=8.2.1",
+    "gitpython>=3.1.44",
+    "humanize>=4.12.3",
+    "inquirer>=3.4.0",
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.4",
+    "tabulate>=0.9.0",
+    "tqdm>=4.67.1",
+    "xmltodict>=0.14.2",
+]
