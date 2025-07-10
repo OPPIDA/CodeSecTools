@@ -45,7 +45,7 @@ def analyze(lang, force):
 @click.option(
     '--dataset',
     required=True,
-    type=click.Choice(Analyzer.list_all_datasets(), case_sensitive=False),
+    type=click.Choice(Analyzer.list_all_datasets()),
 )
 @click.option(
     '--small-first',
@@ -67,6 +67,8 @@ def benchmark(dataset, small_first, overwrite):
     elif match:=re.search("SemgrepTest_(.*)", dataset):
         lang = match.groups()[0]
         Analyzer.run_SemgrepTest(lang, overwrite)
+    elif dataset == "BenchmarkJava":
+        Analyzer.run_BenchmarkJava(overwrite)
 
 @cli.command(name="import")
 @click.option(
