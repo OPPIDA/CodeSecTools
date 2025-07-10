@@ -21,7 +21,7 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
   uv sync
   ```
 
-- Run CLI:
+- Run CLI (the script can be executed from any directory):
   ```bash
   chmod +x sastb.sh
   ./sastb.sh
