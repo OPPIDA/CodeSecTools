@@ -40,3 +40,7 @@
 **Licence**: `Commercial` (*Consequently, the analysis results are omitted*)
 
 **Included**: ❌ (Existing installation needed)
+
+**Note**: 
+- For benchmarking, Coverity is only used in **buildless** mode to automate the process
+- For the wrapper, Coverity needs the source code to be compiled
