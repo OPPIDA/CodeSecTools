@@ -2,7 +2,7 @@ from utils import *
 
 DATASET_NAME = "BenchmarkJava"
 BenchmarkJava_DATASET_DIR = os.path.join("datasets", DATASET_NAME)
-TEST_CODE_DIR = os.path.join(BenchmarkJava_DATASET_DIR, "src/main/java/org/owasp/benchmark/testcode")
+TEST_CODE_DIR = os.path.join(BenchmarkJava_DATASET_DIR, "testcode")
 
 class TestCode:
     def __init__(self, name, vuln_type, is_real, cwe_id):
