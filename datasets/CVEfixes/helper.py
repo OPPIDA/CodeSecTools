@@ -29,12 +29,15 @@ class CVE:
             return self.cve_id == other.cve_id
 
 ## Methods
+def clean_name(path):
+    return os.path.basename(path).replace(".csv", "")
+
 def list_dataset():
     return sorted(
         list(
             map(
-                os.path.basename,
-                glob.glob(os.path.join(CVEfixes_DATASET_DIR, "CVEfixes_*.csv"))
+                clean_name,
+                glob.glob(os.path.join(CVEfixes_DATASET_DIR, "CVEfixes_*"))
             )
         )
     )
