@@ -237,6 +237,9 @@ def export_for(dataset, lang):
     elif dataset == "SemgrepTest":
         results = process_results(SemgrepTest_RESULT_DIR)
         return results['stats'].defects
+    elif dataset == "BenchmarkJava":
+        results = process_results(BenchmarkJava_RESULT_DIR)
+        return results['stats'].defects
     else:
         raise Exception("Dataset not supported")
 

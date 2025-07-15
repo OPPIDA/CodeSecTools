@@ -1,5 +1,6 @@
 import datasets.CVEfixes.stats as CVEfixesStats
 import datasets.SemgrepTest.stats as SemgrepTestStats
+import datasets.BenchmarkJava.stats as BenchmarkJavaStats
 import SASTs.Coverity.analyzer as Analyzer
 import SASTs.Coverity.parser as Parser
 import SASTs.Coverity.wrapper.main as Wrapper
@@ -19,7 +20,7 @@ def cli():
     required=True,
     type=click.Choice(LANG.keys(), case_sensitive=False),
     show_choices=True,
-    help='Source code langauge (only one the time)'
+    help='Source code langauge (only one at the time)'
 )
 @click.option(
     '--force',
@@ -34,18 +35,18 @@ def analyze(lang, force):
         click.echo(f"Found existing analysis result at {result_dir}")
         if force:
             shutil.rmtree(result_dir)
-            Analyzer.run_single_project_buildless(lang, ".", result_dir)
+            Analyzer.run_analysis(lang, WORKING_DIR, result_dir)
         else:
             click.echo("Use --force to overwrite it")
             sys.exit(1)
     else:
-        Analyzer.run_single_project_buildless(lang, ".", result_dir)
+        Analyzer.run_analysis(lang, WORKING_DIR, result_dir)
 
 @cli.command()
 @click.option(
     '--dataset',
     required=True,
-    type=click.Choice(Analyzer.list_all_datasets()),
+    type=click.Choice(Analyzer.list_all_datasets(), case_sensitive=False),
 )
 @click.option(
     '--small-first',
@@ -61,7 +62,7 @@ def analyze(lang, force):
 )
 def benchmark(dataset, small_first, overwrite):
     """Benchmark Coverity on a dataset"""
-    if match:=re.search("CVEfixes_(.*).csv", dataset):
+    if match:=re.search("CVEfixes_(.*)", dataset):
         lang = match.groups()[0]
         Analyzer.run_CVEfixes(lang, small_first)
     elif match:=re.search("SemgrepTest_(.*)", dataset):
@@ -199,12 +200,14 @@ def plot(project, force, show, pgf):
 )
 def stats(dataset, force, show, pgf):
     """Display benchmark stats"""
-    if match:=re.search("CVEfixes_(.*).csv", dataset):
+    if match:=re.search("CVEfixes_(.*)", dataset):
         lang = match.groups()[0]
         CVEfixesStats.plot(lang, 'coverity', force=force, show=show, pgf=pgf)
     elif match:=re.search("SemgrepTest_(.*)", dataset):
         lang = match.groups()[0]
         SemgrepTestStats.plot(lang, 'coverity', force=force, show=show, pgf=pgf)
+    elif dataset == "BenchmarkJava":
+        BenchmarkJavaStats.plot('java', 'coverity', force=force, show=show, pgf=pgf)
 
 ## Wrapper
 @cli.command()
