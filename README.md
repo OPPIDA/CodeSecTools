@@ -8,7 +8,7 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 |:---:|:---:|:---:|:---:|
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`CVEfixes`](/datasets/README.md#1-cvefixes)|Java|✅[View Results](./results/Coverity/CVEfixes/README.md)|
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`SemgrepTest`](/datasets/README.md#2-semgrep-test-code)|Java|✅[View Results](./results/Coverity/SemgrepTest/README.md)|
-
+|[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`BenchmarkJava`](/datasets/README.md#3-benchmarkjava)|Java|✅[View Results](./results/Coverity/BenchmarkJava/README.md)|
 ## Getting started
 
 - Install the [uv](https://github.com/astral-sh/uv) package and project manager:
@@ -23,8 +23,8 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 
 - Make the script executable and run it from any directory:
   ```bash
-  chmod +x sastb.sh
-  ./sastb.sh
+  chmod +x sastb
+  ./sastb
   ```
 
 - Add the project directory to your `PATH` to run the script from anywhere:
