@@ -30,7 +30,7 @@ def save_results(project_dir, result_dir):
 
     click.echo(f"Results are saved in {result_dir}")
 
-def run_single_project_buildless(lang, project_dir, result_dir):
+def run_analysis(lang, project_dir, result_dir):
     # Coverity buildless capture
     start = time.time()
     _ = run_command(f"coverity capture --disable-build-command-inference --language {lang}", project_dir)
@@ -87,7 +87,7 @@ def run_CVEfixes(lang, small_first=False):
             continue
 
         # Run analysis
-        run_single_project_buildless(lang, repo_path, result_path)
+        run_analysis(lang, repo_path, result_path)
 
         # Clear temporary directory
         temp_dir.cleanup()
@@ -112,7 +112,7 @@ def run_SemgrepTest(lang, overwrite=False):
         testcode.save(temp_path)
 
     # Run analysis
-    run_single_project_buildless(lang, temp_path, result_path)
+    run_analysis(lang, temp_path, result_path)
 
     # Clear temporary directory
     temp_dir.cleanup()
@@ -137,7 +137,7 @@ def run_BenchmarkJava(overwrite=False):
         testcode.save(temp_path)
 
     # Run analysis
-    run_single_project_buildless("java", temp_path, result_path)
+    run_analysis("java", temp_path, result_path)
 
     # Clear temporary directory
     temp_dir.cleanup()
