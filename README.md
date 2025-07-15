@@ -11,20 +11,34 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 
 ## Getting started
 
-- Install [uv](https://github.com/astral-sh/uv) package and project manager:
+- Install the [uv](https://github.com/astral-sh/uv) package and project manager:
   ```bash
   pip install uv
   ```
 
-- Setup virtual environnement and install dependencies:
+- Set up a virtual environment and install the project dependencies:
   ```bash
   uv sync
   ```
 
-- Run CLI (the script can be executed from any directory):
+- Make the script executable and run it from any directory:
   ```bash
   chmod +x sastb.sh
   ./sastb.sh
+  ```
+
+- Add the project directory to your `PATH` to run the script from anywhere:
+  ```bash
+  # Bash
+  echo "export PATH=\$PATH:$(pwd)" >> ~/.bashrc
+  source ~/.bashrc
+
+  # Zsh
+  echo "export PATH=\$PATH:$(pwd)" >> ~/.zshrc
+  source ~/.zshrc
+
+  # Fish Shell
+  fish_add_path (pwd)
   ```
 
 ## Benchmark workflow
