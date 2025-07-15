@@ -7,6 +7,7 @@ TEST_CODE_DIR = os.path.join(BenchmarkJava_DATASET_DIR, "testcode")
 class TestCode:
     def __init__(self, name, vuln_type, is_real, cwe_id):
         self.name = name
+        self.filename = f"{self.name}.java"
         self.content = open(os.path.join(TEST_CODE_DIR, f"{name}.java")).read()
         self.vuln_type = vuln_type
         self.is_real = is_real
@@ -27,7 +28,7 @@ class TestCode:
             return self.name == other.name
 
     def save(self, dir):
-        with open(os.path.join(dir, f"{self.name}.java"), 'w') as file:
+        with open(os.path.join(dir, self.filename), 'w') as file:
             file.write(self.content)
 
 ## Methods
@@ -45,6 +46,6 @@ def load_dataset():
         reader = csv.reader(f)
         next(reader)
         for row in reader:
-            testcodes.append(TestCode(row[0], row[1], row[2], row[3]))
+            testcodes.append(TestCode(row[0], row[1], row[2], int(row[3])))
 
     return testcodes
