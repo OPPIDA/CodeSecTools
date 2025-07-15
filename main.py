@@ -1,18 +1,17 @@
 import SASTs.Coverity.main as Coverity
 from utils import *
 
-
 @click.group()
 @click.option(
-    '--debug',
+    '--silent',
     required=False,
     is_flag=True,
-    help='Show all debug messages'
+    help=''
 )
-def cli(debug):
+def cli(silent):
     """SAST Benchmark"""
-    if debug:
-        os.environ["DEBUG"] = "1"
+    if silent:
+        os.environ["SILENT"] = "1"
 
 cli.add_command(Coverity.cli)
 

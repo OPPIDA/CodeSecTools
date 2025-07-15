@@ -36,8 +36,8 @@ WORKING_DIR = os.getcwd()
 if sys.path[0]: os.chdir(sys.path[0])
 
 # Display CAT output
-def DEBUG():
-    return os.environ.get("DEBUG", "0") == "1"
+def SILENT():
+    return os.environ.get("SILENT", "0") == "1"
 
 # Import CWE
 CWE = {}
@@ -62,7 +62,7 @@ def run_command(command: str, cwd):
 
     for line in process.stdout:
         stdout += line
-        if DEBUG():
+        if not SILENT():
             print(line, end='')
 
     return stdout
