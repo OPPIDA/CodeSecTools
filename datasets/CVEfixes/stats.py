@@ -122,8 +122,8 @@ def plot_top_cwes():
                 cwe_counter[cwe_id] = {"good": 0, "wrong": 1, "actual": 0}
 
     X, Y1, Y2, Y3 = [], [], [], []
-    sorted_cwes = sorted(list(cwe_counter.items()), key=lambda i: i[1]["wrong"], reverse=True)
-    sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["actual"], reverse=True)
+    sorted_cwes = sorted(list(cwe_counter.items()), key=lambda i: i[1]["actual"], reverse=True)
+    sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
     sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
     for cwe_id, v in sorted_cwes[:limit]:
         cwe_name = CWE.get(cwe_id).get('Name', 'None') if CWE.get(cwe_id) else 'None'
