@@ -35,6 +35,8 @@ You will find here datasets used for the benchmark.
 
 **Licence**: `CC BY 4.0`
 
+**Scope**: `Project`
+
 **Included**: ✅ (Partial)
   - [`CVEfixes_java.csv`](./CVEfixes/CVEfixes_java.csv)
 
@@ -78,6 +80,8 @@ Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
 
 **Licence**: [`Semgrep Rules License v. 1.0`](https://semgrep.dev/legal/rules-license/) (*for both Community Edition and Pro*)
 
+**Scope**: `File`
+
 **Included**: ✅ (Full)
 - [`Semgrep_all.json`](./SemgrepTest/Semgrep_all.json)
 
@@ -108,6 +112,8 @@ $ SEMGREP_TOKEN=YOUR_TOKEN python3 ./datasets/Semgrep/downloader.py
 
 **Licence**: `GPL-2.0`
 
-**Included**: ✅ (Full)
+**Scope**: `File`
+
+**Included**: ✅ (Full, extracted from the [repository](https://github.com/OWASP-Benchmark/BenchmarkJava))
   - [`BenchmarkTest*.java`](./BenchmarkJava/src/main/java/org/owasp)
   - [`expectedresults-1.2.csv`](./BenchmarkJava/expectedresults-1.2.csv)
