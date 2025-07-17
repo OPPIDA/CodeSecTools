@@ -1,5 +1,7 @@
-import SASTs.Coverity.main as Coverity
+import SASTs.Coverity.cli as Coverity
+import SASTs.Semgrep.cli as Semgrep
 from utils import *
+
 
 @click.group()
 @click.option(
@@ -14,6 +16,7 @@ def cli(silent):
         os.environ["SILENT"] = "1"
 
 cli.add_command(Coverity.cli)
+cli.add_command(Semgrep.cli)
 
 if __name__ == '__main__':
     cli()

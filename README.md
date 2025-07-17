@@ -9,6 +9,8 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`CVEfixes`](/datasets/README.md#1-cvefixes)|Java|✅[View Results](./results/Coverity/CVEfixes/README.md)|
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`SemgrepTest`](/datasets/README.md#2-semgrep-test-code)|Java|✅[View Results](./results/Coverity/SemgrepTest/README.md)|
 |[`Coverity`](/SASTs/README.md#1-coverity-static-analysis)|[`BenchmarkJava`](/datasets/README.md#3-benchmarkjava)|Java|✅[View Results](./results/Coverity/BenchmarkJava/README.md)|
+|[`Semgrep`](/SASTs/README.md#2-semgrep-pro-engine)|[`BenchmarkJava`](/datasets/README.md#3-benchmarkjava)|Java|✅[View Results](./results/Semgrep/BenchmarkJava/README.md)|
+
 ## Getting started
 
 - Install the [uv](https://github.com/astral-sh/uv) package and project manager:
@@ -62,6 +64,6 @@ SAST results need to be transformed to a common format to be used by the dataset
   - `file`: Source file having the associated weakness
 - Dataset value (Actual) should AT LEAST contain:
   - `cwe_ids`: all CWEs of the vulnerable code
-  - `file(s)`: file(s) having the associated weakness
+  - `filename(s)`: file(s) having the associated weakness
 
 More criteria can be added for a more precise analysis (function name, line number).

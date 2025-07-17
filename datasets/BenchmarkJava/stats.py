@@ -1,12 +1,19 @@
 import datasets.BenchmarkJava.helper as BenchmarkJava
 import SASTs.Coverity.constants as CoverityConstants
 import SASTs.Coverity.parser as CoverityParser
+import SASTs.Semgrep.constants as SemgrepConstants
+import SASTs.Semgrep.parser as SemgrepParser
 from utils import *
+
 
 def parse(lang, sast):
     testcodes = BenchmarkJava.load_dataset() # Java only
     if sast == "coverity":
-        results = CoverityParser.export_for(BenchmarkJava.DATASET_NAME, lang)
+        result = CoverityParser.load_dataset_result(BenchmarkJava.DATASET_NAME, lang)
+        time = True
+        code_lines = True
+    elif sast == "semgrep":
+        result = SemgrepParser.load_dataset_result(BenchmarkJava.DATASET_NAME, lang)
         time = True
         code_lines = True
     else:
@@ -16,7 +23,7 @@ def parse(lang, sast):
     file_is_real = {testcode.filename: testcode.is_real for testcode in testcodes}
 
     testcode_number = len(testcodes)
-    defect_number = len(results)
+    defect_number = len(result.defects)
 
     full_match = []
     false_match = []
@@ -24,7 +31,7 @@ def parse(lang, sast):
     actual_cwes = [cwe_id for testcode in testcodes for cwe_id in testcode.cwe_ids]
     good_cwes = []
     wrong_cwes = []
-    for defect in results:
+    for defect in result.defects:
         # Ignore defect without cwe_id
         if not defect.cwe_id:
             continue
@@ -162,6 +169,8 @@ def plot(lang_, sast_, force, show, pgf):
                 (plot_coverity_defects(), "coverity_defects"),
             ]
         )
+    elif sast == 'semgrep':
+        export_dir = SemgrepConstants.BenchmarkJava_RESULT_DIR
 
     if export_dir:
         figure_dir = os.path.join(export_dir, "_figures")
