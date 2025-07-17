@@ -1,16 +1,20 @@
-import SASTs.Coverity.parser as Parser
+import SASTs._base.parser as BaseParser
 from SASTs.Coverity.constants import *
 from utils import *
 
 
-# TODO: Parent class: Defect
-class CoverityDefect:
-    def __init__(self, xml_dict):
-        self.xml_dict = xml_dict
-        self.lang = xml_dict['lang'].lower()
-        self.checker = xml_dict['checker']
+class CoverityDefect(BaseParser.Defect):
+    def __init__(self, defect_data):
+        super().__init__(
+            file = os.path.basename(defect_data['file']),
+            checker = defect_data['checker'],
+            category = "NONE",
+            cwe_id = TYPE_TO_CWE.get(defect_data['type'], None),
+            data = defect_data
+        )
 
-        self.category = "NONE"
+        self.lang = self.data['lang'].lower()
+
         if self.checker.startswith('SIGMA'):
             self.category = 'SIGMA'
         elif self.checker.startswith('FB'):
@@ -22,164 +26,67 @@ class CoverityDefect:
                         self.category = set_name
                         break
 
-        if self.category == "None":
-            click.echo(self.checker)
+        # Extra
+        self.function = self.data['function']
 
-        self.type = xml_dict['type']
-        self.cwe_id = TYPE_TO_CWE.get(self.type, None)
-        self.file = os.path.basename(xml_dict['file'])
-        self.function = xml_dict['function']
+class CoverityAnalysisResult(BaseParser.AnalysisResult):
+    def __init__(self, result_dir, result_data, config_data, captured_list, defects):
+        super().__init__(
+            name = os.path.basename(result_dir),
+            lang = None,
+            files = None,
+            defects = defects,
+            time = None,
+            data = (result_data, config_data, captured_list)
+        )
 
-    def __repr__(self):
-        return f"""{self.__class__.__name__}(
-    file: \t{self.file}
-    function: \t{self.function}
-    type: \t{self.type}
-    checker: \t{self.checker}
-    category: \t{self.category}
-    cwe_id: \t{self.cwe_id}
-)"""
-
-    @classmethod
-    def load(cls, xml_dict):
-        return cls(xml_dict)
-
-class CoverityAnalysisStats:
-    def __init__(self, xml_dict):
-        self.xml_dict = xml_dict
         self.metrics = {}
-        for metric in xml_dict['coverity']['metrics']['metric']:
+        for metric in result_data['coverity']['metrics']['metric']:
             self.metrics[metric['name']] = metric['value']
 
         self.time = int(self.metrics['time'])
+
+        self.files = list(map(lambda line: os.path.basename(line), captured_list.splitlines()))
+
+        file_count = 0
+        for lang, pattern in LANG.items():
+            include = pattern['include']; exclude = pattern['exclude']
+            files = [file for file in self.files if re.search(include, file) and not re.search(exclude, file)]
+            if len(files) > file_count:
+                file_count = len(files)
+                self.lang = lang
+
+        # Extra
+        self.config = config_data
         self.analysis_cmd = self.metrics['args']
-
-        self.defect_count = self.metrics['total-new-defect-count']
-        self.defect = None # Mandatory
-
         self.code_lines = {}
         for key in self.metrics.keys():
             if r:=re.search(r'(.*)-code-lines', key):
                 self.code_lines[r.group(1)] = int(self.metrics[key])
 
-        self.TSF = None # Optional
 
-    def __repr__(self):
-        # TODO
-        return f"{self.__class__.__name__}()"
+def list_results(project=False, dataset=False, limit=None):
+    return BaseParser.list_results(RESULT_DIR, SUPPORTED_DATASETS, project, dataset, limit)
 
-    @classmethod
-    def load(cls, xml_dict):
-        return cls(xml_dict)
-
-    def load_defects(self, defects):
-        self.defects = defects
-
-    def load_TSF(self, TSF):
-        self.TSF = TSF
-
-    def stats_by_checkers(self):
-        stats = {}
-        for defect in self.defects:
-            if defect.checker not in stats.keys():
-                stats[defect.checker] = {'count': 1, 'files': {defect.file}}
-            else:
-                stats[defect.checker]['files'].add(defect.file)
-                stats[defect.checker]['count'] = len(stats[defect.checker]['files'])
-
-        return stats
-
-    def stats_by_categories(self):
-        stats = {}
-        for defect in self.defects:
-            if defect.category not in stats.keys():
-                stats[defect.category] = {'count': 1, 'checkers': [defect.checker], 'unique': 1}
-            else:
-                stats[defect.category]['checkers'].append(defect.checker)
-                stats[defect.category]['count'] = len(stats[defect.category]['checkers'])
-                stats[defect.category]['unique'] = len(set(stats[defect.category]['checkers']))
-
-        return stats
-
-    def stats_by_files(self):
-        stats = {}
-        for defect in self.defects:
-            if self.TSF:
-                if defect.file not in self.TSF:
-                    continue
-            if defect.file not in stats.keys():
-                stats[defect.file] = {'count': 1, 'checkers': {defect.checker}}
-            else:
-                stats[defect.file]['checkers'].add(defect.checker)
-                stats[defect.file]['count'] = len(stats[defect.file]['checkers'])
-
-        return stats
-
-    def stats_by_cwes(self):
-        stats = {}
-        for defect in self.defects:
-            if defect.cwe_id not in stats.keys():
-                stats[defect.cwe_id] = {'count': 1, 'files': {defect.file}}
-            else:
-                stats[defect.cwe_id]['files'].add(defect.file)
-                stats[defect.cwe_id]['count'] = len(stats[defect.cwe]['files'])
-
-        return stats
-
-class CapturedSrcFiles:
-    def __init__(self, f):
-        self.file_list = map(lambda line: os.path.basename(line), f.read().splitlines())
-
-        self.main_lang, temp_counter = None, 0
-        self.files_by_lang = {}
-        for lang, pattern in LANG.items():
-            include = pattern['include']
-            exclude = pattern['exclude']
-
-            files = []
-            for file in self.file_list:
-                if re.search(include, file) and not re.search(exclude, file):
-                    files.append(file)
-
-            self.files_by_lang[lang] = (len(files), files)
-
-            if len(files) > temp_counter:
-                temp_counter = len(files)
-                self.main_lang = lang
-
-def list_results(limit=None):
-    result_dirs = []
-    if os.path.isdir(RESULT_DIR):
-        for child in os.listdir(RESULT_DIR):
-            child_path = os.path.join(RESULT_DIR, child)
-            if os.path.isdir(child_path):
-                # Exclude dataset results
-                if not child in DATASETS:
-                    result_dirs.append(child)
-
-    result_dirs = sorted(result_dirs)
-    return result_dirs
-
-def process_results(result_dir):
-    results = {}
+def load_result(result_dir):
+    # Analysis metrics
+    file_path = os.path.join(result_dir, "ANALYSIS.metrics.xml")
+    if os.path.isfile(file_path):
+        analysis_data = xmltodict.parse(open(file_path, "rb"))
+    else:
+        raise Exception("Analysis output file not found")
 
     # Config
     file_path = os.path.join(result_dir, "coverity.yaml")
     if os.path.isfile(file_path):
-        f = open(file_path, "r")
-        results['config'] = yaml.load(f, Loader=yaml.Loader)
-
-    # Analysis metrics
-    file_path = os.path.join(result_dir, "ANALYSIS.metrics.xml")
-    if os.path.isfile(file_path):
-        f = open(file_path, "rb")
-        results['stats'] = CoverityAnalysisStats(xmltodict.parse(f))
+        config_data = yaml.load(open(file_path, "r"), Loader=yaml.Loader)
+    else:
+        config_data = None
 
     # Captured source file list
+    captured_list = ""
     for file in glob.glob(os.path.join(result_dir, "capture-files-src-list*")):
-        f = open(file, "r")
-        results['captured'] = CapturedSrcFiles(f)
-        results['lang'] = results['captured'].main_lang
+        captured_list += open(file, "r").read()
 
     # Defects
     defects = []
@@ -192,58 +99,36 @@ def process_results(result_dir):
 
         if isinstance(errors, list):
             for error in errors:
-                defects.append(CoverityDefect.load(error))
+                defects.append(CoverityDefect(error))
         else:
-            defects.append(CoverityDefect.load(errors))
+            defects.append(CoverityDefect(errors))
 
-    results['stats'].load_defects(defects)
+    return CoverityAnalysisResult(result_dir, analysis_data, config_data, captured_list, defects)
 
-    return results
-
-def export(results, format):
-    data = {
-        'lang': results['lang'],
-        'config' : results.get('config', {}),
-        'files': results['captured'].files_by_lang,
-        'defects': {
-            'count': results['stats'].defect_count,
-            'per_checker': results['stats'].stats_by_checkers(),
-            'per_file': results['stats'].stats_by_files(),
-            'per_category': results['stats'].stats_by_categories(),
-            'per_cwe': results['stats'].stats_by_cwes(),
-        }
-    }
-
-    if format == "json":
-        return json.dumps(data, default=list, indent=2)
-
-def export_for(dataset, lang):
+def load_dataset_result(dataset, lang):
     """Export the results for comparison with the actual dataset values"""
     if dataset == "CVEfixes":
         defects = []
         for cve_result_dir in glob.glob(os.path.join(CVEfixes_RESULT_DIR, "CVE-*")):
-            results = process_results(cve_result_dir)
-            if results['lang'] == lang:
+            result = load_result(cve_result_dir)
+            if result.lang == lang:
                 defects.append(
                     (
                         os.path.basename(cve_result_dir),
-                        results['stats'].defects,
+                        result.defects,
                         {
-                            "time": results['stats'].time,
-                            "code_lines": results['stats'].code_lines,
+                            "time": result.time,
+                            "code_lines": result.code_lines,
                         }
                     )
                 )
+        return defects
     elif dataset == "SemgrepTest":
-        results = process_results(SemgrepTest_RESULT_DIR)
-        return results['stats'].defects
+        return load_result(SemgrepTest_RESULT_DIR)
     elif dataset == "BenchmarkJava":
-        results = process_results(BenchmarkJava_RESULT_DIR)
-        return results['stats'].defects
+        return load_result(BenchmarkJava_RESULT_DIR)
     else:
         raise Exception("Dataset not supported")
-
-    return defects
 
 ## Ploting helpers
 def map_colors(labels, lang):
@@ -273,20 +158,19 @@ def map_colors(labels, lang):
     return colors
 
 ## Plot
-# TODO: Per CWE
 def plot(project_dir, force, show, pgf, limit=10):
-    results = Parser.process_results(project_dir)
-    project_name = os.path.basename(project_dir)
-    lang = results['lang']
+    result = load_result(project_dir)
+    project_name = result.name
+    lang = result.lang
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
-    files = results['stats'].stats_by_files()
-    checkers = results['stats'].stats_by_checkers()
-    categories = results['stats'].stats_by_categories()
+    by_files = result.stats_by_files()
+    by_checkers = result.stats_by_checkers()
+    by_categories = result.stats_by_categories()
 
-    # Plot for files
+    # Plot by files
     X_files, Y_files = [], []
-    sorted_files = sorted(list(files.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_files = sorted(list(by_files.items()), key=lambda e: e[1]['count'], reverse=True)
     for k, v in sorted_files[:limit]:
         X_files.append(k)
         Y_files.append(v['count'])
@@ -310,9 +194,9 @@ def plot(project_dir, force, show, pgf, limit=10):
     ax1.set_xticks(X_files, X_files, rotation=45, ha="right")
     ax1.set_title(f"Stats by files (limit to {limit})")
 
-    # Plot for checkers
+    # Plot by checkers
     X_checkers, Y_checkers = [], []
-    sorted_checkers = sorted(list(checkers.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_checkers = sorted(list(by_checkers.items()), key=lambda e: e[1]['count'], reverse=True)
     for k, v in sorted_checkers[:limit]:
         X_checkers.append(k)
         Y_checkers.append(v['count'])
@@ -321,9 +205,9 @@ def plot(project_dir, force, show, pgf, limit=10):
     ax2.set_xticks(X_checkers, X_checkers, rotation=45, ha="right")
     ax2.set_title(f"Stats by checkers (limit to {limit})")
 
-    # Plot for categories
+    # Plot by categories
     X_categories, Y_categories = [], []
-    sorted_categories = sorted(list(categories.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_categories = sorted(list(by_categories.items()), key=lambda e: e[1]['count'], reverse=True)
     for k, v in sorted_categories[:limit]:
         X_categories.append(k)
         Y_categories.append(v['count'])
@@ -333,7 +217,7 @@ def plot(project_dir, force, show, pgf, limit=10):
     ax3.set_title(f"Stats by categories (limit to {limit})")
 
     # Figure
-    fig.suptitle(f'Project {project_name} ({len(files)} files analyzed, {len(checkers)} checkers triggered)', fontsize=16)
+    fig.suptitle(f'Project {project_name}, {len(result.files)} files analyzed, {len(result.defects)} defects raised', fontsize=16)
     labels = list(COLOR_MAPPING.keys())
     handles = [plt.Rectangle((0,0),1,1, color=COLOR_MAPPING[label]) for label in labels]
     plt.legend(handles, labels)

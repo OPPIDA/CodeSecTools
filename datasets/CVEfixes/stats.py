@@ -11,7 +11,7 @@ def parse(lang, sast):
 
     cves = CVEfixes.load_dataset(lang)
     if sast == "coverity":
-        results = CoverityParser.export_for(CVEfixes.DATASET_NAME, lang)
+        results = CoverityParser.load_dataset_result(CVEfixes.DATASET_NAME, lang)
         time = True
         code_lines = True
     else:

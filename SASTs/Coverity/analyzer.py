@@ -43,10 +43,10 @@ def run_analysis(lang, project_dir, result_dir):
 
     save_results(project_dir, result_dir)
 
+import datasets.BenchmarkJava.helper as BenchmarkJava
 ## Datasets
 import datasets.CVEfixes.helper as CVEfixes
 import datasets.SemgrepTest.helper as SemgrepTest
-import datasets.BenchmarkJava.helper as BenchmarkJava
 
 
 # TODO: max repo size

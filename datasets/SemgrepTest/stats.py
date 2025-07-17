@@ -3,10 +3,11 @@ import SASTs.Coverity.constants as CoverityConstants
 import SASTs.Coverity.parser as CoverityParser
 from utils import *
 
+
 def parse(lang, sast):
     rules, testcodes = SemgrepTest.load_dataset(lang)
     if sast == "coverity":
-        results = CoverityParser.export_for(SemgrepTest.DATASET_NAME, lang)
+        result = CoverityParser.load_dataset_result(SemgrepTest.DATASET_NAME, lang)
         time = True
         code_lines = True
     else:
@@ -15,7 +16,7 @@ def parse(lang, sast):
     file_cwes = {testcode.filename: testcode.cwe_ids for testcode in testcodes}
 
     testcode_number = len(testcodes)
-    defect_number = len(results)
+    defect_number = len(result.defects)
 
     full_match = []
     false_match = []
@@ -23,7 +24,7 @@ def parse(lang, sast):
     actual_cwes = [cwe_id for testcode in testcodes for cwe_id in testcode.cwe_ids]
     good_cwes = []
     wrong_cwes = []
-    for defect in results:
+    for defect in result.defects:
         # Ignore defect without cwe_id
         if not defect.cwe_id:
             continue
