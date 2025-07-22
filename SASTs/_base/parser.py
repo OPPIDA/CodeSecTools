@@ -18,6 +18,7 @@ class Defect:
     cwe_id: \t{self.cwe_id}
 )"""
 
+
 class AnalysisResult:
     def __init__(self, name, lang, files, defects, time, data):
         self.name = name
@@ -41,10 +42,10 @@ class AnalysisResult:
         stats = {}
         for defect in self.defects:
             if defect.checker not in stats.keys():
-                stats[defect.checker] = {'count': 1, 'files': {defect.file}}
+                stats[defect.checker] = {"count": 1, "files": {defect.file}}
             else:
-                stats[defect.checker]['files'].add(defect.file)
-                stats[defect.checker]['count'] = len(stats[defect.checker]['files'])
+                stats[defect.checker]["files"].add(defect.file)
+                stats[defect.checker]["count"] = len(stats[defect.checker]["files"])
 
         return stats
 
@@ -52,11 +53,19 @@ class AnalysisResult:
         stats = {}
         for defect in self.defects:
             if defect.category not in stats.keys():
-                stats[defect.category] = {'count': 1, 'checkers': [defect.checker], 'unique': 1}
+                stats[defect.category] = {
+                    "count": 1,
+                    "checkers": [defect.checker],
+                    "unique": 1,
+                }
             else:
-                stats[defect.category]['checkers'].append(defect.checker)
-                stats[defect.category]['count'] = len(stats[defect.category]['checkers'])
-                stats[defect.category]['unique'] = len(set(stats[defect.category]['checkers']))
+                stats[defect.category]["checkers"].append(defect.checker)
+                stats[defect.category]["count"] = len(
+                    stats[defect.category]["checkers"]
+                )
+                stats[defect.category]["unique"] = len(
+                    set(stats[defect.category]["checkers"])
+                )
 
         return stats
 
@@ -64,10 +73,10 @@ class AnalysisResult:
         stats = {}
         for defect in self.defects:
             if defect.file not in stats.keys():
-                stats[defect.file] = {'count': 1, 'checkers': {defect.checker}}
+                stats[defect.file] = {"count": 1, "checkers": {defect.checker}}
             else:
-                stats[defect.file]['checkers'].add(defect.checker)
-                stats[defect.file]['count'] = len(stats[defect.file]['checkers'])
+                stats[defect.file]["checkers"].add(defect.checker)
+                stats[defect.file]["count"] = len(stats[defect.file]["checkers"])
 
         return stats
 
@@ -75,15 +84,18 @@ class AnalysisResult:
         stats = {}
         for defect in self.defects:
             if defect.cwe_id not in stats.keys():
-                stats[defect.cwe_id] = {'count': 1, 'files': {defect.file}}
+                stats[defect.cwe_id] = {"count": 1, "files": {defect.file}}
             else:
-                stats[defect.cwe_id]['files'].add(defect.file)
-                stats[defect.cwe_id]['count'] = len(stats[defect.cwe]['files'])
+                stats[defect.cwe_id]["files"].add(defect.file)
+                stats[defect.cwe_id]["count"] = len(stats[defect.cwe]["files"])
 
         return stats
 
+
 ## Common helpers
-def list_results(result_dir, supported_dataset, project=False, dataset=False, limit=None):
+def list_results(
+    result_dir, supported_dataset, project=False, dataset=False, limit=None
+):
     # TODO: limit
     result_dirs = []
     if os.path.isdir(result_dir):

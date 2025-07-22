@@ -23,29 +23,35 @@ import yaml
 
 # Matplotlib config
 matplotlib.use("pgf")
-matplotlib.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    'font.family': 'serif',
-    'font.size' : 11,
-    'text.usetex': True,
-    'pgf.rcfonts': False,
-})
+matplotlib.rcParams.update(
+    {
+        "pgf.texsystem": "pdflatex",
+        "font.family": "serif",
+        "font.size": 11,
+        "text.usetex": True,
+        "pgf.rcfonts": False,
+    }
+)
 
 # Differentiate project directory and this tool directory
 WORKING_DIR = os.getcwd()
-if sys.path[0]: os.chdir(sys.path[0])
+if sys.path[0]:
+    os.chdir(sys.path[0])
+
 
 # Display CAT output
 def SILENT():
     return os.environ.get("SILENT", "0") == "1"
 
+
 # Import CWE
 CWE = {}
 for file_path in glob.glob(os.path.join("data", "CWE_*.csv")):
-    with open(file_path, mode='r', encoding='utf-8') as file:
+    with open(file_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         for row in reader:
-            CWE[int(row['CWE-ID'])] = row
+            CWE[int(row["CWE-ID"])] = row
+
 
 # Subprocess wrapper
 def run_command(command: str, cwd):
@@ -55,7 +61,7 @@ def run_command(command: str, cwd):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
     )
 
     stdout = ""
@@ -63,6 +69,6 @@ def run_command(command: str, cwd):
     for line in process.stdout:
         stdout += line
         if not SILENT():
-            print(line, end='')
+            print(line, end="")
 
     return stdout

@@ -30,20 +30,28 @@ def save_results(project_dir, result_dir):
 
     click.echo(f"Results are saved in {result_dir}")
 
+
 def run_analysis(lang, project_dir, result_dir):
     # Coverity buildless capture
     start = time.time()
-    _ = run_command(f"coverity capture --disable-build-command-inference --language {lang}", project_dir)
+    _ = run_command(
+        f"coverity capture --disable-build-command-inference --language {lang}",
+        project_dir,
+    )
 
     # Support Java only
     # TODO: C/C++, support config flag -co
-    _ = run_command("cov-analyze --dir idir --all-security --enable-callgraph-metrics", project_dir)
+    _ = run_command(
+        "cov-analyze --dir idir --all-security --enable-callgraph-metrics", project_dir
+    )
     end = time.time()
     click.echo(f"Time taken (capture + analysis): {timedelta(seconds=end-start)}")
 
     save_results(project_dir, result_dir)
 
+
 import datasets.BenchmarkJava.helper as BenchmarkJava
+
 ## Datasets
 import datasets.CVEfixes.helper as CVEfixes
 import datasets.SemgrepTest.helper as SemgrepTest
@@ -92,6 +100,7 @@ def run_CVEfixes(lang, small_first=False):
         # Clear temporary directory
         temp_dir.cleanup()
 
+
 def run_SemgrepTest(lang, overwrite=False):
     _, testcodes = SemgrepTest.load_dataset(lang)
 
@@ -100,7 +109,9 @@ def run_SemgrepTest(lang, overwrite=False):
 
     if os.path.isdir(result_path):
         if os.listdir(result_path) and not overwrite:
-            click.echo("Results already exist, please use --overwrite to delete old results")
+            click.echo(
+                "Results already exist, please use --overwrite to delete old results"
+            )
             return
 
     # Create temporary directory for the project
@@ -117,6 +128,7 @@ def run_SemgrepTest(lang, overwrite=False):
     # Clear temporary directory
     temp_dir.cleanup()
 
+
 def run_BenchmarkJava(overwrite=False):
     testcodes = BenchmarkJava.load_dataset()
 
@@ -125,7 +137,9 @@ def run_BenchmarkJava(overwrite=False):
 
     if os.path.isdir(result_path):
         if os.listdir(result_path) and not overwrite:
-            click.echo("Results already exist, please use --overwrite to delete old results")
+            click.echo(
+                "Results already exist, please use --overwrite to delete old results"
+            )
             return
 
     # Create temporary directory for the project

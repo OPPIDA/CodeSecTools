@@ -10,14 +10,10 @@ RESULT_DIR = os.path.join("results", "Semgrep")
 CVEfixes_RESULT_DIR = os.path.join(RESULT_DIR, "CVEfixes")
 BenchmarkJava_RESULT_DIR = os.path.join(RESULT_DIR, "BenchmarkJava")
 
-SUPPORTED_DATASETS = [
-    "BenchmarkJava"
-]
+SUPPORTED_DATASETS = ["BenchmarkJava"]
 
 ## Supported languages
-LANG = {
-    'java': {}
-}
+LANG = {"java": {}}
 
 ## Ploting
 COLOR_MAPPING = {

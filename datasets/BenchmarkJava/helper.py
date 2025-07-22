@@ -4,6 +4,7 @@ DATASET_NAME = "BenchmarkJava"
 BenchmarkJava_DATASET_DIR = os.path.join("datasets", DATASET_NAME)
 TEST_CODE_DIR = os.path.join(BenchmarkJava_DATASET_DIR, "testcode")
 
+
 class TestCode:
     def __init__(self, name, vuln_type, is_real, cwe_id):
         self.name = name
@@ -28,21 +29,21 @@ class TestCode:
             return self.name == other.name
 
     def save(self, dir):
-        with open(os.path.join(dir, self.filename), 'w') as file:
+        with open(os.path.join(dir, self.filename), "w") as file:
             file.write(self.content)
+
 
 ## Methods
 def list_dataset():
-    return sorted(
-        [
-            "BenchmarkJava"
-        ]
-    )
+    return sorted(["BenchmarkJava"])
+
 
 def load_dataset():
     testcodes = []
 
-    with open(os.path.join(BenchmarkJava_DATASET_DIR, "expectedresults-1.2.csv"), "r") as f:
+    with open(
+        os.path.join(BenchmarkJava_DATASET_DIR, "expectedresults-1.2.csv"), "r"
+    ) as f:
         reader = csv.reader(f)
         next(reader)
         for row in reader:

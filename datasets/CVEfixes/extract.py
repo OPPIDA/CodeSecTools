@@ -8,19 +8,21 @@ import tqdm
 
 CVEfixes_DATASET_DIR = os.path.join("datasets", "CVEfixes")
 
-LANG_EXT = {
-    "java": ["java"]
-}
+LANG_EXT = {"java": ["java"]}
+
 
 def get_github_repo_size(repo_url):
-    headers = {'Authorization': f'Bearer {TOKEN}'}
-    r = requests.get(repo_url.replace("github.com", "api.github.com/repos"), headers=headers)
+    headers = {"Authorization": f"Bearer {TOKEN}"}
+    r = requests.get(
+        repo_url.replace("github.com", "api.github.com/repos"), headers=headers
+    )
     size_kb = r.json().get("size", None)
     if size_kb:
         return size_kb * 1000
 
+
 def extract_lang(lang):
-    conn = sqlite3.connect('./datasets/CVEfixes/CVEfixes.db')
+    conn = sqlite3.connect("./datasets/CVEfixes/CVEfixes.db")
     cursor = conn.cursor()
     query = f"""
 SELECT
@@ -51,7 +53,7 @@ GROUP BY cve.cve_id;"""
     rows = cursor.fetchall()
 
     output_path = os.path.join(CVEfixes_DATASET_DIR, f"CVEfixes_{lang}.csv")
-    with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
+    with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         headers = [desc[0] for desc in cursor.description] + ["repo_size"]
         writer.writerow(headers)
@@ -64,9 +66,10 @@ GROUP BY cve.cve_id;"""
     print(f"Extraction completed and available at {output_path}")
     conn.close()
 
+
 if __name__ == "__main__":
     TOKEN = input("Token: ")
-    headers = {'Authorization': f'Bearer {TOKEN}'}
+    headers = {"Authorization": f"Bearer {TOKEN}"}
     r = requests.get("https://api.github.com", headers=headers)
     if r.status_code == 401:
         print(r.json())

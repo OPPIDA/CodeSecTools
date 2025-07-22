@@ -19,14 +19,19 @@ def save_results(project_dir, result_dir, analysis_log):
 
     click.echo(f"Results are saved in {result_dir}")
 
+
 def run_analysis(lang, project_dir, result_dir):
     # Semgrep Pro Engine scan
     start = time.time()
-    analysis_log = run_command(f'semgrep scan --config=p/{lang} --pro --metrics=off --json-output=output.json', project_dir)
+    analysis_log = run_command(
+        f"semgrep scan --config=p/{lang} --pro --metrics=off --json-output=output.json",
+        project_dir,
+    )
     end = time.time()
     click.echo(f"Time taken: {timedelta(seconds=end-start)}")
 
     save_results(project_dir, result_dir, analysis_log)
+
 
 ## Datasets
 import datasets.BenchmarkJava.helper as BenchmarkJava
@@ -40,7 +45,9 @@ def run_BenchmarkJava(overwrite=False):
 
     if os.path.isdir(result_path):
         if os.listdir(result_path) and not overwrite:
-            click.echo("Results already exist, please use --overwrite to delete old results")
+            click.echo(
+                "Results already exist, please use --overwrite to delete old results"
+            )
             return
 
     # Create temporary directory for the project

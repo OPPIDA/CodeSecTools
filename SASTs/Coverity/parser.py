@@ -6,67 +6,78 @@ from utils import *
 class CoverityDefect(BaseParser.Defect):
     def __init__(self, defect_data):
         super().__init__(
-            file = os.path.basename(defect_data['file']),
-            checker = defect_data['checker'],
-            category = "NONE",
-            cwe_id = TYPE_TO_CWE.get(defect_data['type'], None),
-            data = defect_data
+            file=os.path.basename(defect_data["file"]),
+            checker=defect_data["checker"],
+            category="NONE",
+            cwe_id=TYPE_TO_CWE.get(defect_data["type"], None),
+            data=defect_data,
         )
 
-        self.lang = self.data['lang'].lower()
+        self.lang = self.data["lang"].lower()
 
-        if self.checker.startswith('SIGMA'):
-            self.category = 'SIGMA'
-        elif self.checker.startswith('FB'):
-            self.category = 'SPOTBUGS'
+        if self.checker.startswith("SIGMA"):
+            self.category = "SIGMA"
+        elif self.checker.startswith("FB"):
+            self.category = "SPOTBUGS"
         else:
             if self.lang in LANG.keys():
-                for set_name, checker_set in LANG[self.lang]['checker_sets'].items():
+                for set_name, checker_set in LANG[self.lang]["checker_sets"].items():
                     if self.checker in checker_set:
                         self.category = set_name
                         break
 
         # Extra
-        self.function = self.data['function']
+        self.function = self.data["function"]
+
 
 class CoverityAnalysisResult(BaseParser.AnalysisResult):
     def __init__(self, result_dir, result_data, config_data, captured_list, defects):
         super().__init__(
-            name = os.path.basename(result_dir),
-            lang = None,
-            files = None,
-            defects = defects,
-            time = None,
-            data = (result_data, config_data, captured_list)
+            name=os.path.basename(result_dir),
+            lang=None,
+            files=None,
+            defects=defects,
+            time=None,
+            data=(result_data, config_data, captured_list),
         )
 
         self.metrics = {}
-        for metric in result_data['coverity']['metrics']['metric']:
-            self.metrics[metric['name']] = metric['value']
+        for metric in result_data["coverity"]["metrics"]["metric"]:
+            self.metrics[metric["name"]] = metric["value"]
 
-        self.time = int(self.metrics['time'])
+        self.time = int(self.metrics["time"])
 
-        self.files = list(map(lambda line: os.path.basename(line), captured_list.splitlines()))
+        self.files = list(
+            map(lambda line: os.path.basename(line), captured_list.splitlines())
+        )
 
         file_count = 0
         for lang, pattern in LANG.items():
-            include = pattern['include']; exclude = pattern['exclude']
-            files = [file for file in self.files if re.search(include, file) and not re.search(exclude, file)]
+            include = pattern["include"]
+            exclude = pattern["exclude"]
+            files = [
+                file
+                for file in self.files
+                if re.search(include, file) and not re.search(exclude, file)
+            ]
             if len(files) > file_count:
                 file_count = len(files)
                 self.lang = lang
 
         # Extra
         self.config = config_data
-        self.analysis_cmd = self.metrics['args']
+        self.analysis_cmd = self.metrics["args"]
         self.code_lines = {}
         for key in self.metrics.keys():
-            if r:=re.search(r'(.*)-code-lines', key):
+            if r := re.search(r"(.*)-code-lines", key):
                 self.code_lines[r.group(1)] = int(self.metrics[key])
 
 
 def list_results(project=False, dataset=False, limit=None):
-    return BaseParser.list_results(RESULT_DIR, SUPPORTED_DATASETS, project, dataset, limit)
+    return BaseParser.list_results(
+        RESULT_DIR, SUPPORTED_DATASETS, project, dataset, limit
+    )
+
 
 def load_result(result_dir):
     # Analysis metrics
@@ -93,7 +104,9 @@ def load_result(result_dir):
     for file in glob.glob(os.path.join(result_dir, "*errors.xml")):
         f = open(file, "r")
         try:
-            errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())['root']['error']
+            errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())["root"][
+                "error"
+            ]
         except TypeError:
             pass
 
@@ -103,7 +116,10 @@ def load_result(result_dir):
         else:
             defects.append(CoverityDefect(errors))
 
-    return CoverityAnalysisResult(result_dir, analysis_data, config_data, captured_list, defects)
+    return CoverityAnalysisResult(
+        result_dir, analysis_data, config_data, captured_list, defects
+    )
+
 
 def load_dataset_result(dataset, lang):
     """Export the results for comparison with the actual dataset values"""
@@ -119,7 +135,7 @@ def load_dataset_result(dataset, lang):
                         {
                             "time": result.time,
                             "code_lines": result.code_lines,
-                        }
+                        },
                     )
                 )
         return defects
@@ -129,6 +145,7 @@ def load_dataset_result(dataset, lang):
         return load_result(BenchmarkJava_RESULT_DIR)
     else:
         raise Exception("Dataset not supported")
+
 
 ## Ploting helpers
 def map_colors(labels, lang):
@@ -141,7 +158,7 @@ def map_colors(labels, lang):
         else:
             color = "black"
             # Our own checker sets
-            for level, checker_sets in LANG[lang]['checker_sets'].items():
+            for level, checker_sets in LANG[lang]["checker_sets"].items():
                 if label in checker_sets:
                     color = COLOR_MAPPING[level]
                     break
@@ -157,6 +174,7 @@ def map_colors(labels, lang):
 
     return colors
 
+
 ## Plot
 def plot(project_dir, force, show, pgf, limit=10):
     result = load_result(project_dir)
@@ -170,14 +188,16 @@ def plot(project_dir, force, show, pgf, limit=10):
 
     # Plot by files
     X_files, Y_files = [], []
-    sorted_files = sorted(list(by_files.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_files = sorted(
+        list(by_files.items()), key=lambda e: e[1]["count"], reverse=True
+    )
     for k, v in sorted_files[:limit]:
         X_files.append(k)
-        Y_files.append(v['count'])
+        Y_files.append(v["count"])
 
-        COLORS_COUNT = {v: 0 for k,v in COLOR_MAPPING.items()}
+        COLORS_COUNT = {v: 0 for k, v in COLOR_MAPPING.items()}
 
-        for checker in v['checkers']:
+        for checker in v["checkers"]:
             color = map_colors([checker], lang)[0]
             COLORS_COUNT[color] += 1
 
@@ -185,7 +205,7 @@ def plot(project_dir, force, show, pgf, limit=10):
         current_height = 0
         for color, height in COLORS_COUNT.items():
             if height > 0:
-                bars.append((k, current_height+height, color))
+                bars.append((k, current_height + height, color))
                 current_height += height
 
         for k, height, color in bars[::-1]:
@@ -196,10 +216,12 @@ def plot(project_dir, force, show, pgf, limit=10):
 
     # Plot by checkers
     X_checkers, Y_checkers = [], []
-    sorted_checkers = sorted(list(by_checkers.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_checkers = sorted(
+        list(by_checkers.items()), key=lambda e: e[1]["count"], reverse=True
+    )
     for k, v in sorted_checkers[:limit]:
         X_checkers.append(k)
-        Y_checkers.append(v['count'])
+        Y_checkers.append(v["count"])
 
     ax2.bar(X_checkers, Y_checkers, color=map_colors(X_checkers, lang))
     ax2.set_xticks(X_checkers, X_checkers, rotation=45, ha="right")
@@ -207,19 +229,26 @@ def plot(project_dir, force, show, pgf, limit=10):
 
     # Plot by categories
     X_categories, Y_categories = [], []
-    sorted_categories = sorted(list(by_categories.items()), key=lambda e: e[1]['count'], reverse=True)
+    sorted_categories = sorted(
+        list(by_categories.items()), key=lambda e: e[1]["count"], reverse=True
+    )
     for k, v in sorted_categories[:limit]:
         X_categories.append(k)
-        Y_categories.append(v['count'])
+        Y_categories.append(v["count"])
 
     ax3.bar(X_categories, Y_categories, color=map_colors(X_categories, lang))
     ax3.set_xticks(X_categories, X_categories, rotation=45, ha="right")
     ax3.set_title(f"Stats by categories (limit to {limit})")
 
     # Figure
-    fig.suptitle(f'Project {project_name}, {len(result.files)} files analyzed, {len(result.defects)} defects raised', fontsize=16)
+    fig.suptitle(
+        f"Project {project_name}, {len(result.files)} files analyzed, {len(result.defects)} defects raised",
+        fontsize=16,
+    )
     labels = list(COLOR_MAPPING.keys())
-    handles = [plt.Rectangle((0,0),1,1, color=COLOR_MAPPING[label]) for label in labels]
+    handles = [
+        plt.Rectangle((0, 0), 1, 1, color=COLOR_MAPPING[label]) for label in labels
+    ]
     plt.legend(handles, labels)
 
     # Export
@@ -228,17 +257,19 @@ def plot(project_dir, force, show, pgf, limit=10):
     os.makedirs(figure_dir, exist_ok=True)
     figure_path = os.path.join(figure_dir, f"{name}.png")
     if os.path.isfile(figure_path) and not force:
-        if not click.confirm(f"Found existing figure at {figure_path}, would you like to overwrite?"):
+        if not click.confirm(
+            f"Found existing figure at {figure_path}, would you like to overwrite?"
+        ):
             click.echo(f"{name} not saved")
             return
 
     fig.set_size_inches(12, 7)
-    fig.savefig(figure_path, bbox_inches='tight')
+    fig.savefig(figure_path, bbox_inches="tight")
     click.echo(f"Figure {name} saved at {figure_path}")
 
     if pgf:
         figure_path_pgf = os.path.join(figure_dir, f"{name}.pgf")
-        fig.savefig(figure_path_pgf, bbox_inches='tight')
+        fig.savefig(figure_path_pgf, bbox_inches="tight")
         click.echo(f"Figure {name} exported to pgf")
 
     if show:
