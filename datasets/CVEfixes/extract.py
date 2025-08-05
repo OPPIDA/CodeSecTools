@@ -11,7 +11,7 @@ CVEfixes_DATASET_DIR = os.path.join("datasets", "CVEfixes")
 LANG_EXT = {"java": ["java"]}
 
 
-def get_github_repo_size(repo_url):
+def get_github_repo_size(repo_url: str) -> int | None:
     headers = {"Authorization": f"Bearer {TOKEN}"}
     r = requests.get(
         repo_url.replace("github.com", "api.github.com/repos"), headers=headers
@@ -21,7 +21,7 @@ def get_github_repo_size(repo_url):
         return size_kb * 1000
 
 
-def extract_lang(lang):
+def extract_lang(lang: str) -> None:
     conn = sqlite3.connect("./datasets/CVEfixes/CVEfixes.db")
     cursor = conn.cursor()
     query = f"""
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print("Available languages")
-    for lang, exts in LANG_EXT.items():
+    for lang, _ in LANG_EXT.items():
         print(f"- {lang}")
 
     lang = input("Select lang: ")

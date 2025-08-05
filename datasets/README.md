@@ -38,7 +38,7 @@ You will find here datasets used for the benchmark.
 **Scope**: `Project`
 
 **Included**: ✅ (Partial)
-  - [`CVEfixes_java.csv`](./CVEfixes/CVEfixes_java.csv)
+  - [`CVEfixes_java.csv`](./projects/CVEfixes/CVEfixes_java.csv)
 
 CVEfixes dataset is ~50 GB big.
 
@@ -83,7 +83,7 @@ Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
 **Scope**: `File`
 
 **Included**: ✅ (Full)
-- [`Semgrep_all.json`](./SemgrepTest/Semgrep_all.json)
+- [`Semgrep_all.json`](./files/SemgrepTest/Semgrep_all.json)
 
 Community Edition rules are available [here](https://github.com/semgrep/semgrep-rules) but Pro rules are only available in Semgrep AppSec Platform (log in required).
 
@@ -115,5 +115,5 @@ $ SEMGREP_TOKEN=YOUR_TOKEN python3 ./datasets/Semgrep/downloader.py
 **Scope**: `File`
 
 **Included**: ✅ (Full, extracted from the [repository](https://github.com/OWASP-Benchmark/BenchmarkJava))
-  - [`BenchmarkTest*.java`](./BenchmarkJava/src/main/java/org/owasp)
-  - [`expectedresults-1.2.csv`](./BenchmarkJava/expectedresults-1.2.csv)
+  - [`tests.zip`](./files/BenchmarkJava/tests.zip)
+  - [`expectedresults-1.2.csv`](./files/BenchmarkJava/expectedresults-1.2.csv)

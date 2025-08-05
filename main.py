@@ -1,18 +1,33 @@
-import SASTs.Coverity.cli as Coverity
-import SASTs.Semgrep.cli as Semgrep
-from utils import *
+import os
+
+import click
+
+from sasts import SASTS_ALL
 
 
-@click.group()
-@click.option("--silent", required=False, is_flag=True, help="")
-def cli(silent):
+class OrderedGroup(click.Group):
+    def list_commands(self, ctx: click.Context) -> list:
+        return self.commands.keys()
+
+
+@click.group(cls=OrderedGroup)
+@click.option(
+    "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
+)
+def cli(debug: bool) -> None:
     """SAST Benchmark"""
-    if silent:
-        os.environ["SILENT"] = "1"
+    if debug:
+        os.environ["DEBUG"] = "1"
 
 
-cli.add_command(Coverity.cli)
-cli.add_command(Semgrep.cli)
+@cli.command()
+def status() -> None:
+    """Display SASTs and Datasets status"""
+    raise NotImplementedError
+
+
+for _, sast_components in SASTS_ALL.items():
+    cli.add_command(sast_components["cli"])
 
 if __name__ == "__main__":
-    cli()
+    cli(prog_name="sastb")

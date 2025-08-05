@@ -1,87 +1,49 @@
-from utils import *
+import json
+import os
+import sys
 
-DATASET_NAME = "SemgrepTest"
-Semgrep_DATASET_DIR = os.path.join("datasets", DATASET_NAME)
+import requests
+import tqdm
 
+SemgrepTest_DATASET_DATA_DIR = os.path.join("datasets", "SemgrepTest", "data")
 
-class Rule:
-    def __init__(self, id, content, cwe_ids):
-        self.id = id
-        self.content = content
-        self.cwe_ids = cwe_ids
+R = requests.get("https://semgrep.dev/api/registry/rules").json()
+print(f"{len(R)} Semgrep rules found:")
+print(f"- {len([r for r in R if r['visibility'] == 'public'])} Free rules")
+print(f"- {len([r for r in R if r['visibility'] == 'team_tier'])} Pro rules")
 
-    def __repr__(self):
-        return f"""{self.__class__.__name__}(
-    id: \t{self.id}
-    cwe_ids: \t{self.cwe_ids}
-)"""
+SEMGREP_TOKEN = os.environ.get("SEMGREP_TOKEN", None)
 
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.id == other
-        elif isinstance(other, self.__class__):
-            return self.id == other.id
+if not SEMGREP_TOKEN:
+    print("Please provide a Semgrep auth token")
+    sys.exit(1)
 
+headers = {"authorization": f"Bearer {SEMGREP_TOKEN}"}
 
-class TestCode:
-    def __init__(self, id, filename, content, cwe_ids):
-        self.id = id
-        self.filename = filename
-        self.content = content
-        self.cwe_ids = cwe_ids
+dataset_path = os.path.join(SemgrepTest_DATASET_DATA_DIR, "Semgrep_all.json")
+if os.path.isfile(dataset_path):
+    with open(dataset_path, "r") as f:
+        SEMGREP_RULES = json.load(f)
+else:
+    SEMGREP_RULES = []
 
-    def __repr__(self):
-        return f"""{self.__class__.__name__}(
-    id: \t{self.id}
-    filename: \t{self.filename}
-    cwe_ids: \t{self.cwe_ids}
-)"""
+ignored = 0
+for r in tqdm.tqdm(R):
+    rule_id = r["id"]
+    if rule_id in [rule["id"] for rule in SEMGREP_RULES]:
+        continue
+    try:
+        rule = requests.get(
+            f"https://semgrep.dev/api/registry/rules/{rule_id}?definition=1&test_cases=1",
+            headers=headers,
+        ).json()
+        SEMGREP_RULES.append(rule)
+    except requests.ConnectionError:
+        ignored += 1
 
-    def __eq__(self, other):
-        if isinstance(other, str):
-            return self.filename == other
-        elif isinstance(other, self.__class__):
-            return self.filename == other.filename
+with open(dataset_path, "w") as f:
+    json.dump(SEMGREP_RULES, f)
 
-    def save(self, dir):
-        with open(os.path.join(dir, self.filename), "w") as file:
-            file.write(self.content)
-
-
-## Methods
-def list_dataset():
-    return sorted(["SemgrepTest_java"])
-
-
-def load_dataset(lang):
-    with open(os.path.join(Semgrep_DATASET_DIR, "Semgrep_all.json")) as file:
-        SEMGREP_RULES = json.load(file)
-
-    rules = []
-    testcodes = []
-    for rule in SEMGREP_RULES:
-        cwes = rule["definition"]["rules"][0]["metadata"].get("cwe")
-        if not cwes:
-            continue
-        if isinstance(cwes, str):
-            cwes = [cwes]
-
-        cwe_ids = []
-        for cwe in cwes:
-            cwe_ids.append(int(re.search(r"[CWE|cwe]-(\d+)", cwe).group(1)))
-
-        rule_id = rule["path"]
-        languages = rule["definition"]["rules"][0]["languages"]
-        if not lang in languages:
-            continue
-
-        rules.append(Rule(rule_id, rule["definition"], cwe_ids))
-
-        if rule.get("test_cases"):
-            for test in rule["test_cases"]:
-                if lang == test["language"]:
-                    testcodes.append(
-                        TestCode(rule_id, test["filename"], test["target"], cwe_ids)
-                    )
-
-    return rules, testcodes
+print(
+    f"{ignored} rule(s) was ignored because of connection error, re-run the script to download missing rules"
+)
