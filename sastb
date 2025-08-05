@@ -1,7 +1,15 @@
 #!/usr/bin/bash
 
-# Project directory
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# Save current working directory
+WORKING_DIR=$(pwd)
 
-# Run CLI
-$SCRIPT_DIR/.venv/bin/python3 $SCRIPT_DIR/main.py "$@"
+# Change directory to SASTBenchmark directory
+cd -- "$( dirname -- "${BASH_SOURCE[0]}" )"
+
+# Setup SASTBenchmark if not done yet
+if [ ! -d ".venv" ]; then
+    uv sync
+fi
+
+# Run CLI from SASTBenchmark directory
+WORKING_DIR="$WORKING_DIR" .venv/bin/python3 main.py "$@"

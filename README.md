@@ -18,18 +18,14 @@ A collection of scripts and wrappers around SASTs and datasets for benchmarking 
   pip install uv
   ```
 
-- Set up a virtual environment and install the project dependencies:
-  ```bash
-  uv sync
-  ```
-
 - Make the script executable and run it from any directory:
   ```bash
   chmod +x sastb
   ./sastb
   ```
+  *It will run `uv sync` to automatically set up a virtual environment and install the project dependencies*
 
-- Add the project directory to your `PATH` to run the script from anywhere:
+- [*OPTIONAL*] Add the project directory to your `PATH` to run the script from anywhere:
   ```bash
   # Bash
   echo "export PATH=\$PATH:$(pwd)" >> ~/.bashrc
