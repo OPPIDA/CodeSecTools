@@ -18,3 +18,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "xmltodict>=0.14.2",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "ANN", "B"]
+ignore = ["E501", "ANN101", "ANN102", "ANN204"]

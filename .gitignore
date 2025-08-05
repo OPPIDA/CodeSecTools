@@ -1,3 +1,9 @@
 # Python
 __pycache__/
 .venv/
+
+# Ruff
+.ruff_cache
+
+# Development
+TODO.md
