@@ -9,11 +9,16 @@ from types import TracebackType
 
 import click
 
+# Package internal files
 PACKAGE_DIR = Path(files("sastbenchmark.main"))
-DATA_DIR = PACKAGE_DIR / "data"
-TOOLS_DIR = DATA_DIR / "tools"
 
+DATA_DIR = PACKAGE_DIR / "data"
+SASTS_DIR = PACKAGE_DIR / "sasts"
+DATASETS_DIR = PACKAGE_DIR / "datasets"
+
+# User output directory
 OUTPUT_DIR = Path.home() / ".sastbenchmark"
+RESULTS_DIR = OUTPUT_DIR / "results"
 
 
 # Debugging
@@ -49,7 +54,7 @@ def get_loc(
     dir: Path, lang: str, include: str | None = None, exclude: str | None = None
 ) -> int:
     to_cloc_name = {"java": "Java"}
-    command = ["perl", TOOLS_DIR / "cloc.pl", ".", "--json"]
+    command = ["perl", DATA_DIR / "tools" / "cloc.pl", ".", "--json"]
     command.append(f"--include-lang={to_cloc_name[lang]}")
     _, out = run_command(command, dir)
     json_out = json.loads(out)

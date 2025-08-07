@@ -14,16 +14,13 @@ from sastbenchmark.datasets import DATASETS_ALL
 from sastbenchmark.datasets._base.dataset import Dataset, FileDataset, GitRepoDataset
 from sastbenchmark.sasts._base.parser import AnalysisResult
 from sastbenchmark.utils import (
-    OUTPUT_DIR,
-    PACKAGE_DIR,
+    RESULTS_DIR,
+    SASTS_DIR,
     MissingFile,
     NonZeroExit,
     get_loc,
     run_command,
 )
-
-SASTS_DIR = PACKAGE_DIR / "sasts"
-RESULTS_DIR = OUTPUT_DIR / "results"
 
 
 class SAST:
