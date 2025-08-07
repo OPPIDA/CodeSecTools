@@ -1,4 +1,3 @@
-import os
 import re
 import shutil
 import tempfile
@@ -25,7 +24,7 @@ matplotlib.rcParams.update(
 class Graphics:
     def __init__(self, sast: SAST, project_name: str) -> None:
         self.sast = sast
-        self.result_dir = os.path.join(sast.result_dir, project_name)
+        self.result_dir = sast.result_dir / project_name
         self.color_mapping = sast.color_mapping
         self.color_mapping["NONE"] = "BLACK"
         self.plot_functions = []
@@ -57,10 +56,10 @@ class Graphics:
                     fig.savefig(f"{temp.name}.png", bbox_inches="tight")
                     click.launch(f"{temp.name}.png", wait=False)
 
-            figure_dir = os.path.join(self.result_dir, "_figures")
-            os.makedirs(figure_dir, exist_ok=True)
-            figure_path = os.path.join(figure_dir, f"{fig_name}.png")
-            if os.path.isfile(figure_path) and not force:
+            figure_dir = self.result_dir / "_figures"
+            figure_dir.mkdir(exist_ok=True)
+            figure_path = figure_dir / f"{fig_name}.png"
+            if figure_path.is_file() and not force:
                 if not click.confirm(
                     f"Found existing figure at {figure_path}, would you like to overwrite?"
                 ):
@@ -71,7 +70,7 @@ class Graphics:
             click.echo(f"Figure {fig_name} saved at {figure_path}")
 
             if pgf and self.has_latex:
-                figure_path_pgf = os.path.join(figure_dir, f"{fig_name}.pgf")
+                figure_path_pgf = figure_dir / f"{fig_name}.pgf"
                 fig.savefig(figure_path_pgf, bbox_inches="tight")
                 click.echo(f"Figure {fig_name} exported to pgf")
 
@@ -256,11 +255,9 @@ class GitRepoDatasetGraphics(Graphics):
         super().__init__(sast=sast, project_name=dataset.full_name)
         self.dataset = dataset
         analyzed_repo = {repo.name for repo in dataset.repos} & set(
-            os.listdir(self.result_dir)
+            dir.name for dir in self.result_dir.iterdir()
         )
-        repo_paths = (
-            os.path.join(self.result_dir, repo_name) for repo_name in analyzed_repo
-        )
+        repo_paths = (self.result_dir / repo_name for repo_name in analyzed_repo)
         self.results = sast.parser.load_from_result_dirs(repo_paths)
         self.benchmark_data = self.dataset.validate(self.results)
         self.plot_functions.extend(

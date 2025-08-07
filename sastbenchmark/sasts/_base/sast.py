@@ -1,4 +1,3 @@
-import glob
 import json
 import os
 import shutil
@@ -39,8 +38,8 @@ class SAST:
         self.commands = commands
         self.analysis_files = analysis_files
         self.parser = parser
-        self.directory = os.path.join(SASTS_DIR, self.name)
-        self.result_dir = os.path.join(RESULTS_DIR, self.name)
+        self.directory = SASTS_DIR / self.name
+        self.result_dir = RESULTS_DIR / self.name
         self.supported_languages = supported_languages
         self.supported_datasets = [DATASETS_ALL[d] for d in supported_datasets]
         self.color_mapping = color_mapping
@@ -62,7 +61,7 @@ class SAST:
                     _command[i] = arg.replace(pattern, value)
         return _command
 
-    def run_analysis(self, lang: str, project_dir: Path, result_dir: str) -> None:
+    def run_analysis(self, lang: str, project_dir: Path, result_dir: Path) -> None:
         if missing := self.check_commands():
             raise MissingFile(missing)
 
@@ -81,28 +80,26 @@ class SAST:
         extra = {"logs": command_output, "duration": end - start, "loc": loc}
         self.save_results(project_dir, result_dir, extra)
 
-    def save_results(self, project_dir: str, result_dir: str, extra: dict) -> None:
-        os.makedirs(result_dir, exist_ok=True)
-
-        with open(os.path.join(result_dir, "sastb_cmdout.json"), "w") as f:
-            json.dump(extra, f)
+    def save_results(self, project_dir: Path, result_dir: Path, extra: dict) -> None:
+        result_dir.mkdir(exist_ok=True)
+        json.dump(extra, (result_dir / "sastb_cmdout.json").open("w"))
 
         missing_files = []
         for path_from_root, required in self.analysis_files:
-            parent_dir, filename = os.path.split(path_from_root)
+            parent_dir = path_from_root.parent
+            filename = path_from_root.name
             if "*" not in filename:
-                file_path = os.path.join(project_dir, parent_dir, filename)
-                if os.path.isfile(file_path):
-                    shutil.copy2(file_path, os.path.join(result_dir, filename))
+                file_path = project_dir / parent_dir / filename
+                if file_path.is_file():
+                    shutil.copy2(file_path, result_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
             else:
-                file_paths = glob.glob(os.path.join(project_dir, parent_dir, filename))
+                file_paths = (project_dir / parent_dir).glob(filename)
                 if file_paths:
                     for file_path in file_paths:
-                        basename = os.path.basename(file_path)
-                        shutil.copy2(file_path, os.path.join(result_dir, basename))
+                        shutil.copy2(file_path, result_dir / file_path.name)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -110,10 +107,10 @@ class SAST:
         click.echo(f"Results are saved in {result_dir}")
 
     def analyze_files(self, dataset: FileDataset, overwrite: bool = False) -> None:
-        result_path = os.path.join(self.result_dir, dataset.full_name)
-        os.makedirs(result_path, exist_ok=True)
+        result_path = self.result_dir / dataset.full_name
+        result_path.mkdir(exist_ok=True)
 
-        if os.path.isdir(result_path):
+        if result_path.is_dir():
             if os.listdir(result_path) and not overwrite:
                 click.echo(
                     "Results already exist, please use --overwrite to delete old results"
@@ -122,7 +119,7 @@ class SAST:
 
         # Create temporary directory for the project
         temp_dir = tempfile.TemporaryDirectory()
-        temp_path = temp_dir.name
+        temp_path = Path(temp_dir.name)
 
         # Copy files into the temporary directory
         for file in dataset.files:
@@ -135,8 +132,8 @@ class SAST:
         temp_dir.cleanup()
 
     def analyze_repos(self, dataset: GitRepoDataset, overwrite: bool = False) -> None:
-        base_result_path = os.path.join(self.result_dir, dataset.full_name)
-        os.makedirs(base_result_path, exist_ok=True)
+        base_result_path = self.result_dir / dataset.full_name
+        base_result_path.mkdir(exist_ok=True)
         click.echo(
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
         )
@@ -145,9 +142,9 @@ class SAST:
             click.echo("=================================")
             click.echo(repo)
 
-            result_path = os.path.join(base_result_path, repo.name)
-            if os.path.isdir(result_path):
-                if os.listdir(result_path) and not overwrite:
+            result_path = base_result_path / repo.name
+            if result_path.is_dir():
+                if list(result_path.iterdir()) and not overwrite:
                     click.echo(
                         "Results already exist, please use --overwrite to delete old results"
                     )
@@ -182,10 +179,10 @@ class SAST:
     ) -> list[str]:
         # TODO: limit
         result_dirs = []
-        if os.path.isdir(self.result_dir):
+        if self.result_dir.is_dir():
             for child in os.listdir(self.result_dir):
-                child_path = os.path.join(self.result_dir, child)
-                if os.path.isdir(child_path):
+                child_path = self.result_dir / child
+                if child_path.is_dir():
                     if (
                         any(child in d.list_dataset() for d in self.supported_datasets)
                         and dataset

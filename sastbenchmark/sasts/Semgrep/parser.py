@@ -1,6 +1,6 @@
 import json
-import os
 import re
+from pathlib import Path
 from typing import Self
 
 from sastbenchmark.sasts._base.parser import AnalysisResult, Defect
@@ -17,7 +17,7 @@ class SemgrepFinding(Defect):
             cwe_id = None
 
         super().__init__(
-            file=os.path.basename(defect_data["path"]),
+            file=Path(defect_data["path"]).name,
             checker=defect_data["check_id"].split(".")[-1],
             category=defect_data["extra"]["metadata"]["category"],
             cwe_id=cwe_id,
@@ -30,9 +30,9 @@ class SemgrepFinding(Defect):
 
 
 class SemgrepAnalysisResult(AnalysisResult):
-    def __init__(self, result_dir: str, result_data: dict, cmdout: dict) -> None:
+    def __init__(self, result_dir: Path, result_data: dict, cmdout: dict) -> None:
         super().__init__(
-            name=os.path.basename(result_dir),
+            name=result_dir.name,
             lang=result_data["interfile_languages_used"],
             files=result_data["paths"]["scanned"],
             defects=[],
@@ -52,15 +52,14 @@ class SemgrepAnalysisResult(AnalysisResult):
             self.loc = int(self.coverage * cmdout["loc"])
 
     @classmethod
-    def load_from_result_dir(cls, result_dir: str) -> Self:
+    def load_from_result_dir(cls, result_dir: Path) -> Self:
         # Cmdout
-        with open(os.path.join(result_dir, "sastb_cmdout.json")) as f:
-            cmdout = json.load(f)
+        cmdout = json.load((result_dir / "sastb_cmdout.json").open())
 
         # Analysis outputs
-        analysis_output_path = os.path.join(result_dir, "output.json")
-        if os.path.isfile(analysis_output_path):
-            analysis_output = json.load(open(analysis_output_path, "r"))
+        analysis_output_path = result_dir / "output.json"
+        if analysis_output_path.is_file():
+            analysis_output = json.load(analysis_output_path.open("r"))
         else:
             raise MissingFile(["output.json"])
 

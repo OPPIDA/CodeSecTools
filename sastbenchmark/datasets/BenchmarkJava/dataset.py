@@ -1,5 +1,4 @@
 import csv
-import os
 import zipfile
 from typing import Self
 
@@ -40,15 +39,11 @@ class BenchmarkJava(FileDataset):
     def load_dataset(self) -> list[TestFile]:
         files = []
         testfiles = zipfile.ZipFile(
-            open(
-                os.path.join(self.directory, "data", "tests.zip"),
-                "rb",
-            )
+            (self.directory / "data" / "tests.zip").read_bytes()
         )
-        expected_results = open(
-            os.path.join(self.directory, "data", "expectedresults-1.2.csv"), "r"
+        reader = csv.reader(
+            (self.directory / "data" / "expectedresults-1.2.csv").open()
         )
-        reader = csv.reader(expected_results)
         next(reader)
         for row in reader:
             filename = f"{row[0]}.java"

@@ -1,5 +1,4 @@
 import json
-import os
 import re
 
 from sastbenchmark.datasets._base.dataset import File, FileDataset
@@ -26,8 +25,7 @@ class SemgrepTest(FileDataset):
         super().__init__(lang)
 
     def load_dataset(self) -> list[TestFile]:
-        with open(os.path.join(self.directory, "data", "Semgrep_all.json")) as file:
-            SEMGREP_RULES = json.load(file)
+        SEMGREP_RULES = json.load((self.directory / "data" / "Semgrep_all.json").open())
 
         files = []
         for rule in SEMGREP_RULES:

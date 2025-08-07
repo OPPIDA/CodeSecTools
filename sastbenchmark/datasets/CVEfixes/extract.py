@@ -1,5 +1,4 @@
 import csv
-import os
 import sqlite3
 import sys
 
@@ -8,7 +7,7 @@ import tqdm
 
 from sastbenchmark.utils import PACKAGE_DIR
 
-CVEfixes_DATASET_DIR = os.path.join(PACKAGE_DIR, "datasets", "CVEfixes")
+CVEfixes_DATASET_DIR = PACKAGE_DIR / "datasets" / "CVEfixes"
 
 LANG_EXT = {"java": ["java"]}
 
@@ -24,7 +23,7 @@ def get_github_repo_size(repo_url: str) -> int | None:
 
 
 def extract_lang(lang: str) -> None:
-    conn = sqlite3.connect(os.path.join(PACKAGE_DIR, "datasets/CVEfixes/CVEfixes.db"))
+    conn = sqlite3.connect(PACKAGE_DIR / "datasets" / "CVEfixes" / "CVEfixes.db")
     cursor = conn.cursor()
     query = f"""
 SELECT
@@ -54,7 +53,7 @@ GROUP BY cve.cve_id;"""
     cursor.execute(query)
     rows = cursor.fetchall()
 
-    output_path = os.path.join(CVEfixes_DATASET_DIR, f"CVEfixes_{lang}.csv")
+    output_path = CVEfixes_DATASET_DIR / f"CVEfixes_{lang}.csv"
     with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         headers = [desc[0] for desc in cursor.description] + ["repo_size"]

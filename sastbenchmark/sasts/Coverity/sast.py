@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from sastbenchmark.sasts._base.sast import SAST
 from sastbenchmark.sasts.Coverity.constants import (
@@ -23,9 +23,9 @@ class CoveritySAST(SAST):
                 ),
             ],
             analysis_files=[
-                ("coverity.yaml", False),
-                (os.path.join("idir", "coverity-cli", "capture-files-src-list*"), True),
-                (os.path.join("idir", "output", "*.xml"), False),
+                (Path("coverity.yaml"), False),
+                (Path("idir", "coverity-cli", "capture-files-src-list*"), True),
+                (Path("idir", "output", "*.xml"), False),
             ],
             parser=CoverityAnalysisResult,
             supported_languages=LANG.keys(),

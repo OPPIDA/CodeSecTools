@@ -1,5 +1,4 @@
 # TODO: TO REWORK
-import os
 import shutil
 from pathlib import Path
 
@@ -45,8 +44,8 @@ class CLIFactory:
             help="Overwrite existing analysis results for current project",
         )
         def analyze(lang: str, force: bool) -> None:
-            result_dir = os.path.join(self.sast.result_dir, Path.cwd().name)
-            if os.path.isdir(result_dir):
+            result_dir = self.sast.result_dir / Path.cwd().name
+            if result_dir.is_dir():
                 click.echo(f"Found existing analysis result at {result_dir}")
                 if force:
                     shutil.rmtree(result_dir)

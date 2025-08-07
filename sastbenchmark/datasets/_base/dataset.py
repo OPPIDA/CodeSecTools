@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -10,6 +9,7 @@ import humanize
 from sastbenchmark.utils import DATASETS_DIR
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from typing import Self
 
     from sastbenchmark.sasts._base.parser import AnalysisResult, Defect
@@ -62,14 +62,13 @@ class File(DatasetUnit):
         else:
             return False
 
-    def save(self, dir: str) -> None:
-        with open(os.path.join(dir, self.filename), "wb") as file:
-            file.write(self.content)
+    def save(self, dir: Path) -> None:
+        (dir / self.filename).write_bytes(self.content)
 
 
 class FileDataset(Dataset):
     def __init__(self, lang: str) -> None:
-        self.directory = os.path.join(DATASETS_DIR, self.name)
+        self.directory = DATASETS_DIR / self.name
         if lang:
             self.lang = lang
             self.full_name = f"{self.name}_{self.lang}"
@@ -191,14 +190,14 @@ class GitRepo(DatasetUnit):
         else:
             return False
 
-    def save(self, dir: str) -> None:
+    def save(self, dir: Path) -> None:
         repo = git.Repo.clone_from(self.url, dir)
         repo.git.checkout(self.commit)
 
 
 class GitRepoDataset(Dataset):
     def __init__(self, lang: str) -> None:
-        self.directory = os.path.join(DATASETS_DIR, self.name)
+        self.directory = DATASETS_DIR / self.name
         if lang:
             self.lang = lang
             self.full_name = f"{self.name}_{self.lang}"

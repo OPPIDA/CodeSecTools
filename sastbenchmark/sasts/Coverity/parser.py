@@ -1,6 +1,5 @@
-import glob
-import os
 import re
+from pathlib import Path
 from typing import Self
 
 import xmltodict
@@ -14,7 +13,7 @@ from sastbenchmark.utils import MissingFile
 class CoverityDefect(Defect):
     def __init__(self, defect_data: dict) -> None:
         super().__init__(
-            file=os.path.basename(defect_data["file"]),
+            file=Path(defect_data["file"]).name,
             checker=defect_data["checker"],
             category=None,
             cwe_id=TYPE_TO_CWE.get(defect_data["type"], None),
@@ -41,14 +40,14 @@ class CoverityDefect(Defect):
 class CoverityAnalysisResult(AnalysisResult):
     def __init__(
         self,
-        result_dir: str,
+        result_dir: Path,
         result_data: dict,
         config_data: str,
         captured_list: str,
         defects: list[Defect],
     ) -> None:
         super().__init__(
-            name=os.path.basename(result_dir),
+            name=result_dir.name,
             lang=None,
             files=None,
             defects=defects,
@@ -63,9 +62,7 @@ class CoverityAnalysisResult(AnalysisResult):
 
         self.time = int(self.metrics["time"])
 
-        self.files = list(
-            map(lambda line: os.path.basename(line), captured_list.splitlines())
-        )
+        self.files = list(map(lambda line: Path(line).name, captured_list.splitlines()))
 
         file_count = 0
         for lang, pattern in LANG.items():
@@ -90,29 +87,29 @@ class CoverityAnalysisResult(AnalysisResult):
         self.loc = self.code_lines_by_lang[self.lang]
 
     @classmethod
-    def load_from_result_dir(cls, result_dir: str) -> Self:
+    def load_from_result_dir(cls, result_dir: Path) -> Self:
         # Analysis metrics
-        file_path = os.path.join(result_dir, "ANALYSIS.metrics.xml")
-        if os.path.isfile(file_path):
-            analysis_data = xmltodict.parse(open(file_path, "rb"))
+        file_path = result_dir / "ANALYSIS.metrics.xml"
+        if file_path.is_file():
+            analysis_data = xmltodict.parse(file_path.open("rb"))
         else:
             raise MissingFile(["ANALYSIS.metrics.xml"])
 
         # Config
-        file_path = os.path.join(result_dir, "coverity.yaml")
-        if os.path.isfile(file_path):
-            config_data = yaml.load(open(file_path, "r"), Loader=yaml.Loader)
+        file_path = result_dir / "coverity.yaml"
+        if file_path.is_file():
+            config_data = yaml.load(file_path.open("r"), Loader=yaml.Loader)
         else:
             config_data = None
 
         # Captured source file list
         captured_list = ""
-        for file in glob.glob(os.path.join(result_dir, "capture-files-src-list*")):
+        for file in result_dir.glob("capture-files-src-list*"):
             captured_list += open(file, "r").read()
 
         # Defects
         defects = []
-        for file in glob.glob(os.path.join(result_dir, "*errors.xml")):
+        for file in result_dir.glob("*errors.xml"):
             f = open(file, "r")
             try:
                 errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())["root"][

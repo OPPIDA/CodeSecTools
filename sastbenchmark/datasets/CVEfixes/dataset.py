@@ -1,5 +1,4 @@
 import csv
-import os
 
 from sastbenchmark.datasets._base.dataset import GitRepo, GitRepoDataset
 
@@ -15,7 +14,7 @@ class CVEfixes(GitRepoDataset):
     def load_dataset(
         self,
     ) -> list[GitRepo]:
-        dataset_path = os.path.join(self.directory, "data", f"CVEfixes_{self.lang}.csv")
+        dataset_path = self.directory / "data" / f"CVEfixes_{self.lang}.csv"
         repos = []
         with open(dataset_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)

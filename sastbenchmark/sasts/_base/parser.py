@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Self
 
 
@@ -52,7 +53,7 @@ class AnalysisResult(ABC):
 
     @classmethod
     @abstractmethod
-    def load_from_result_dir(cls, result_dir: str) -> Self:
+    def load_from_result_dir(cls, result_dir: Path) -> Self:
         pass
 
     @classmethod

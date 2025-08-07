@@ -7,9 +7,7 @@ import tqdm
 
 from sastbenchmark.utils import PACKAGE_DIR
 
-SemgrepTest_DATASET_DATA_DIR = os.path.join(
-    PACKAGE_DIR, "datasets", "SemgrepTest", "data"
-)
+SemgrepTest_DATASET_DATA_DIR = PACKAGE_DIR / "datasets" / "SemgrepTest" / "data"
 
 R = requests.get("https://semgrep.dev/api/registry/rules").json()
 print(f"{len(R)} Semgrep rules found:")
@@ -24,10 +22,9 @@ if not SEMGREP_TOKEN:
 
 headers = {"authorization": f"Bearer {SEMGREP_TOKEN}"}
 
-dataset_path = os.path.join(SemgrepTest_DATASET_DATA_DIR, "Semgrep_all.json")
-if os.path.isfile(dataset_path):
-    with open(dataset_path, "r") as f:
-        SEMGREP_RULES = json.load(f)
+dataset_path = SemgrepTest_DATASET_DATA_DIR / "Semgrep_all.json"
+if dataset_path.is_file():
+    SEMGREP_RULES = json.load(dataset_path.open())
 else:
     SEMGREP_RULES = []
 
