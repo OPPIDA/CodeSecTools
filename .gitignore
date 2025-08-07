@@ -1,6 +1,9 @@
+build/
+
 # Python
 __pycache__/
 .venv/
+*.egg-info
 
 # Ruff
 .ruff_cache

@@ -1,9 +1,14 @@
 [project]
 name = "SASTBenchmark"
-version = "1.0.0"
-description = "A collection of scripts and wrappers around SASTs and datasets for benchmarking and project testing purposes."
+version = "1.1.0"
+description = "Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing."
 readme = "README.md"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
+authors = [
+  {name = "Villon Chen"},
+]
 dependencies = [
     "blessed>=1.21.0",
     "click>=8.2.1",
@@ -19,6 +24,19 @@ dependencies = [
     "xmltodict>=0.14.2",
 ]
 
+[project.scripts]
+sastb = "sastbenchmark.main:cli"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["sastbenchmark", "sastbenchmark.*"]
+
+[tool.setuptools]
+include-package-data = true
+
 [tool.ruff.lint]
-select = ["E", "F", "I", "ANN", "B"]
-ignore = ["E501", "ANN101", "ANN102", "ANN204"]
+select = ["E", "F", "I", "ANN", "B", "TC"]
+ignore = ["E501"]
