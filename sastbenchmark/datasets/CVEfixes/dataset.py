@@ -6,6 +6,7 @@ from sastbenchmark.datasets._base.dataset import GitRepo, GitRepoDataset
 
 class CVEfixes(GitRepoDataset):
     name = "CVEfixes"
+    supported_languages = ["java"]
 
     def __init__(self, lang: str) -> None:
         self.max_repo_size = 100e6
@@ -31,7 +32,3 @@ class CVEfixes(GitRepoDataset):
                 if repo.size < self.max_repo_size:
                     repos.append(repo)
         return repos
-
-    @staticmethod
-    def list_dataset() -> list[str]:
-        return sorted(["CVEfixes_java"])

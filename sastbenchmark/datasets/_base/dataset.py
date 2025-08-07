@@ -7,25 +7,25 @@ from typing import TYPE_CHECKING
 import git
 import humanize
 
-from sastbenchmark.utils import PACKAGE_DIR
+from sastbenchmark.utils import DATASETS_DIR
 
 if TYPE_CHECKING:
     from typing import Self
 
     from sastbenchmark.sasts._base.parser import AnalysisResult, Defect
 
-DATASETS_DIR = PACKAGE_DIR / "datasets"
-
 
 class Dataset(ABC):
+    name = ""
+    supported_languages = []
+
     @abstractmethod
     def load_dataset(self) -> list[File]:
         pass
 
-    @staticmethod
-    @abstractmethod
-    def list_dataset() -> list[str]:
-        pass
+    @classmethod
+    def list_dataset(cls) -> list[str]:
+        return sorted([f"{cls.name}_{lang}" for lang in cls.supported_languages])
 
 
 class DatasetUnit:
@@ -68,8 +68,6 @@ class File(DatasetUnit):
 
 
 class FileDataset(Dataset):
-    name = ""
-
     def __init__(self, lang: str) -> None:
         self.directory = os.path.join(DATASETS_DIR, self.name)
         if lang:
@@ -199,8 +197,6 @@ class GitRepo(DatasetUnit):
 
 
 class GitRepoDataset(Dataset):
-    name = ""
-
     def __init__(self, lang: str) -> None:
         self.directory = os.path.join(DATASETS_DIR, self.name)
         if lang:

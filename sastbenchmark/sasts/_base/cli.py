@@ -84,8 +84,7 @@ class CLIFactory:
             click.echo("Available analysis results:")
             if self.sast.list_results(dataset=True, project=True):
                 for dataset in self.sast.list_results(dataset=True):
-                    dataset_name, lang = dataset.split("_")
-                    click.echo(f"- [Dataset] {dataset_name} ({lang})")
+                    click.echo(f"- [Dataset] {dataset}")
                 for project in self.sast.list_results(project=True):
                     click.echo(f"- [Project] {project}")
             else:

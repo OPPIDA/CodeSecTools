@@ -24,6 +24,7 @@ class TestFile(File):
 
 class BenchmarkJava(FileDataset):
     name = "BenchmarkJava"
+    supported_languages = ["java"]
 
     def __init__(self, lang: None | str = None) -> None:
         super().__init__(lang)
@@ -58,7 +59,3 @@ class BenchmarkJava(FileDataset):
             files.append(TestFile(filename, content, cwe_ids, vuln_type, is_real))
 
         return files
-
-    @staticmethod
-    def list_dataset() -> list[str]:
-        return sorted(["BenchmarkJava_java"])

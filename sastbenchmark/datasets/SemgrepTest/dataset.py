@@ -20,6 +20,7 @@ class TestFile(File):
 
 class SemgrepTest(FileDataset):
     name = "SemgrepTest"
+    supported_languages = ["java"]
 
     def __init__(self, lang: str) -> None:
         super().__init__(lang)
@@ -53,7 +54,3 @@ class SemgrepTest(FileDataset):
                         )
 
         return files
-
-    @staticmethod
-    def list_dataset() -> list[str]:
-        return sorted(["SemgrepTest_java"])
