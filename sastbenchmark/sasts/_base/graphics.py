@@ -225,7 +225,7 @@ class FileDatasetGraphics(ProjectGraphics):
             [i - width for i in range(len(X))],
             Y1,
             width=width,
-            label="Actual (one per test code)",
+            label="Unique good prediction (one per test code)",
             color="blue",
         )
         bars2 = ax.bar(
@@ -311,7 +311,7 @@ class GitRepoDatasetGraphics(Graphics):
         ax.set_yscale("log")
         ax.set_title("Classification by checkers category")
         fig.suptitle(
-            "Benchmark against CVEfixes dataset",
+            f"Benchmark against {self.dataset.name} dataset",
             fontsize=16,
         )
         labels = list(self.color_mapping.keys())
@@ -370,7 +370,7 @@ class GitRepoDatasetGraphics(Graphics):
             [i - width for i in range(len(X))],
             Y1,
             width=width,
-            label="Actual (one per CVE)",
+            label="Unique good prediction (one per CVE)",
             color="blue",
         )
         bars2 = ax.bar(
