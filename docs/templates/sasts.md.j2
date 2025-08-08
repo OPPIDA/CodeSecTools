@@ -1,0 +1,21 @@
+# {{ name }}
+
+*{{ description }}*
+
+## Information
+
+URL: [{{ url }}]({{ url }})
+
+Version: `{{ version }}`
+
+{% if licence_url %}
+Licence: [`{{ licence }}`]({{ licence_url }})
+{% else %}
+Licence: `{{ licence }}`
+{% endif %}
+
+{% if note %}
+## Note
+
+{{ note }}
+{% endif %}

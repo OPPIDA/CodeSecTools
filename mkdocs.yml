@@ -4,13 +4,12 @@ site_author: nolliv22
 nav:
   - Home: index.md
   - CLI: cli.md
-  - SASTs: 
-    - Overview: sasts/index.md
+  - SAST: 
+    - sasts/index.md
     - Supported SASTs:
-      - Coverity: sasts/coverity.md
-      - Semgrep: sasts/semgrep.md
-  - Datasets: 
-    - Overview: datasets/index.md
+      - sasts/*.md
+  - Dataset: 
+    - datasets/index.md
     - Supported datasets:
       - CVEfixes: datasets/cvefixes.md
       - BenchmarkJava: datasets/benchmarkjava.md
@@ -58,6 +57,11 @@ plugins:
   - offline
   - privacy
   - search
+  - gen-files:
+      scripts:
+        - docs/gen_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
   - include-markdown:
       rewrite_relative_urls: true
       start: <!--include-doc-start-->
