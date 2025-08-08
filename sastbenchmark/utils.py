@@ -10,7 +10,7 @@ from types import TracebackType
 import click
 
 # Package internal files
-PACKAGE_DIR = Path(files("sastbenchmark.main"))
+PACKAGE_DIR = Path(files("sastbenchmark.utils"))
 
 DATA_DIR = PACKAGE_DIR / "data"
 SASTS_DIR = PACKAGE_DIR / "sasts"
