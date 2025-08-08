@@ -9,6 +9,7 @@ import click
 import git
 import humanize
 
+from sastbenchmark.data.tools.cloc import cloc_get_loc
 from sastbenchmark.datasets import DATASETS_ALL
 from sastbenchmark.datasets._base.dataset import Dataset, FileDataset, GitRepoDataset
 from sastbenchmark.sasts._base.parser import AnalysisResult
@@ -17,7 +18,6 @@ from sastbenchmark.utils import (
     SASTS_DIR,
     MissingFile,
     NonZeroExit,
-    get_loc,
     run_command,
 )
 
@@ -75,7 +75,7 @@ class SAST:
                 raise NonZeroExit(rendered_command, command_output)
         end = time.time()
 
-        loc = get_loc(project_dir, lang)
+        loc = cloc_get_loc(project_dir, lang)
 
         extra = {"logs": command_output, "duration": end - start, "loc": loc}
         self.save_results(project_dir, result_dir, extra)

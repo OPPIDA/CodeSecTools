@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess
 import sys
@@ -48,17 +47,6 @@ def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
     retcode = process.poll()
 
     return (retcode, stdout)
-
-
-def get_loc(
-    dir: Path, lang: str, include: str | None = None, exclude: str | None = None
-) -> int:
-    to_cloc_name = {"java": "Java"}
-    command = ["perl", DATA_DIR / "tools" / "cloc.pl", ".", "--json"]
-    command.append(f"--include-lang={to_cloc_name[lang]}")
-    _, out = run_command(command, dir)
-    json_out = json.loads(out)
-    return json_out[to_cloc_name[lang]]["code"]
 
 
 # Custom Exceptions
