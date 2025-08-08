@@ -25,6 +25,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+    "ruff>=0.12.8",
+    "ty>=0.0.1a17",
+]
 docs = [
     "mkdocs>=1.6.1",
     "mkdocs-click>=0.9.0",
@@ -51,5 +55,15 @@ include = ["sastbenchmark", "sastbenchmark.*"]
 include-package-data = true
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "ANN", "B", "TC"]
-ignore = ["E501"]
+select = [
+  "E",   # pycodestyle
+  "F",   # Pyflakes
+  "I",   # isort
+  "ANN", # flake8-annotations
+  "B",   # flake8-bugbear
+  "TC",  # flake8-type-checking
+  "D",   # pydocstyle
+]
+ignore = [
+  "E501", # Line Too Long
+]
