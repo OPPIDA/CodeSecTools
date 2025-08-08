@@ -1,13 +1,13 @@
 [project]
 name = "SASTBenchmark"
-version = "1.1.0"
+version = "0.1.0"
 description = "Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing."
 readme = "README.md"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [
-  {name = "Villon Chen"},
+  {name = "nolliv22"},
 ]
 dependencies = [
     "blessed>=1.21.0",
@@ -22,6 +22,16 @@ dependencies = [
     "tabulate>=0.9.0",
     "tqdm>=4.67.1",
     "xmltodict>=0.14.2",
+]
+
+[project.optional-dependencies]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-click>=0.9.0",
+    "mkdocs-include-markdown-plugin>=7.1.6",
+    "mkdocs-material[imaging]>=9.6.16",
+    "mkdocstrings[python]>=0.30.0",
+    "ruff>=0.12.8",
 ]
 
 [project.scripts]

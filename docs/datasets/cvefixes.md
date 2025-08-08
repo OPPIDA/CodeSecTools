@@ -1,0 +1,48 @@
+# CVEfixes
+
+*Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software*
+
+**Homepage**: https://github.com/secureIT-project/CVEfixes
+
+**Version**: `v1.0.8`
+
+**Licence**: `CC BY 4.0`
+
+**Scope**: `Project`
+
+**Included**: ✅ (Partial)
+
+  - `CVEfixes_java.csv`
+
+CVEfixes dataset is ~50 GB big.
+
+To avoid overloading SAST tool's environment, we extract the minimal data from the dataset:
+
+- `cve_id`: for reference only,
+- `cwe_ids`: **compare** with SAST output,
+- `repo_url`: download the project,
+- `parents`: checkout to the vulnerable version,
+- `filenames`: **compare** with SAST output.
+
+We use Github REST API to get an estimate of the repository size:
+
+- `repo_size`: repository size in bytes
+
+You need to provide a Github OAuth access token because the rate limit for unauthenticated users is only `60 reqs/hour` vs `5000 reqs/hour` for authenticated users.
+
+To generate one:
+
+- Go to [New personal access token (classic)](https://github.com/settings/tokens/new)
+- Select scopes: `repo` -> `public_repo`
+- Copy the token and paste it when prompted
+- Once all extraction done, delete the token
+
+```bash
+$ python3 ./datasets/CVEfixes/extract.py 
+Token: ghp_************************************
+Available languages
+- java
+Select lang: java
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 394/394 [02:13<00:00,  2.95it/s]
+Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
+```

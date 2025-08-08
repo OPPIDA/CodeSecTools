@@ -16,7 +16,7 @@ class OrderedGroup(click.Group):
     "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
 )
 def cli(debug: bool) -> None:
-    """SAST Benchmark"""
+    """SASTBenchmark"""
     if debug:
         os.environ["DEBUG"] = "1"
 
