@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from sastbenchmark.data.cwe import CWE
-from sastbenchmark.datasets._base.dataset import FileDataset, GitRepoDataset
-from sastbenchmark.sasts._base.sast import SAST
+from sastbenchmark.datasets.core.dataset import FileDataset, GitRepoDataset
+from sastbenchmark.sasts.core.sast import SAST
+from sastbenchmark.shared.data.cwe import CWE
 
 ## Matplotlib config
 matplotlib.rcParams.update(

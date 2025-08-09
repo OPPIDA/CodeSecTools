@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Self
 
-from sastbenchmark.sasts._base.parser import AnalysisResult, Defect
+from sastbenchmark.sasts.core.parser import AnalysisResult, Defect
 from sastbenchmark.utils import MissingFile
 
 

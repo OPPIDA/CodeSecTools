@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from sastbenchmark.sasts._base.sast import SAST
+from sastbenchmark.sasts.core.sast import SAST
 from sastbenchmark.sasts.Coverity.constants import (
     COLOR_MAPPING,
     LANG,

@@ -1,4 +1,4 @@
-from sastbenchmark.sasts._base.sast import SAST
+from sastbenchmark.sasts.core.sast import SAST
 from sastbenchmark.sasts.Semgrep.constants import (
     COLOR_MAPPING,
     LANG,

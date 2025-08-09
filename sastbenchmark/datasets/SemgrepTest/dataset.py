@@ -1,7 +1,7 @@
 import json
 import re
 
-from sastbenchmark.datasets._base.dataset import File, FileDataset
+from sastbenchmark.datasets.core.dataset import File, FileDataset
 
 
 class TestFile(File):

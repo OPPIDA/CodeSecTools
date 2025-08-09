@@ -5,13 +5,13 @@ from pathlib import Path
 import click
 
 from sastbenchmark.datasets import DATASETS_ALL
-from sastbenchmark.datasets._base.dataset import FileDataset, GitRepoDataset
-from sastbenchmark.sasts._base.graphics import (
+from sastbenchmark.datasets.core.dataset import FileDataset, GitRepoDataset
+from sastbenchmark.sasts.core.graphics import (
     FileDatasetGraphics,
     GitRepoDatasetGraphics,
     ProjectGraphics,
 )
-from sastbenchmark.sasts._base.sast import SAST
+from sastbenchmark.sasts.core.sast import SAST
 
 
 class CLIFactory:

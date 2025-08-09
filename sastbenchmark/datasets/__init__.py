@@ -1,6 +1,6 @@
 import importlib
 
-from sastbenchmark.datasets._base.dataset import Dataset
+from sastbenchmark.datasets.core.dataset import Dataset
 from sastbenchmark.utils import DATASETS_DIR
 
 DATASETS_ALL = {}

@@ -2,7 +2,7 @@ import importlib
 
 from click import Group
 
-from sastbenchmark.sasts._base.sast import SAST, AnalysisResult
+from sastbenchmark.sasts.core.sast import SAST, AnalysisResult
 from sastbenchmark.utils import SASTS_DIR
 
 SASTS_ALL = {}
