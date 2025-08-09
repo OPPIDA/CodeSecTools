@@ -2,7 +2,7 @@
 # SASTBenchmark
 
 <div align="center">
-  <img src="assets/logo.svg" alt="Logo" style="width: 200px; height: auto;" />
+  <img src="docs/assets/logo.svg" alt="Logo" style="width: 200px; height: auto;" />
 </div>
 
 Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing.
