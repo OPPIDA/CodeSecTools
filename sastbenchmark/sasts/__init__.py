@@ -2,13 +2,13 @@ import importlib
 
 from click import Group
 
-from sastbenchmark.sasts.core.sast import SAST, AnalysisResult
+from sastbenchmark.sasts._core.sast import SAST, AnalysisResult
 from sastbenchmark.utils import SASTS_DIR
 
 SASTS_ALL = {}
 for child in SASTS_DIR.iterdir():
     if child.is_dir():
-        if list(child.glob("sast.py")) and child.name != "core":
+        if list(child.glob("sast.py")) and child.name != "_core":
             sast_name = child.name
 
             sast_module = importlib.import_module(

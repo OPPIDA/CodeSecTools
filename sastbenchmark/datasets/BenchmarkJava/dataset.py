@@ -2,7 +2,7 @@ import csv
 import zipfile
 from typing import Self
 
-from sastbenchmark.datasets.core.dataset import File, FileDataset
+from sastbenchmark.datasets._core.dataset import File, FileDataset
 
 
 class TestFile(File):
@@ -38,9 +38,7 @@ class BenchmarkJava(FileDataset):
 
     def load_dataset(self) -> list[TestFile]:
         files = []
-        testfiles = zipfile.ZipFile(
-            (self.directory / "data" / "tests.zip").open('rb')
-        )
+        testfiles = zipfile.ZipFile((self.directory / "data" / "tests.zip").open("rb"))
         reader = csv.reader(
             (self.directory / "data" / "expectedresults-1.2.csv").open()
         )

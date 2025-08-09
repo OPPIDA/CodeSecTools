@@ -1,6 +1,6 @@
 import click
 
-from sastbenchmark.sasts.core.cli import CLIFactory
+from sastbenchmark.sasts._core.cli import CLIFactory
 from sastbenchmark.sasts.Semgrep.sast import SemgrepSAST
 
 

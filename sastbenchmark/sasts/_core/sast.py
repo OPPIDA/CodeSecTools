@@ -10,8 +10,8 @@ import git
 import humanize
 
 from sastbenchmark.datasets import DATASETS_ALL
-from sastbenchmark.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
-from sastbenchmark.sasts.core.parser import AnalysisResult
+from sastbenchmark.datasets._core.dataset import Dataset, FileDataset, GitRepoDataset
+from sastbenchmark.sasts._core.parser import AnalysisResult
 from sastbenchmark.shared.tools.cloc import cloc_get_loc
 from sastbenchmark.utils import (
     RESULTS_DIR,
