@@ -401,7 +401,7 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
         for result in b.validated_repos:
             defect_number = sum(len(result[name]) for name in set_names)
-            if result["loc"] and result["time"] > 180:
+            if result["loc"]:
                 X.append(result["loc"])
                 Y.append(defect_number)
 
@@ -430,7 +430,7 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
 
         for result in b.validated_repos:
-            if result["loc"] and result["time"] > 180:
+            if result["loc"]:
                 X.append(result["loc"])
                 Y.append(result["time"] / 60)
 
