@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from sastbenchmark.sasts.core.sast import SAST
 from sastbenchmark.sasts.Semgrep.constants import (
     COLOR_MAPPING,
@@ -17,7 +19,7 @@ class SemgrepSAST(SAST):
                     " "
                 )
             ],
-            analysis_files=[("analysis.log", True), ("output.json", True)],
+            analysis_files=[(Path("analysis.log"), True), (Path("output.json"), True)],
             parser=SemgrepAnalysisResult,
             supported_languages=LANG.keys(),
             supported_datasets=SUPPORTED_DATASETS,

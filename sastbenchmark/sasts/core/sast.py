@@ -28,7 +28,7 @@ class SAST:
     def __init__(
         self,
         commands: list[list[str]],
-        analysis_files: list[tuple[str, bool]],
+        analysis_files: list[tuple[Path, bool]],
         parser: AnalysisResult,
         supported_languages: list[str],
         supported_datasets: list[type[Dataset]],
@@ -146,9 +146,8 @@ class SAST:
             if result_path.is_dir():
                 if list(result_path.iterdir()) and not overwrite:
                     click.echo(
-                        "Results already exist, please use --overwrite to delete old results"
+                        "Results already exist, please use --overwrite to analyze again"
                     )
-                    return
 
             # Create temporary directory for the project
             temp_dir = tempfile.TemporaryDirectory()
