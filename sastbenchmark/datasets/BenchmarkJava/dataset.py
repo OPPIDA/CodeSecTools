@@ -39,7 +39,7 @@ class BenchmarkJava(FileDataset):
     def load_dataset(self) -> list[TestFile]:
         files = []
         testfiles = zipfile.ZipFile(
-            (self.directory / "data" / "tests.zip").read_bytes()
+            (self.directory / "data" / "tests.zip").open('rb')
         )
         reader = csv.reader(
             (self.directory / "data" / "expectedresults-1.2.csv").open()
