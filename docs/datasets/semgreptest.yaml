@@ -6,7 +6,7 @@ licence:*: Semgrep Rules License v. 1.0
 licence_url: https://semgrep.dev/legal/rules-license/
 type: File
 included:
-  - Semgrep_all.json`
+  - Semgrep_all.json
 note: |
   Community Edition rules are available [here](https://github.com/semgrep/semgrep-rules) but Pro rules are only available in Semgrep AppSec Platform (log in required).
 

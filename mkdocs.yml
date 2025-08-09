@@ -8,15 +8,12 @@ nav:
     - sasts/index.md
     - Supported SASTs:
       - sasts/*.md
+    - API Reference: sasts/api.md
   - Dataset: 
     - datasets/index.md
     - Supported datasets:
-      - CVEfixes: datasets/cvefixes.md
-      - BenchmarkJava: datasets/benchmarkjava.md
-      - SemgrepTest: datasets/semgreptest.md
-  - API Reference:
-    - sasts: api/sasts.md
-    - datasets: api/datasets.md
+      - datasets/*
+    - API Reference: datasets/api.md
 
 theme:
   name: material
@@ -88,6 +85,7 @@ plugins:
               modules: true
             
             merge_init_into_class: true
+            docstring_style: google
 
             separate_signature: true
             show_signature_annotations: true
