@@ -2,7 +2,7 @@ import csv
 import zipfile
 from typing import Self
 
-from sastbenchmark.datasets._core.dataset import File, FileDataset
+from sastbenchmark.datasets.core.dataset import File, FileDataset
 
 
 class TestFile(File):

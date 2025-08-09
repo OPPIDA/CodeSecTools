@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from sastbenchmark.sasts._core.sast import SAST
+from sastbenchmark.sasts.core.sast import SAST
 from sastbenchmark.sasts.Semgrep.constants import (
     COLOR_MAPPING,
     LANG,

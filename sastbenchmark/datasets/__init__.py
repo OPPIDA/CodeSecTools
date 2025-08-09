@@ -1,12 +1,12 @@
 import importlib
 
-from sastbenchmark.datasets._core.dataset import Dataset
+from sastbenchmark.datasets.core.dataset import Dataset
 from sastbenchmark.utils import DATASETS_DIR
 
 DATASETS_ALL = {}
 for child in DATASETS_DIR.iterdir():
     if child.is_dir():
-        if list(child.glob("dataset.py")) and child.name != "_core":
+        if list(child.glob("dataset.py")) and child.name != "core":
             dataset_name = child.name
 
             dataset_module = importlib.import_module(

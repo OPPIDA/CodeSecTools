@@ -5,7 +5,7 @@ from typing import Self
 import xmltodict
 import yaml
 
-from sastbenchmark.sasts._core.parser import AnalysisResult, Defect
+from sastbenchmark.sasts.core.parser import AnalysisResult, Defect
 from sastbenchmark.sasts.Coverity.constants import LANG, TYPE_TO_CWE
 from sastbenchmark.utils import MissingFile
 

@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 
 import sastbenchmark.sasts.Coverity.wrapper.main as Wrapper
-from sastbenchmark.sasts._core.cli import CLIFactory
+from sastbenchmark.sasts.core.cli import CLIFactory
 from sastbenchmark.sasts.Coverity.sast import CoveritySAST
 
 

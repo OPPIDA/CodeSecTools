@@ -1,6 +1,6 @@
 import csv
 
-from sastbenchmark.datasets._core.dataset import GitRepo, GitRepoDataset
+from sastbenchmark.datasets.core.dataset import GitRepo, GitRepoDataset
 
 
 class CVEfixes(GitRepoDataset):

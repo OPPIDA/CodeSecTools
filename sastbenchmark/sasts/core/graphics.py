@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from sastbenchmark.datasets._core.dataset import FileDataset, GitRepoDataset
-from sastbenchmark.sasts._core.sast import SAST
+from sastbenchmark.datasets.core.dataset import FileDataset, GitRepoDataset
+from sastbenchmark.sasts.core.sast import SAST
 from sastbenchmark.shared.data.cwe import CWE
 
 ## Matplotlib config
