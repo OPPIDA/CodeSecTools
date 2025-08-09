@@ -8,7 +8,7 @@ from sastbenchmark.utils import SASTS_DIR
 SASTS_ALL = {}
 for child in SASTS_DIR.iterdir():
     if child.is_dir():
-        if list(child.glob("sast.py")) and child.name != "_base":
+        if list(child.glob("sast.py")) and child.name != "core":
             sast_name = child.name
 
             sast_module = importlib.import_module(
