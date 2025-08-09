@@ -66,4 +66,5 @@ select = [
 ]
 ignore = [
   "E501", # Line Too Long
+  "D203", "D213" # Conflict
 ]

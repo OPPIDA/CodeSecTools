@@ -1099,7 +1099,7 @@ requires-dist = [
     { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.1a17" },
     { name = "xmltodict", specifier = ">=0.14.2" },
 ]
-provides-extras = ["docs", "dev"]
+provides-extras = ["dev", "docs"]
 
 [[package]]
 name = "six"
