@@ -7,12 +7,12 @@ nav:
   - SAST: 
     - sasts/index.md
     - Supported SASTs:
-      - sasts/*.md
+      - sasts/data/*.md
     - API Reference: sasts/api.md
   - Dataset: 
     - datasets/index.md
     - Supported datasets:
-      - datasets/*
+      - datasets/data/*.md
     - API Reference: datasets/api.md
 
 theme:
