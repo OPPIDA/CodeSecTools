@@ -47,7 +47,7 @@ class SemgrepAnalysisResult(AnalysisResult):
             self.defects.append(defect)
             self.checker_category[defect.checker] = defect.category
 
-        if match := re.search(r"• Parsed lines: ~([\d\.]+)%", cmdout["logs"]):
+        if match := re.search(r"Parsed lines:[^\d]*([\d\.]+)%", cmdout["logs"]):
             self.coverage = float(match.groups()[0]) / 100
             self.loc = int(self.coverage * cmdout["loc"])
 
