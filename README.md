@@ -5,7 +5,7 @@
   <img src="docs/assets/logo.svg" alt="Logo" style="width: 200px; height: auto;" />
 </div>
 
-Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing.
+A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
 
 ## Installation
 

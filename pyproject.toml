@@ -1,7 +1,7 @@
 [project]
 name = "CodeSecTools"
 version = "0.1.0"
-description = "Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing."
+description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
