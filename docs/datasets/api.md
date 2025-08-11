@@ -1,4 +1,4 @@
-::: sastbenchmark.datasets._core
+::: codesectools.datasets.core
     options:
         show_submodules: true
         show_if_no_docstring: true

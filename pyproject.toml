@@ -1,5 +1,5 @@
 [project]
-name = "SASTBenchmark"
+name = "CodeSecTools"
 version = "0.1.0"
 description = "Scripts and wrappers for SASTs and datasets, with abstractions to support integration, benchmarking, and testing."
 readme = "README.md"
@@ -42,14 +42,14 @@ docs = [
 ]
 
 [project.scripts]
-sastb = "sastbenchmark.main:cli"
+cstools = "codesectools.main:cli"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["sastbenchmark", "sastbenchmark.*"]
+include = ["codesectools", "codesectools.*"]
 
 [tool.setuptools]
 include-package-data = true

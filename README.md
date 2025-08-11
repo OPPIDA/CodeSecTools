@@ -1,5 +1,5 @@
 <!--include-doc-start-->
-# SASTBenchmark
+# CodeSecTools
 
 <div align="center">
   <img src="docs/assets/logo.svg" alt="Logo" style="width: 200px; height: auto;" />

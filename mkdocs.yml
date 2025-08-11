@@ -1,19 +1,20 @@
-site_name: SASTBenchmark
+site_name: CodeSecTools
 site_author: nolliv22
 
 nav:
   - Home: index.md
-  - CLI: cli.md
   - SAST: 
     - sasts/index.md
     - Supported SASTs:
       - sasts/data/*.md
-    - API Reference: sasts/api.md
   - Dataset: 
     - datasets/index.md
     - Supported datasets:
       - datasets/data/*.md
-    - API Reference: datasets/api.md
+  - CLI: cli.md
+  - API Reference:
+    - SASTs: sasts/api.md 
+    - Datasets: datasets/api.md
 
 theme:
   name: material
@@ -21,7 +22,7 @@ theme:
   logo: assets/logo.svg
   favicon: assets/logo.svg
   font:
-    text: Noto Sans
+    text: Noto Sans    
 
   features:
     - navigation.expand
@@ -38,17 +39,17 @@ theme:
     - search.highlight
 
   palette:
-  - media: "(prefers-color-scheme: light)"
-    scheme: default
-    toggle:
-      icon: material/brightness-7
-      name: Switch to dark mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
-  - media: "(prefers-color-scheme: dark)"
-    scheme: slate
-    toggle:
-      icon: material/brightness-4
-      name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 plugins:
   - offline
@@ -96,3 +97,6 @@ plugins:
 markdown_extensions:
   - attr_list
   - mkdocs-click
+
+extra_css:
+  - assets/extra.css

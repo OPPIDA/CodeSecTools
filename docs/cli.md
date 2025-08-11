@@ -3,9 +3,9 @@
 This page provides documentation for the command line tools.
 
 ::: mkdocs-click
-    :module: sastbenchmark.main
+    :module: codesectools.main
     :command: cli
-    :prog_name: sastb
+    :prog_name: cstools
     :depth: 1
     :style: table
     :list_subcommands: True

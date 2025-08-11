@@ -1,0 +1,35 @@
+import os
+
+import click
+
+from codesectools.sasts import SASTS_ALL
+from codesectools.utils import OUTPUT_DIR, PACKAGE_DIR
+
+
+class OrderedGroup(click.Group):
+    def list_commands(self, ctx: click.Context) -> list:
+        return self.commands.keys()
+
+
+@click.group(cls=OrderedGroup)
+@click.option(
+    "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
+)
+def cli(debug: bool) -> None:
+    """CodeSecTools"""
+    if debug:
+        os.environ["DEBUG"] = "1"
+
+
+@cli.command()
+def status() -> None:
+    """Display SASTs and Datasets status"""
+    click.echo(PACKAGE_DIR)
+    click.echo(OUTPUT_DIR)
+
+
+for _, sast_components in SASTS_ALL.items():
+    cli.add_command(sast_components["cli"])
+
+if __name__ == "__main__":
+    cli(prog_name="sastb")
