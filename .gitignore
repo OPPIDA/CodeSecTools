@@ -1,6 +1,7 @@
 # Artefact
 build/
 .cache/
+site/
 
 # Python
 __pycache__/
