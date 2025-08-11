@@ -1,9 +1,5 @@
-import os
-from pathlib import Path
-
 import click
 
-import codesectools.sasts.Coverity.wrapper.main as Wrapper
 from codesectools.sasts.core.cli import CLIFactory
 from codesectools.sasts.Coverity.sast import CoveritySAST
 
@@ -24,11 +20,3 @@ CLIFactory(
         "plot": """Generate plot for visualization""",
     },
 )
-
-
-## Wrapper
-@CoverityCLI.command()
-def wrapper() -> None:
-    """Interact with Coverity commands (Build Capture)"""
-    os.chdir(Path.cwd())
-    Wrapper.main()
