@@ -3,7 +3,7 @@ from pathlib import Path
 from codesectools.sasts.core.sast import SAST
 from codesectools.sasts.Coverity.constants import (
     COLOR_MAPPING,
-    LANG,
+    LANGUAGES,
     SUPPORTED_DATASETS,
 )
 from codesectools.sasts.Coverity.parser import CoverityAnalysisResult
@@ -28,7 +28,7 @@ class CoveritySAST(SAST):
                 (Path("idir", "output", "*.xml"), False),
             ],
             parser=CoverityAnalysisResult,
-            supported_languages=LANG.keys(),
+            supported_languages=LANGUAGES.keys(),
             supported_datasets=SUPPORTED_DATASETS,
             color_mapping=COLOR_MAPPING,
         )

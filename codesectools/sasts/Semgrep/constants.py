@@ -1,7 +1,7 @@
 ## Support
 SUPPORTED_DATASETS = ["BenchmarkJava", "CVEfixes"]
 
-LANG = {"java": {}}
+LANGUAGES = {"java": {}}
 
 ## Ploting
 COLOR_MAPPING = {

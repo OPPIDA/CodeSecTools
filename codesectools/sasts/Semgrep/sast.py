@@ -3,7 +3,7 @@ from pathlib import Path
 from codesectools.sasts.core.sast import SAST
 from codesectools.sasts.Semgrep.constants import (
     COLOR_MAPPING,
-    LANG,
+    LANGUAGES,
     SUPPORTED_DATASETS,
 )
 from codesectools.sasts.Semgrep.parser import SemgrepAnalysisResult
@@ -21,7 +21,7 @@ class SemgrepSAST(SAST):
             ],
             analysis_files=[(Path("analysis.log"), True), (Path("output.json"), True)],
             parser=SemgrepAnalysisResult,
-            supported_languages=LANG.keys(),
+            supported_languages=LANGUAGES.keys(),
             supported_datasets=SUPPORTED_DATASETS,
             color_mapping=COLOR_MAPPING,
         )

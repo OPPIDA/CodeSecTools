@@ -6,7 +6,7 @@ import xmltodict
 import yaml
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
-from codesectools.sasts.Coverity.constants import LANG, TYPE_TO_CWE
+from codesectools.sasts.Coverity.constants import LANGUAGES, TYPE_TO_CWE
 from codesectools.utils import MissingFile
 
 
@@ -27,8 +27,10 @@ class CoverityDefect(Defect):
         elif self.checker.startswith("FB"):
             self.category = "SPOTBUGS"
         else:
-            if self.lang in LANG.keys():
-                for set_name, checker_set in LANG[self.lang]["checker_sets"].items():
+            if self.lang in LANGUAGES.keys():
+                for set_name, checker_set in LANGUAGES[self.lang][
+                    "checker_sets"
+                ].items():
                     if self.checker in checker_set:
                         self.category = set_name
                         break
