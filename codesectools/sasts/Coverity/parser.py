@@ -67,7 +67,7 @@ class CoverityAnalysisResult(AnalysisResult):
         self.files = list(map(lambda line: Path(line).name, captured_list.splitlines()))
 
         file_count = 0
-        for lang, pattern in LANG.items():
+        for lang, pattern in LANGUAGES.items():
             include = pattern["include"]
             exclude = pattern["exclude"]
             files = [
