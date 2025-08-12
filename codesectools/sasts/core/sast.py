@@ -244,7 +244,7 @@ class SAST:
 
             # Create temporary directory for the project
             temp_dir = tempfile.TemporaryDirectory()
-            repo_path = temp_dir.name
+            repo_path = Path(temp_dir.name)
 
             # Clone and checkout to the vulnerable commit
             try:
