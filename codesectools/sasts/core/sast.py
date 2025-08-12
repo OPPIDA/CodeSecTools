@@ -157,7 +157,7 @@ class SAST:
 
         """
         result_dir.mkdir(exist_ok=True)
-        json.dump(extra, (result_dir / "sastb_cmdout.json").open("w"))
+        json.dump(extra, (result_dir / "cstools_cmdout.json").open("w"))
 
         missing_files = []
         for path_from_root, required in self.analysis_files:

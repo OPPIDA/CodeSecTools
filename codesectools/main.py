@@ -55,4 +55,4 @@ for _, sast_components in SASTS_ALL.items():
     cli.add_command(sast_components["cli"])
 
 if __name__ == "__main__":
-    cli(prog_name="sastb")
+    cli(prog_name="cstools")
