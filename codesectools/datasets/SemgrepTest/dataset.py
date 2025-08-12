@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -25,7 +26,11 @@ class SemgrepTest(FileDataset):
         super().__init__(lang)
 
     def load_dataset(self) -> list[TestFile]:
-        SEMGREP_RULES = json.load((self.directory / "data" / "Semgrep_all.json").open())
+        SEMGREP_RULES = json.loads(
+            base64.b64decode(
+                (self.directory / "data" / "Semgrep_all.json.b64").read_bytes()
+            )
+        )
 
         files = []
         for rule in SEMGREP_RULES:
