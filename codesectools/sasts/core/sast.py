@@ -1,3 +1,10 @@
+"""Defines the core abstract class and logic for SAST tool integrations.
+
+This module provides the `SAST` abstract base class, which outlines the
+common interface for running a static analysis tool, saving its results, and
+performing benchmarks against datasets.
+"""
+
 import json
 import os
 import shutil
@@ -23,6 +30,21 @@ from codesectools.utils import (
 
 
 class SAST:
+    """Abstract base class for a SAST tool integration.
+
+    Attributes:
+        name (str): The name of the SAST tool.
+        commands (list[list[str]]): A list of command-line templates to be executed.
+        analysis_files (list[tuple[Path, bool]]): A list of expected output files.
+        parser (AnalysisResult): The parser class for the tool's results.
+        directory (Path): The directory for the SAST tool's specific files.
+        result_dir (Path): The base directory for storing analysis results.
+        supported_languages (list[str]): A list of supported programming languages.
+        supported_datasets (list[type[Dataset]]): A list of compatible dataset classes.
+        color_mapping (dict): A mapping of result categories to colors for plotting.
+
+    """
+
     name = ""
 
     def __init__(
@@ -34,6 +56,18 @@ class SAST:
         supported_datasets: list[type[Dataset]],
         color_mapping: dict,
     ) -> None:
+        """Initialize a SAST instance.
+
+        Args:
+            commands: A list of command templates to run the tool.
+            analysis_files: A list of tuples `(file_path, required)` indicating
+                the output files to save.
+            parser: The `AnalysisResult` subclass used to parse the tool's output.
+            supported_languages: A list of supported language identifiers.
+            supported_datasets: A list of dataset classes supported by the tool.
+            color_mapping: A dictionary mapping result categories to colors.
+
+        """
         """analysis_files: (file_path_from_project_root, required)"""
         self.commands = commands
         self.analysis_files = analysis_files
@@ -45,6 +79,12 @@ class SAST:
         self.color_mapping = color_mapping
 
     def check_commands(self) -> list:
+        """Check if the necessary command-line binaries for the tool are available.
+
+        Returns:
+            A list of missing binary names.
+
+        """
         missing = []
         for command in self.commands:
             binary = command[0]
@@ -54,6 +94,16 @@ class SAST:
         return missing
 
     def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
+        """Render a command template by replacing placeholders with values.
+
+        Args:
+            command: The command template as a list of strings.
+            map: A dictionary of placeholders to their replacement values.
+
+        Returns:
+            The rendered command as a list of strings.
+
+        """
         _command = command.copy()
         for pattern, value in map.items():
             for i, arg in enumerate(_command):
@@ -62,6 +112,21 @@ class SAST:
         return _command
 
     def run_analysis(self, lang: str, project_dir: Path, result_dir: Path) -> None:
+        """Run the SAST analysis on a given project directory.
+
+        Executes the tool's commands, times the analysis, calculates LoC,
+        and saves the results.
+
+        Args:
+            lang: The programming language of the project.
+            project_dir: The path to the project's source code.
+            result_dir: The path to save the analysis results.
+
+        Raises:
+            MissingFile: If a required tool binary is not found.
+            NonZeroExit: If a tool command returns a non-zero exit code.
+
+        """
         if missing := self.check_commands():
             raise MissingFile(missing)
 
@@ -81,6 +146,16 @@ class SAST:
         self.save_results(project_dir, result_dir, extra)
 
     def save_results(self, project_dir: Path, result_dir: Path, extra: dict) -> None:
+        """Save the results of a SAST analysis.
+
+        Copies the tool's output files and saves any extra metadata to the result directory.
+
+        Args:
+            project_dir: The directory where the analysis was run.
+            result_dir: The directory where results should be saved.
+            extra: A dictionary of extra metadata to save as JSON.
+
+        """
         result_dir.mkdir(exist_ok=True)
         json.dump(extra, (result_dir / "sastb_cmdout.json").open("w"))
 
@@ -107,6 +182,16 @@ class SAST:
         click.echo(f"Results are saved in {result_dir}")
 
     def analyze_files(self, dataset: FileDataset, overwrite: bool = False) -> None:
+        """Analyze a dataset composed of individual files.
+
+        Sets up a temporary directory, saves the dataset files, runs the analysis,
+        and cleans up.
+
+        Args:
+            dataset: The `FileDataset` instance to analyze.
+            overwrite: If True, overwrite existing results for this dataset.
+
+        """
         result_path = self.result_dir / dataset.full_name
         result_path.mkdir(exist_ok=True)
 
@@ -132,6 +217,16 @@ class SAST:
         temp_dir.cleanup()
 
     def analyze_repos(self, dataset: GitRepoDataset, overwrite: bool = False) -> None:
+        """Analyze a dataset composed of Git repositories.
+
+        Iterates through each repository in the dataset, clones it, checks out
+        the specified commit, runs the analysis, and saves the results.
+
+        Args:
+            dataset: The `GitRepoDataset` instance to analyze.
+            overwrite: If True, re-analyze repositories with existing results.
+
+        """
         base_result_path = self.result_dir / dataset.full_name
         base_result_path.mkdir(exist_ok=True)
         click.echo(
@@ -168,6 +263,12 @@ class SAST:
             temp_dir.cleanup()
 
     def list_supported_datasets(self) -> list[str]:
+        """List all language-specific datasets supported by this SAST tool.
+
+        Returns:
+            A list of dataset name strings (e.g., "MyDataset_java").
+
+        """
         all_datasets = []
         for dataset in self.supported_datasets:
             all_datasets.extend(dataset.list_dataset())
@@ -176,6 +277,17 @@ class SAST:
     def list_results(
         self, project: bool = False, dataset: bool = False, limit: int | None = None
     ) -> list[str]:
+        """List the names of available analysis results.
+
+        Args:
+            project: If True, include results from local project analyses.
+            dataset: If True, include results from dataset benchmarks.
+            limit: An optional limit on the number of results to return.
+
+        Returns:
+            A sorted list of result directory names.
+
+        """
         # TODO: limit
         result_dirs = []
         if self.result_dir.is_dir():

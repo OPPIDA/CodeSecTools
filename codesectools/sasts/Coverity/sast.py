@@ -1,3 +1,9 @@
+"""Defines the SAST integration for Synopsys Coverity.
+
+This module provides the `CoveritySAST` class, which configures and orchestrates
+the execution of Coverity scans using the core SAST framework.
+"""
+
 from pathlib import Path
 
 from codesectools.sasts.core.sast import SAST
@@ -10,9 +16,20 @@ from codesectools.sasts.Coverity.parser import CoverityAnalysisResult
 
 
 class CoveritySAST(SAST):
+    """Implements the SAST interface for Coverity.
+
+    This class specifies the commands, expected output files, result parser,
+    and supported configurations for running Coverity.
+
+    Attributes:
+        name (str): The name of the SAST tool, "Coverity".
+
+    """
+
     name = "Coverity"
 
     def __init__(self) -> None:
+        """Initialize the CoveritySAST integration."""
         super().__init__(
             commands=[
                 "coverity capture --disable-build-command-inference --language {lang}".split(

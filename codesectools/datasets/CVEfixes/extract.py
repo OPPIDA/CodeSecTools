@@ -1,3 +1,12 @@
+"""Extracts and prepares language-specific subsets of the CVEfixes dataset.
+
+This script connects to the CVEfixes SQLite database, queries for vulnerability
+data related to a specific programming language, fetches repository size
+information from the GitHub API, and saves the result as a CSV file.
+
+A GitHub personal access token is required to use the GitHub API.
+"""
+
 import csv
 import sqlite3
 import sys
@@ -13,6 +22,16 @@ LANG_EXT = {"java": ["java"]}
 
 
 def get_github_repo_size(repo_url: str) -> int | None:
+    """Fetch the size of a GitHub repository via the GitHub API.
+
+    Args:
+        repo_url: The URL of the GitHub repository (e.g., "https://github.com/user/repo").
+
+    Returns:
+        The size of the repository in bytes, or None if the API call fails or
+        the size is not available.
+
+    """
     headers = {"Authorization": f"Bearer {TOKEN}"}
     r = requests.get(
         repo_url.replace("github.com", "api.github.com/repos"), headers=headers
@@ -23,6 +42,15 @@ def get_github_repo_size(repo_url: str) -> int | None:
 
 
 def extract_lang(lang: str) -> None:
+    """Extract data for a specific language from the CVEfixes database.
+
+    Queries the database, fetches repository sizes, and writes the
+    combined data to a CSV file.
+
+    Args:
+        lang: The programming language to extract (e.g., "java").
+
+    """
     conn = sqlite3.connect(PACKAGE_DIR / "datasets" / "CVEfixes" / "CVEfixes.db")
     cursor = conn.cursor()
     query = f"""

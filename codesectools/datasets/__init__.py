@@ -1,3 +1,16 @@
+"""Dynamically discovers and registers all available datasets.
+
+This module iterates through the subdirectories of the `codesectools/datasets`
+directory. For each subdirectory that represents a dataset (i.e., contains a
+`dataset.py` file and is not the `core` directory), it dynamically imports
+the dataset module and adds the dataset class to the `DATASETS_ALL` dictionary.
+
+Attributes:
+    DATASETS_ALL (dict): A dictionary mapping dataset names to their
+        corresponding Dataset class instances.
+
+"""
+
 import importlib
 
 from codesectools.datasets.core.dataset import Dataset

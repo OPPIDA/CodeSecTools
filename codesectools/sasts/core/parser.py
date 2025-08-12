@@ -1,12 +1,41 @@
+"""Defines the core abstract classes for parsing SAST tool results.
+
+This module provides the `Defect` and `AnalysisResult` classes, which serve as
+standardized data structures for holding information about vulnerabilities and
+the overall analysis process. Each SAST integration must implement a concrete
+subclass of `AnalysisResult` to parse its specific output format.
+"""
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Self
 
 
 class Defect:
+    """Represents a single defect or finding reported by a SAST tool.
+
+    Attributes:
+        file (str): The name of the file where the defect was found.
+        checker (str): The name of the checker or rule that reported the defect.
+        category (str): The category of the checker (e.g., security, performance).
+        cwe_id (int): The CWE ID associated with the defect, if available.
+        data (tuple[Any]): A tuple containing the raw data for the defect.
+
+    """
+
     def __init__(
         self, file: str, checker: str, category: str, cwe_id: int, data: tuple[Any]
     ) -> None:
+        """Initialize a Defect instance.
+
+        Args:
+            file: The file path of the defect.
+            checker: The name of the rule/checker.
+            category: The category of the checker.
+            cwe_id: The associated CWE identifier.
+            data: Raw data from the SAST tool for this defect.
+
+        """
         self.file = file
         self.checker = checker
         self.category = category
@@ -14,6 +43,12 @@ class Defect:
         self.data = data
 
     def __repr__(self) -> str:
+        """Provide a developer-friendly string representation of the Defect.
+
+        Returns:
+            A string showing the class name and key attributes of the defect.
+
+        """
         return f"""{self.__class__.__name__}(
     file: \t{self.file}
     checker: \t{self.checker}
@@ -23,6 +58,19 @@ class Defect:
 
 
 class AnalysisResult(ABC):
+    """Abstract base class for holding the parsed results of a SAST analysis.
+
+    Attributes:
+        name (str): The name of the analyzed project or dataset.
+        lang (str): The primary programming language analyzed.
+        files (list[str]): A list of files that were analyzed.
+        defects (list[Defect]): A list of `Defect` objects found.
+        time (float): The duration of the analysis in seconds.
+        loc (int): The number of lines of code analyzed.
+        data (tuple[Any]): A tuple containing raw data from the analysis.
+
+    """
+
     def __init__(
         self,
         name: str,
@@ -33,6 +81,18 @@ class AnalysisResult(ABC):
         loc: int,
         data: tuple[Any],
     ) -> None:
+        """Initialize an AnalysisResult instance.
+
+        Args:
+            name: The name of the analyzed project/dataset.
+            lang: The programming language of the code.
+            files: A list of analyzed files.
+            defects: A list of `Defect` objects.
+            time: The analysis duration in seconds.
+            loc: The lines of code analyzed.
+            data: Raw data from the SAST tool's output.
+
+        """
         self.name = name
         self.lang = lang
         self.files = files
@@ -42,6 +102,12 @@ class AnalysisResult(ABC):
         self.data = data
 
     def __repr__(self) -> str:
+        """Provide a developer-friendly string representation of the AnalysisResult.
+
+        Returns:
+            A string showing key metrics of the analysis.
+
+        """
         return f"""{self.__class__.__name__}(
     name: \t{self.name}
     lang: \t{self.lang}
@@ -54,22 +120,59 @@ class AnalysisResult(ABC):
     @classmethod
     @abstractmethod
     def load_from_result_dir(cls, result_dir: Path) -> Self:
+        """Load and parse analysis results from a specified directory.
+
+        This method must be implemented by subclasses to handle the specific
+        output files of a SAST tool.
+
+        Args:
+            result_dir: The directory containing the raw analysis output files.
+
+        Returns:
+            An instance of the `AnalysisResult` subclass.
+
+        """
         pass
 
     @classmethod
     def load_from_result_dirs(cls, result_dirs: str) -> list[Self]:
+        """Load and parse analysis results from multiple directories.
+
+        Args:
+            result_dirs: An iterable of directory paths containing results.
+
+        Returns:
+            A list of `AnalysisResult` subclass instances.
+
+        """
         analysis_results = []
         for result_dir in result_dirs:
             analysis_results.append(cls.load_from_result_dir(result_dir))
         return analysis_results
 
     def checker_to_category(self, checker: str) -> str:
+        """Get the category for a given checker name.
+
+        Args:
+            checker: The name of the checker.
+
+        Returns:
+            The category string, or "NONE" if not found.
+
+        """
         for defect in self.defects:
             if checker == defect.checker:
                 return defect.category
         return "NONE"
 
     def stats_by_checkers(self) -> dict:
+        """Calculate statistics on defects, grouped by checker.
+
+        Returns:
+            A dictionary where keys are checker names and values are dicts
+            containing defect counts and affected files.
+
+        """
         stats = {}
         for defect in self.defects:
             if defect.checker not in stats.keys():
@@ -81,6 +184,13 @@ class AnalysisResult(ABC):
         return stats
 
     def stats_by_categories(self) -> dict:
+        """Calculate statistics on defects, grouped by category.
+
+        Returns:
+            A dictionary where keys are category names and values are dicts
+            containing counts and checker lists.
+
+        """
         stats = {}
         for defect in self.defects:
             if defect.category not in stats.keys():
@@ -101,6 +211,13 @@ class AnalysisResult(ABC):
         return stats
 
     def stats_by_files(self) -> dict:
+        """Calculate statistics on defects, grouped by file.
+
+        Returns:
+            A dictionary where keys are filenames and values are dicts
+            containing defect counts and the checkers that fired.
+
+        """
         stats = {}
         for defect in self.defects:
             if defect.file not in stats.keys():
@@ -112,6 +229,13 @@ class AnalysisResult(ABC):
         return stats
 
     def stats_by_cwes(self) -> dict:
+        """Calculate statistics on defects, grouped by CWE ID.
+
+        Returns:
+            A dictionary where keys are CWE IDs and values are dicts
+            containing defect counts and affected files.
+
+        """
         stats = {}
         for defect in self.defects:
             if defect.cwe_id not in stats.keys():

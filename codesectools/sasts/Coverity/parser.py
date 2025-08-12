@@ -1,3 +1,10 @@
+"""Provides classes for parsing Coverity analysis results.
+
+This module defines `CoverityDefect` and `CoverityAnalysisResult` to process
+the XML and YAML output from a Coverity scan, converting it into the standardized
+format used by CodeSecTools.
+"""
+
 import re
 from pathlib import Path
 from typing import Self
@@ -11,7 +18,25 @@ from codesectools.utils import MissingFile
 
 
 class CoverityDefect(Defect):
+    """Represents a single defect found by Coverity.
+
+    Parses defect data to extract file, checker, category, and CWE information.
+    It also determines the checker category based on predefined sets.
+
+    Attributes:
+        lang (str): The programming language of the file with the defect.
+        function (str): The function in which the defect was found.
+
+    """
+
     def __init__(self, defect_data: dict) -> None:
+        """Initialize a CoverityDefect instance from raw defect data.
+
+        Args:
+            defect_data: A dictionary representing a single defect, parsed
+                from Coverity's XML output.
+
+        """
         super().__init__(
             file=Path(defect_data["file"]).name,
             checker=defect_data["checker"],
@@ -40,6 +65,20 @@ class CoverityDefect(Defect):
 
 
 class CoverityAnalysisResult(AnalysisResult):
+    """Represents the complete result of a Coverity analysis.
+
+    Parses various output files from a Coverity run to populate analysis
+    metadata, including metrics, configuration, file lists, and defects.
+
+    Attributes:
+        metrics (dict): A dictionary of metrics from the analysis.
+        config (dict): The Coverity configuration used for the scan.
+        analysis_cmd (str): The command used to run the analysis.
+        code_lines_by_lang (dict): A dictionary mapping languages to their
+            line counts.
+
+    """
+
     def __init__(
         self,
         result_dir: Path,
@@ -48,6 +87,16 @@ class CoverityAnalysisResult(AnalysisResult):
         captured_list: str,
         defects: list[Defect],
     ) -> None:
+        """Initialize a CoverityAnalysisResult instance.
+
+        Args:
+            result_dir: The directory where the results are stored.
+            result_data: Parsed data from ANALYSIS.metrics.xml.
+            config_data: Parsed data from coverity.yaml.
+            captured_list: A string containing the list of captured source files.
+            defects: A list of `CoverityDefect` objects.
+
+        """
         super().__init__(
             name=result_dir.name,
             lang=None,
@@ -90,6 +139,21 @@ class CoverityAnalysisResult(AnalysisResult):
 
     @classmethod
     def load_from_result_dir(cls, result_dir: Path) -> Self:
+        """Load and parse Coverity analysis results from a directory.
+
+        Reads ANALYSIS.metrics.xml, coverity.yaml, captured file lists, and
+        error XML files to construct a complete analysis result object.
+
+        Args:
+            result_dir: The directory containing the Coverity output files.
+
+        Returns:
+            An instance of `CoverityAnalysisResult`.
+
+        Raises:
+            MissingFile: If a required result file is not found.
+
+        """
         # Analysis metrics
         file_path = result_dir / "ANALYSIS.metrics.xml"
         if file_path.is_file():

@@ -1,3 +1,10 @@
+"""Provides utility functions, custom exceptions, and global configurations.
+
+This module defines common file paths, a subprocess execution wrapper, custom
+exception classes for handling common errors, and a global exception hook for
+standardized error reporting.
+"""
+
 import os
 import subprocess
 import sys
@@ -23,11 +30,28 @@ RESULTS_DIR = OUTPUT_DIR / "results"
 
 # Debugging
 def DEBUG() -> bool:
+    """Check if the application is in debug mode.
+
+    Returns:
+        True if the 'DEBUG' environment variable is set to '1', False otherwise.
+
+    """
     return os.environ.get("DEBUG", "0") == "1"
 
 
 # Subprocess wrapper
 def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
+    """Execute a command in a subprocess and capture its output.
+
+    Args:
+        command: The command to execute, as a list of strings.
+        cwd: The working directory for the command.
+
+    Returns:
+        A tuple containing the command's return code and its combined
+        stdout/stderr output as a string.
+
+    """
     process = subprocess.Popen(
         command,
         cwd=cwd,
@@ -52,10 +76,14 @@ def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
 
 # Custom Exceptions
 class MissingFile(Exception):
+    """Exception raised when a required file is not found."""
+
     pass
 
 
 class NonZeroExit(Exception):
+    """Exception raised when a subprocess returns a non-zero exit code."""
+
     pass
 
 
@@ -65,6 +93,18 @@ def global_excepthook(
     exc_value: BaseException,
     exc_traceback: TracebackType | None,
 ) -> None:
+    """Handle uncaught exceptions globally.
+
+    Provides custom, user-friendly error messages for specific exception types
+    like `MissingFile` and `NonZeroExit`. Falls back to the default
+    excepthook for other exceptions. If in debug mode, it prints the full traceback.
+
+    Args:
+        exc_type: The type of the exception.
+        exc_value: The exception instance.
+        exc_traceback: The traceback object.
+
+    """
     if DEBUG():
         traceback.print_exception(exc_type, exc_value, exc_traceback)
 

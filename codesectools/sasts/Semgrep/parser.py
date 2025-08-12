@@ -1,3 +1,10 @@
+"""Provides classes for parsing Semgrep analysis results.
+
+This module defines `SemgrepFinding` and `SemgrepAnalysisResult` to process
+the JSON output from a Semgrep scan, converting it into the standardized
+format used by CodeSecTools.
+"""
+
 import json
 import re
 from pathlib import Path
@@ -8,7 +15,25 @@ from codesectools.utils import MissingFile
 
 
 class SemgrepFinding(Defect):
+    """Represents a single finding reported by Semgrep.
+
+    Parses defect data from the Semgrep JSON output to extract file, checker,
+    category, CWE, severity, and line information.
+
+    Attributes:
+        severity (str): The severity level of the finding (e.g., "ERROR").
+        lines (str): The line or lines of code where the finding occurred.
+
+    """
+
     def __init__(self, defect_data: dict) -> None:
+        """Initialize a SemgrepFinding instance from raw defect data.
+
+        Args:
+            defect_data: A dictionary representing a single finding, parsed
+                from Semgrep's JSON output.
+
+        """
         if cwe_id_match := re.search(
             r"CWE-(\d+)", defect_data["extra"]["metadata"]["cwe"][0]
         ):
@@ -30,7 +55,26 @@ class SemgrepFinding(Defect):
 
 
 class SemgrepAnalysisResult(AnalysisResult):
+    """Represents the complete result of a Semgrep analysis.
+
+    Parses the main JSON output and command output logs to populate analysis
+    metadata, including timings, file lists, defects, and code coverage.
+
+    Attributes:
+        checker_category (dict): A mapping from checker names to their categories.
+        coverage (float): The parsing coverage reported by Semgrep.
+
+    """
+
     def __init__(self, result_dir: Path, result_data: dict, cmdout: dict) -> None:
+        """Initialize a SemgrepAnalysisResult instance.
+
+        Args:
+            result_dir: The directory where the results are stored.
+            result_data: Parsed data from the main Semgrep JSON output.
+            cmdout: Parsed data from the command output log.
+
+        """
         super().__init__(
             name=result_dir.name,
             lang=result_data["interfile_languages_used"],
@@ -53,6 +97,21 @@ class SemgrepAnalysisResult(AnalysisResult):
 
     @classmethod
     def load_from_result_dir(cls, result_dir: Path) -> Self:
+        """Load and parse Semgrep analysis results from a directory.
+
+        Reads `output.json` and `sastb_cmdout.json` to construct a complete
+        analysis result object.
+
+        Args:
+            result_dir: The directory containing the Semgrep output files.
+
+        Returns:
+            An instance of `SemgrepAnalysisResult`.
+
+        Raises:
+            MissingFile: If a required result file is not found.
+
+        """
         # Cmdout
         cmdout = json.load((result_dir / "sastb_cmdout.json").open())
 

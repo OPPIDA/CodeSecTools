@@ -1,3 +1,11 @@
+"""Fetches Semgrep rules from the official registry to build the SemgrepTest dataset.
+
+This script queries the Semgrep.dev API to download all available rule definitions,
+including their test cases. The collected rules are then saved to a JSON file.
+This script requires a Semgrep authentication token with appropriate permissions
+to access team-tier (Pro) rules.
+"""
+
 import json
 import os
 import sys

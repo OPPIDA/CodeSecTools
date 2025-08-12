@@ -1,3 +1,9 @@
+"""Defines constants for the Semgrep integration.
+
+This module specifies supported datasets, languages, and color mappings
+for plotting results from Semgrep scans.
+"""
+
 ## Support
 SUPPORTED_DATASETS = ["BenchmarkJava", "CVEfixes"]
 

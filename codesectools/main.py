@@ -1,3 +1,9 @@
+"""Defines the main command-line interface (CLI) for CodeSecTools.
+
+This script sets up the main entry point for the application using `click`.
+It dynamically discovers and adds CLI commands from all available SAST tools.
+"""
+
 import os
 
 import click
@@ -7,7 +13,18 @@ from codesectools.utils import OUTPUT_DIR, PACKAGE_DIR
 
 
 class OrderedGroup(click.Group):
+    """A click Group that lists commands in the order they were added."""
+
     def list_commands(self, ctx: click.Context) -> list:
+        """List the command names in the order of definition.
+
+        Args:
+            ctx: The click context.
+
+        Returns:
+            A list of command names.
+
+        """
         return self.commands.keys()
 
 
@@ -16,6 +33,12 @@ class OrderedGroup(click.Group):
     "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
 )
 def cli(debug: bool) -> None:
+    """Entry point for the CodeSecTools CLI.
+
+    Args:
+        debug: If True, enable debug mode by setting the DEBUG environment variable.
+
+    """
     """CodeSecTools"""
     if debug:
         os.environ["DEBUG"] = "1"
@@ -23,7 +46,7 @@ def cli(debug: bool) -> None:
 
 @cli.command()
 def status() -> None:
-    """Display SASTs and Datasets status"""
+    """Display SASTs and Datasets status."""
     click.echo(PACKAGE_DIR)
     click.echo(OUTPUT_DIR)
 

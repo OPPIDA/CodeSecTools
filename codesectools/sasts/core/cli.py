@@ -1,3 +1,10 @@
+"""Provides a factory for building command-line interfaces for SAST tools.
+
+This module contains the `CLIFactory` class, which simplifies the creation of
+standardized `click` CLI commands (analyze, benchmark, list, plot) for any
+SAST integration.
+"""
+
 # TODO: TO REWORK
 import shutil
 from pathlib import Path
@@ -15,13 +22,35 @@ from codesectools.sasts.core.sast import SAST
 
 
 class CLIFactory:
+    """A factory to generate a standard set of CLI commands for a SAST tool.
+
+    Attributes:
+        cli (click.Group): The `click` group to which commands will be added.
+        sast (SAST): The SAST tool instance for which the CLI is being built.
+
+    """
+
     def __init__(self, cli: click.Group, sast: SAST, help_messages: dict) -> None:
+        """Initialize the CLIFactory.
+
+        Args:
+            cli: The `click` command group to attach the new commands to.
+            sast: An instance of the SAST tool's implementation class.
+            help_messages: A dictionary of help messages for the standard commands.
+
+        """
         self.cli = cli
         self.sast = sast
         # TODO: provide default help_messages
         self._add_minimal(help_messages)
 
     def _add_minimal(self, help_messages: dict) -> None:
+        """Add the minimal set of standard commands to the CLI group.
+
+        Args:
+            help_messages: A dictionary of help messages for each command.
+
+        """
         self.add_analyze(help=help_messages["analyze"])
         self.add_list(help=help_messages["list"])
         self.add_benchmark(help=help_messages["benchmark"])
@@ -29,6 +58,15 @@ class CLIFactory:
 
     ## Analyzer
     def add_analyze(self, help: str = "") -> None:
+        """Add the 'analyze' command to the CLI.
+
+        This command runs the SAST tool on the current directory.
+
+        Args:
+            help: The help string for the command.
+
+        """
+
         @self.cli.command(no_args_is_help=True, help=help)
         @click.option(
             "--lang",
@@ -56,6 +94,15 @@ class CLIFactory:
                 self.sast.run_analysis(lang, Path.cwd(), result_dir)
 
     def add_benchmark(self, help: str = "") -> None:
+        """Add the 'benchmark' command to the CLI.
+
+        This command runs the SAST tool against a specified dataset.
+
+        Args:
+            help: The help string for the command.
+
+        """
+
         @self.cli.command(help=help)
         @click.option(
             "--dataset",
@@ -78,6 +125,15 @@ class CLIFactory:
 
     ## Parser
     def add_list(self, help: str = "") -> None:
+        """Add the 'list' command to the CLI.
+
+        This command lists all available analysis results for the SAST tool.
+
+        Args:
+            help: The help string for the command.
+
+        """
+
         @self.cli.command(name="list", help=help)
         def list_() -> None:
             click.echo("Available analysis results:")
@@ -91,6 +147,15 @@ class CLIFactory:
 
     # Graphics
     def add_plot(self, help: str = "") -> None:
+        """Add the 'plot' command to the CLI.
+
+        This command generates visualizations from analysis or benchmark results.
+
+        Args:
+            help: The help string for the command.
+
+        """
+
         @self.cli.command(help=help)
         @click.option(
             "--project",

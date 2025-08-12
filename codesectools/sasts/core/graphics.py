@@ -1,3 +1,10 @@
+"""Provides classes for generating plots and visualizations from analysis results.
+
+This module contains base and specific graphics classes that use Matplotlib to create
+visual representations of SAST analysis data, such as defect distributions and
+benchmark performance.
+"""
+
 import re
 import shutil
 import tempfile
@@ -22,7 +29,26 @@ matplotlib.rcParams.update(
 
 
 class Graphics:
+    """Base class for generating graphics from SAST results.
+
+    Attributes:
+        sast (SAST): The SAST tool instance.
+        result_dir (Path): The directory containing the analysis results.
+        color_mapping (dict): A mapping of categories to colors for plotting.
+        plot_functions (list): A list of methods that generate plots.
+        limit (int): The maximum number of items to show in top-N plots.
+        has_latex (bool): True if a LaTeX installation is found.
+
+    """
+
     def __init__(self, sast: SAST, project_name: str) -> None:
+        """Initialize the Graphics object.
+
+        Args:
+            sast: The SAST tool instance.
+            project_name: The name of the project or dataset being visualized.
+
+        """
         self.sast = sast
         self.result_dir = sast.result_dir / project_name
         self.color_mapping = sast.color_mapping
@@ -46,6 +72,14 @@ class Graphics:
             click.echo("pdflatex not found, pgf will not be generated")
 
     def export(self, force: bool, pgf: bool, show: bool) -> None:
+        """Generate, save, and optionally display all registered plots.
+
+        Args:
+            force: If True, overwrite existing figure files.
+            pgf: If True and LaTeX is available, export figures in PGF format.
+            show: If True, open the generated figures using the default viewer.
+
+        """
         for plot_function in self.plot_functions:
             fig = plot_function()
             fig_name = plot_function.__name__.replace("plot_", "")
@@ -77,15 +111,44 @@ class Graphics:
 
 ## Single project
 class ProjectGraphics(Graphics):
+    """Generates graphics for a single project analysis result.
+
+    Attributes:
+        result (AnalysisResult): The loaded analysis result data.
+
+    """
+
     def __init__(self, sast: SAST, project_name: str) -> None:
+        """Initialize the ProjectGraphics object.
+
+        Args:
+            sast: The SAST tool instance.
+            project_name: The name of the project.
+
+        """
         super().__init__(sast=sast, project_name=project_name)
         self.result = sast.parser.load_from_result_dir(self.result_dir)
         self.plot_functions.extend([self.plot_overview])
 
     def checker_to_category(self, checker: str) -> str:
+        """Map a checker name to its category.
+
+        Args:
+            checker: The name of the checker.
+
+        Returns:
+            The category string for the checker.
+
+        """
         return self.result.checker_to_category(checker)
 
     def plot_overview(self) -> Figure:
+        """Generate an overview plot with stats by files, checkers, and categories.
+
+        Returns:
+            A Matplotlib Figure object containing the plots.
+
+        """
         project_name = self.result.name
 
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
@@ -172,13 +235,34 @@ class ProjectGraphics(Graphics):
 
 ## Datasets
 class FileDatasetGraphics(ProjectGraphics):
+    """Generates graphics for a file-based dataset benchmark result.
+
+    Attributes:
+        dataset (FileDataset): The dataset instance used for the benchmark.
+        benchmark_data (FileDatasetData): The validated benchmark data.
+
+    """
+
     def __init__(self, sast: SAST, dataset: FileDataset) -> None:
+        """Initialize the FileDatasetGraphics object.
+
+        Args:
+            sast: The SAST tool instance.
+            dataset: The file-based dataset that was benchmarked.
+
+        """
         super().__init__(sast=sast, project_name=dataset.full_name)
         self.dataset = dataset
         self.benchmark_data = self.dataset.validate(self.result)
         self.plot_functions.extend([self.plot_top_cwes])
 
     def plot_top_cwes(self) -> Figure:
+        """Generate a plot showing the top predicted CWEs vs. ground truth.
+
+        Returns:
+            A Matplotlib Figure object containing the plot.
+
+        """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         cwe_counter = {}
@@ -251,7 +335,23 @@ class FileDatasetGraphics(ProjectGraphics):
 
 
 class GitRepoDatasetGraphics(Graphics):
+    """Generates graphics for a Git repository-based dataset benchmark result.
+
+    Attributes:
+        dataset (GitRepoDataset): The dataset instance used for the benchmark.
+        results (list[AnalysisResult]): A list of loaded analysis results.
+        benchmark_data (GitRepoDatasetData): The validated benchmark data.
+
+    """
+
     def __init__(self, sast: SAST, dataset: GitRepoDataset) -> None:
+        """Initialize the GitRepoDatasetGraphics object.
+
+        Args:
+            sast: The SAST tool instance.
+            dataset: The Git repository-based dataset that was benchmarked.
+
+        """
         super().__init__(sast=sast, project_name=dataset.full_name)
         self.dataset = dataset
         analyzed_repo = {repo.name for repo in dataset.repos} & set(
@@ -270,9 +370,24 @@ class GitRepoDatasetGraphics(Graphics):
         )
 
     def checker_to_category(self, checker: str) -> str:
+        """Map a checker name to its category.
+
+        Args:
+            checker: The name of the checker.
+
+        Returns:
+            The category string for the checker.
+
+        """
         return self.results[0].checker_to_category(checker)
 
     def plot_overview(self) -> Figure:
+        """Generate an overview plot classifying defects.
+
+        Returns:
+            A Matplotlib Figure object containing the plot.
+
+        """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         set_names = ["correct_defects", "partial_defects", "incorrect_defects"]
@@ -323,6 +438,12 @@ class GitRepoDatasetGraphics(Graphics):
         return fig
 
     def plot_top_cwes(self) -> Figure:
+        """Generate a plot showing the top predicted CWEs vs. ground truth.
+
+        Returns:
+            A Matplotlib Figure object containing the plot.
+
+        """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         cwe_counter = {}
@@ -395,6 +516,12 @@ class GitRepoDatasetGraphics(Graphics):
         return fig
 
     def plot_defects_per_loc(self) -> Figure:
+        """Generate a scatter plot of defects found versus lines of code.
+
+        Returns:
+            A Matplotlib Figure object containing the plot.
+
+        """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         set_names = ["correct_defects", "partial_defects", "incorrect_defects"]
@@ -425,6 +552,12 @@ class GitRepoDatasetGraphics(Graphics):
         return fig
 
     def plot_time_per_loc(self) -> Figure:
+        """Generate a scatter plot of analysis time versus lines of code.
+
+        Returns:
+            A Matplotlib Figure object containing the plot.
+
+        """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         X, Y = [], []
