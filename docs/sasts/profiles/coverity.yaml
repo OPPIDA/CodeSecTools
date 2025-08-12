@@ -1,10 +1,11 @@
 name: Coverity Static Analysis
 description: The most trusted solution for finding code quality defects in large-scale, complex software
+type: Data Flow
 url: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
 version: 2024.12.1
 licence: Commercial
 licence_url: https://www.blackduck.com/company/legal/terms-of-service.html
-note: |
+extra: |
   - ❌ The tool is not freely available and requires a commercial license
   - ❌ Sharing of analysis results is not permitted
   - For benchmarking, Coverity is only used in **buildless** mode to automate the process

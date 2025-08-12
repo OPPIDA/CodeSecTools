@@ -1,13 +1,19 @@
 name: Semgrep Test Code
 description: Test code for Semgrep's Community Edition and Pro rules
+type: File
 url: https://github.com/semgrep/semgrep
 version: 15/05/2025
 licence:*: Semgrep Rules License v. 1.0
 licence_url: https://semgrep.dev/legal/rules-license/
-type: File
-included:
-  - Semgrep_all.json
-note: |
+extra: |
+  Included files:
+
+    - Semgrep_all.json
+  
+  Extracted from: https://zenodo.org/records/13118970
+
+  ## Note
+
   Community Edition rules are available [here](https://github.com/semgrep/semgrep-rules) but Pro rules are only available in Semgrep AppSec Platform (log in required).
 
   It is possible to download rules and test codes using Semgrep API.

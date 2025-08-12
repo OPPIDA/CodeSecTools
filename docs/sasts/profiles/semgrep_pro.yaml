@@ -1,12 +1,12 @@
 name: Semgrep Pro Engine
 description: Lightweight static analysis for many languages. Find bug variants with patterns that look like source code.
+type: Pattern Matching
 url: https://semgrep.dev/
 version: 1.128.1
 licence: Semgrep Rules License v. 1.0
 licence_url: https://semgrep.dev/legal/rules-license/
-note: |
+extra: |
   - ✅ The tool is free to use under the terms of its license
-  - ✅ Sharing of analysis results is permitted
   
   - A Semgrep account is needed to access pro engine and pro rules
   - An internet connexion is required
@@ -17,5 +17,5 @@ note: |
   semgrep install-semgrep-pro
 
   # Scan using Pro engine with --pro
-  semgrep scan --config="p/java" --pro --metrics=off
+  semgrep scan --config="p/$LANG" --pro --metrics=off
   ```

@@ -4,6 +4,8 @@
 
 ## Information
 
+Type: `{{ type }}`
+
 URL: [{{ url }}]({{ url }})
 
 Version: `{{ version }}`
@@ -14,8 +16,8 @@ Licence: [`{{ licence }}`]({{ licence_url }})
 Licence: `{{ licence }}`
 {% endif %}
 
-{% if note %}
-## Note
+{% if extra %}
+## Extra
 
-{{ note }}
+{{ extra }}
 {% endif %}

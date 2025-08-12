@@ -6,11 +6,11 @@ nav:
   - SAST: 
     - sasts/index.md
     - Supported SASTs:
-      - sasts/data/*.md
+      - sasts/profiles/*.md
   - Dataset: 
     - datasets/index.md
     - Supported datasets:
-      - datasets/data/*.md
+      - datasets/profiles/*.md
   - CLI: cli.md
   - API Reference:
     - SASTs: sasts/api.md 

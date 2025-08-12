@@ -1,14 +1,19 @@
 name: CVEfixes
 description: Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software
+type: GitRepo
 url: https://github.com/secureIT-project/CVEfixes
 version: v1.0.8
 licence: CC BY 4.0
 licence_url: null
-type: GitRepo
-included:
-  - CVEfixes_java.csv
-included_from: https://zenodo.org/records/13118970
-note: |
+extra: |
+  Included files:
+
+    - CVEfixes_java.csv
+  
+  Extracted from: https://zenodo.org/records/13118970
+
+  ## Note
+
   CVEfixes dataset is ~50 GB big.
 
   To avoid overloading SAST tool's environment, we extract the minimal data from the dataset:
