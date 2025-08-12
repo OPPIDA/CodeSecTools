@@ -44,7 +44,7 @@ class SAST:
 
     """
 
-    name = ""
+    name: str
 
     def __init__(
         self,
