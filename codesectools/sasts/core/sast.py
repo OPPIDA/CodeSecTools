@@ -21,8 +21,7 @@ from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoData
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.tools.cloc import cloc_get_loc
 from codesectools.utils import (
-    RESULTS_DIR,
-    SASTS_DIR,
+    USER_RESULTS_DIR,
     MissingFile,
     NonZeroExit,
     run_command,
@@ -72,8 +71,7 @@ class SAST:
         self.commands = commands
         self.analysis_files = analysis_files
         self.parser = parser
-        self.directory = SASTS_DIR / self.name
-        self.result_dir = RESULTS_DIR / self.name
+        self.result_dir = USER_RESULTS_DIR / self.name
         self.supported_languages = supported_languages
         self.supported_datasets = [DATASETS_ALL[d] for d in supported_datasets]
         self.color_mapping = color_mapping
@@ -157,7 +155,7 @@ class SAST:
 
         """
         result_dir.mkdir(exist_ok=True)
-        json.dump(extra, (result_dir / "cstools_cmdout.json").open("w"))
+        json.dump(extra, (result_dir / "cstools_output.json").open("w"))
 
         missing_files = []
         for path_from_root, required in self.analysis_files:

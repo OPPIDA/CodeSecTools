@@ -9,7 +9,7 @@ import os
 import click
 
 from codesectools.sasts import SASTS_ALL
-from codesectools.utils import OUTPUT_DIR, PACKAGE_DIR
+from codesectools.utils import PACKAGE_DIR, USER_DIR
 
 
 class OrderedGroup(click.Group):
@@ -48,7 +48,7 @@ def cli(debug: bool) -> None:
 def status() -> None:
     """Display SASTs and Datasets status."""
     click.echo(PACKAGE_DIR)
-    click.echo(OUTPUT_DIR)
+    click.echo(USER_DIR)
 
 
 for _, sast_components in SASTS_ALL.items():

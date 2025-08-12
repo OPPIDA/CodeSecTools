@@ -23,9 +23,10 @@ SASTS_DIR = PACKAGE_DIR / "sasts"
 DATASETS_DIR = PACKAGE_DIR / "datasets"
 
 # User output directory
-OUTPUT_DIR = Path.home() / ".codesectools"
-CONFIG_DIR = OUTPUT_DIR / "config"
-RESULTS_DIR = OUTPUT_DIR / "results"
+USER_DIR = Path.home() / ".codesectools"
+USER_SASTS_DIR = USER_DIR / "sasts"
+USER_DATASETS_DIR = USER_DIR / "datasets"
+USER_RESULTS_DIR = USER_DIR / "results"
 
 
 # Debugging

@@ -113,7 +113,7 @@ class SemgrepAnalysisResult(AnalysisResult):
 
         """
         # Cmdout
-        cmdout = json.load((result_dir / "cstools_cmdout.json").open())
+        cmdout = json.load((result_dir / "cstools_output.json").open())
 
         # Analysis outputs
         analysis_output_path = result_dir / "output.json"
