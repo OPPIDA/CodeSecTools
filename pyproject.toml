@@ -39,7 +39,7 @@ docs = [
 ]
 
 [project.scripts]
-cstools = "codesectools.main:cli"
+cstools = "codesectools.cli:cli"
 
 [build-system]
 requires = ["setuptools"]
