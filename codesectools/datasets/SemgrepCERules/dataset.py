@@ -6,9 +6,11 @@ code snippets, associated CWEs, and other metadata from a JSON file of
 Semgrep rules.
 """
 
-import base64
-import json
 import re
+from typing import Self
+
+import git
+import yaml
 
 from codesectools.datasets.core.dataset import File, FileDataset
 
@@ -42,7 +44,7 @@ class TestFile(File):
         )
 
 
-class SemgrepTest(FileDataset):
+class SemgrepCERules(FileDataset):
     """Represents the SemgrepTest dataset.
 
     This class handles the loading of the dataset by parsing a large JSON file
@@ -54,7 +56,7 @@ class SemgrepTest(FileDataset):
 
     """
 
-    name = "SemgrepTest"
+    name = "SemgrepCERules"
     supported_languages = ["java"]
 
     def __init__(self, lang: str) -> None:
@@ -65,6 +67,21 @@ class SemgrepTest(FileDataset):
 
         """
         super().__init__(lang)
+
+    def download_dataset(self: Self) -> None:
+        if not self.directory.is_dir():
+            repo = git.Repo.clone_from(
+                "https://github.com/semgrep/semgrep-rules.git",
+                self.directory,
+                depth=1,
+                sparse=True,
+                filter=["tree:0"],
+            )
+            repo.git.sparse_checkout(
+                "set",
+                "--no-cone",
+                *self.supported_languages,
+            )
 
     def load_dataset(self) -> list[TestFile]:
         """Load the SemgrepTest dataset from a base64-encoded JSON file.
@@ -77,15 +94,17 @@ class SemgrepTest(FileDataset):
             A list of `TestFile` objects representing the dataset.
 
         """
-        SEMGREP_RULES = json.loads(
-            base64.b64decode(
-                (self.directory / "data" / "Semgrep_all.json.b64").read_bytes()
-            )
-        )
+        LANG_RULES = self.directory / self.lang
+        rule_files = list(LANG_RULES.rglob("*.yml")) + list(LANG_RULES.rglob("*.yaml"))
 
         files = []
-        for rule in SEMGREP_RULES:
-            cwes = rule["definition"]["rules"][0]["metadata"].get("cwe")
+        for rule_file in rule_files:
+            if "." in rule_file.stem:
+                continue
+
+            rule = yaml.load(rule_file.open(), Loader=yaml.Loader)["rules"][0]
+
+            cwes = rule["metadata"].get("cwe")
             if not cwes:
                 continue
             if isinstance(cwes, str):
@@ -96,15 +115,7 @@ class SemgrepTest(FileDataset):
                 if match := re.search(r"[CWE|cwe]-(\d+)", cwe):
                     cwe_ids.append(int(match.group(1)))
 
-            languages = rule["definition"]["rules"][0]["languages"]
-            if self.lang not in languages:
-                continue
-
-            if rule.get("test_cases"):
-                for test in rule["test_cases"]:
-                    if self.lang == test["language"]:
-                        files.append(
-                            TestFile(test["filename"], test["target"], cwe_ids)
-                        )
-
+            if self.lang in rule["languages"]:
+                test_file = next(LANG_RULES.rglob(f"{rule_file.stem}*"))
+                files.append(TestFile(test_file.name, test_file.read_bytes(), cwe_ids))
         return files
