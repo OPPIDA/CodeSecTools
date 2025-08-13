@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import git
 import humanize
 
-from codesectools.utils import DATASETS_DIR
+from codesectools.utils import USER_DATASETS_DIR
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -37,6 +37,18 @@ class Dataset(ABC):
 
     name = ""
     supported_languages = []
+
+    def __init__(self, lang: str) -> None:
+        self.directory = USER_DATASETS_DIR / self.name
+        self.lang = lang
+        self.full_name = f"{self.name}_{self.lang}"
+        assert self.full_name in self.list_dataset()
+        self.download_dataset()
+        self.files: list[File] = self.load_dataset()
+
+    @abstractmethod
+    def download_dataset(self) -> None:
+        pass
 
     @abstractmethod
     def load_dataset(self) -> list[File]:
@@ -170,12 +182,7 @@ class FileDataset(Dataset):
             lang: The programming language of the dataset to load.
 
         """
-        self.directory = DATASETS_DIR / self.name
-        if lang:
-            self.lang = lang
-            self.full_name = f"{self.name}_{self.lang}"
-            assert self.full_name in self.list_dataset()
-            self.files: list[File] = self.load_dataset()
+        super().__init__(lang)
 
     def validate(self, analysis_result: AnalysisResult) -> FileDatasetData:
         """Validate a SAST analysis result against the ground truth of the dataset.
@@ -405,12 +412,8 @@ class GitRepoDataset(Dataset):
             lang: The programming language of the dataset to load.
 
         """
-        self.directory = DATASETS_DIR / self.name
-        if lang:
-            self.lang = lang
-            self.full_name = f"{self.name}_{self.lang}"
-            assert self.full_name in self.list_dataset()
-            self.repos = self.load_dataset()
+        super().__init__(lang)
+        self.repos: list[GitRepo] = self.files
         self.max_repo_size: int
 
     def validate(self, analysis_results: list[AnalysisResult]) -> GitRepoDatasetData:

@@ -6,8 +6,10 @@ It reads repository information from a CSV file.
 """
 
 import csv
+from typing import Self
 
 from codesectools.datasets.core.dataset import GitRepo, GitRepoDataset
+from codesectools.utils import DATASETS_DIR
 
 
 class CVEfixes(GitRepoDataset):
@@ -37,6 +39,16 @@ class CVEfixes(GitRepoDataset):
         self.max_repo_size = 100e6
         super().__init__(lang)
 
+    def download_dataset(self: Self) -> None:
+        if not self.directory.is_dir():
+            self.directory.mkdir()
+            for dataset_file in (DATASETS_DIR / self.name / "data").glob(
+                "CVEfixes_*.csv"
+            ):
+                (self.directory / dataset_file.name).write_bytes(
+                    dataset_file.read_bytes()
+                )
+
     def load_dataset(
         self,
     ) -> list[GitRepo]:
@@ -50,7 +62,7 @@ class CVEfixes(GitRepoDataset):
             repository size.
 
         """
-        dataset_path = self.directory / "data" / f"CVEfixes_{self.lang}.csv"
+        dataset_path = self.directory / f"CVEfixes_{self.lang}.csv"
         repos = []
         with open(dataset_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)

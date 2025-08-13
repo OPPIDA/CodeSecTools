@@ -6,13 +6,14 @@ from a zip archive and associates them with expected results from a CSV file.
 """
 
 import csv
-import zipfile
 from typing import Self
+
+import git
 
 from codesectools.datasets.core.dataset import File, FileDataset
 
 
-class TestFile(File):
+class TestCode(File):
     """Represents a single test file in the BenchmarkJava dataset.
 
     Inherits from the base `File` class and adds a `vuln_type` attribute
@@ -91,7 +92,25 @@ class BenchmarkJava(FileDataset):
         else:
             return False
 
-    def load_dataset(self) -> list[TestFile]:
+    def download_dataset(self: Self) -> None:
+        if not self.directory.is_dir():
+            repo = git.Repo.clone_from(
+                "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
+                self.directory,
+                depth=1,
+                sparse=True,
+                filter=["tree:0"],
+            )
+            repo.git.sparse_checkout(
+                "set",
+                "--no-cone",
+                *[
+                    "src/main/java/org/owasp/benchmark/testcode/",
+                    "expectedresults-1.2.csv",
+                ],
+            )
+
+    def load_dataset(self) -> list[TestCode]:
         """Load the BenchmarkJava dataset from its source files.
 
         Reads a CSV file for vulnerability metadata and a zip file containing
@@ -102,17 +121,24 @@ class BenchmarkJava(FileDataset):
 
         """
         files = []
-        testfiles = zipfile.ZipFile((self.directory / "data" / "tests.zip").open("rb"))
-        reader = csv.reader(
-            (self.directory / "data" / "expectedresults-1.2.csv").open()
+        testcode_dir = (
+            self.directory
+            / "src"
+            / "main"
+            / "java"
+            / "org"
+            / "owasp"
+            / "benchmark"
+            / "testcode"
         )
+        reader = csv.reader((self.directory / "expectedresults-1.2.csv").open())
         next(reader)
         for row in reader:
             filename = f"{row[0]}.java"
-            content = testfiles.open(filename).read()
+            content = (testcode_dir / filename).read_text()
             cwe_ids = [int(row[3])]
             vuln_type = row[1]
             is_real = True if row[2] == "true" else False
-            files.append(TestFile(filename, content, cwe_ids, vuln_type, is_real))
+            files.append(TestCode(filename, content, cwe_ids, vuln_type, is_real))
 
         return files
