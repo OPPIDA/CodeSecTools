@@ -1,4 +1,4 @@
-"""Provides classes for parsing Semgrep analysis results.
+"""Provides classes for parsing Semgrep Community Edition analysis results.
 
 This module defines `SemgrepFinding` and `SemgrepAnalysisResult` to process
 the JSON output from a Semgrep scan, converting it into the standardized
@@ -14,8 +14,8 @@ from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.utils import MissingFile
 
 
-class SemgrepFinding(Defect):
-    """Represents a single finding reported by Semgrep.
+class SemgrepCEFinding(Defect):
+    """Represents a single finding reported by Semgrep Community Edition.
 
     Parses defect data from the Semgrep JSON output to extract file, checker,
     category, CWE, severity, and line information.
@@ -31,7 +31,7 @@ class SemgrepFinding(Defect):
 
         Args:
             defect_data: A dictionary representing a single finding, parsed
-                from Semgrep's JSON output.
+                from Semgrep Community Edition's JSON output.
 
         """
         if cwe_id_match := re.search(
@@ -54,8 +54,8 @@ class SemgrepFinding(Defect):
         self.lines = self.data["extra"]["lines"]
 
 
-class SemgrepAnalysisResult(AnalysisResult):
-    """Represents the complete result of a Semgrep analysis.
+class SemgrepCEAnalysisResult(AnalysisResult):
+    """Represents the complete result of a Semgrep Community Edition analysis.
 
     Parses the main JSON output and command output logs to populate analysis
     metadata, including timings, file lists, defects, and code coverage.
@@ -71,7 +71,7 @@ class SemgrepAnalysisResult(AnalysisResult):
 
         Args:
             result_dir: The directory where the results are stored.
-            result_data: Parsed data from the main Semgrep JSON output.
+            result_data: Parsed data from the main Semgrep Community Edition JSON output.
             cmdout: Parsed data from the command output log.
 
         """
@@ -87,7 +87,7 @@ class SemgrepAnalysisResult(AnalysisResult):
 
         self.checker_category = {}
         for defect_data in result_data["results"]:
-            defect = SemgrepFinding(defect_data)
+            defect = SemgrepCEFinding(defect_data)
             self.defects.append(defect)
             self.checker_category[defect.checker] = defect.category
 
@@ -97,13 +97,13 @@ class SemgrepAnalysisResult(AnalysisResult):
 
     @classmethod
     def load_from_result_dir(cls, result_dir: Path) -> Self:
-        """Load and parse Semgrep analysis results from a directory.
+        """Load and parse Semgrep Community Edition analysis results from a directory.
 
-        Reads `output.json` and `cstools_output.json` to construct a complete
+        Reads `semgrep_output.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:
-            result_dir: The directory containing the Semgrep output files.
+            result_dir: The directory containing the Semgrep Community Edition output files.
 
         Returns:
             An instance of `SemgrepAnalysisResult`.
@@ -116,7 +116,7 @@ class SemgrepAnalysisResult(AnalysisResult):
         cmdout = json.load((result_dir / "cstools_output.json").open())
 
         # Analysis outputs
-        analysis_output_path = result_dir / "output.json"
+        analysis_output_path = result_dir / "semgrep_output.json"
         if analysis_output_path.is_file():
             analysis_output = json.load(analysis_output_path.open("r"))
         else:

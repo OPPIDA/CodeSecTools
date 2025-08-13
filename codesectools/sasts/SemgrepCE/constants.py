@@ -1,7 +1,7 @@
-"""Defines constants for the Semgrep integration.
+"""Defines constants for the Semgrep Community Edition integration.
 
 This module specifies supported datasets, languages, and color mappings
-for plotting results from Semgrep scans.
+for plotting results from Semgrep Community Edition scans.
 """
 
 ## Support
