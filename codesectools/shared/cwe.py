@@ -11,10 +11,10 @@ Attributes:
 
 import csv
 
-from codesectools.utils import PACKAGE_DIR
+from codesectools.utils import DATA_DIR
 
 CWE = {}
-for file_path in (PACKAGE_DIR / "shared" / "data" / "cwe").glob("CWE_*.csv"):
+for file_path in (DATA_DIR / "cwe").glob("CWE_*.csv"):
     with open(file_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         for row in reader:

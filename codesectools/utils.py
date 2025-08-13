@@ -18,6 +18,7 @@ import click
 # Package internal files
 PACKAGE_DIR = Path(files("codesectools.utils"))
 
+DATA_DIR = PACKAGE_DIR / "data"
 SHARED_DIR = PACKAGE_DIR / "shared"
 SASTS_DIR = PACKAGE_DIR / "sasts"
 DATASETS_DIR = PACKAGE_DIR / "datasets"

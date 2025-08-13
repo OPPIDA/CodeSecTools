@@ -8,7 +8,7 @@ a directory.
 import json
 from pathlib import Path
 
-from codesectools.utils import SHARED_DIR, NonZeroExit, run_command
+from codesectools.utils import DATA_DIR, NonZeroExit, run_command
 
 
 def cloc_get_loc(
@@ -27,7 +27,7 @@ def cloc_get_loc(
 
     """
     to_cloc_name = {"java": "Java"}
-    command = ["perl", SHARED_DIR / "tools" / "cloc" / "cloc.pl", ".", "--json"]
+    command = ["perl", DATA_DIR / "cloc" / "cloc.pl", ".", "--json"]
     command.append(f"--include-lang={to_cloc_name[lang]}")
     retcode, out = run_command(command, dir)
     if retcode != 0:

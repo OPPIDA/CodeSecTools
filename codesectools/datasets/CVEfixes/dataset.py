@@ -9,7 +9,7 @@ import csv
 from typing import Self
 
 from codesectools.datasets.core.dataset import GitRepo, GitRepoDataset
-from codesectools.utils import DATASETS_DIR
+from codesectools.utils import DATA_DIR
 
 
 class CVEfixes(GitRepoDataset):
@@ -43,9 +43,7 @@ class CVEfixes(GitRepoDataset):
         """Prepare the dataset directory and copies the necessary CSV files."""
         if not self.directory.is_dir():
             self.directory.mkdir()
-            for dataset_file in (DATASETS_DIR / self.name / "data").glob(
-                "CVEfixes_*.csv"
-            ):
+            for dataset_file in (DATA_DIR / self.name).glob("CVEfixes_*.csv"):
                 (self.directory / dataset_file.name).write_bytes(
                     dataset_file.read_bytes()
                 )

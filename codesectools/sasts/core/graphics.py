@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
-from codesectools.shared.data.cwe import CWE
+from codesectools.shared.cwe import CWE
 
 ## Matplotlib config
 matplotlib.rcParams.update(

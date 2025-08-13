@@ -19,7 +19,7 @@ import humanize
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
-from codesectools.shared.tools.cloc import cloc_get_loc
+from codesectools.shared.cloc import cloc_get_loc
 from codesectools.utils import (
     USER_RESULTS_DIR,
     MissingFile,
