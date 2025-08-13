@@ -124,8 +124,9 @@ def global_excepthook(
                 )
     elif issubclass(exc_type, NonZeroExit):
         command, command_output = exc_value.args
+        command = " ".join(str(c) for c in command)
         click.echo(
-            f"[ERROR] Non zero return code while running command:\n{click.style(' '.join(command), fg='red', bold=True)}",
+            f"[ERROR] Non zero return code while running command:\n{click.style(command, fg='red', bold=True)}",
             err=True,
         )
         click.echo(click.style(command_output, fg="red", italic=True), err=True)
