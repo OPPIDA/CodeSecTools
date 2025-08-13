@@ -1,1 +1,1 @@
-"""Initializes the SemgrepTest dataset module."""
+"""Initializes the SemgrepCERules dataset module."""

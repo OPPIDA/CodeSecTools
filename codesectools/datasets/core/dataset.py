@@ -30,7 +30,7 @@ class Dataset(ABC):
 
     Attributes:
         name (str): The name of the dataset.
-        supported_languages (list): A list of programming languages supported
+        supported_languages (list[str]): A list of programming languages supported
             by the dataset.
 
     """
@@ -39,6 +39,16 @@ class Dataset(ABC):
     supported_languages = []
 
     def __init__(self, lang: str) -> None:
+        """Initialize the Dataset instance.
+
+        Sets up paths, validates the language, and triggers the download and
+        loading process for the dataset.
+
+        Args:
+            lang: The programming language of the dataset to load. Must be one
+                of the supported languages for the dataset class.
+
+        """
         self.directory = USER_DATASETS_DIR / self.name
         self.lang = lang
         self.full_name = f"{self.name}_{self.lang}"
@@ -48,6 +58,12 @@ class Dataset(ABC):
 
     @abstractmethod
     def download_dataset(self) -> None:
+        """Download or prepare the dataset's source files.
+
+        This method must be implemented by subclasses to define how the
+        dataset's source files (e.g., from Git, archives) are obtained
+        and placed in the appropriate directory.
+        """
         pass
 
     @abstractmethod
@@ -113,7 +129,8 @@ class File(DatasetUnit):
             content: The content of the file, as a string or bytes. It will be
                 converted to bytes if provided as a string.
             cwe_ids: A list of CWE IDs associated with the file.
-            is_real: A boolean indicating if the vulnerability is real.
+            is_real: True if the vulnerability is real, False if it's
+                intended to be a false positive test case.
 
         """
         self.filename = filename
@@ -418,6 +435,10 @@ class GitRepoDataset(Dataset):
 
     def validate(self, analysis_results: list[AnalysisResult]) -> GitRepoDatasetData:
         """Validate SAST analysis results against the ground truth of the dataset.
+
+        Compares the defects found by a SAST tool for each repository with the
+        known vulnerabilities (CWEs and file locations) in the dataset to
+        categorize them as correct, partial, or incorrect.
 
         Args:
             analysis_results: A list of analysis results, one for each repository.

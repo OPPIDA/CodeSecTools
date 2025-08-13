@@ -33,13 +33,7 @@ class OrderedGroup(click.Group):
     "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
 )
 def cli(debug: bool) -> None:
-    """Entry point for the CodeSecTools CLI.
-
-    Args:
-        debug: If True, enable debug mode by setting the DEBUG environment variable.
-
-    """
-    """CodeSecTools"""
+    """CodeSecTools."""
     if debug:
         os.environ["DEBUG"] = "1"
 

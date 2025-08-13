@@ -1,8 +1,8 @@
 """Defines the BenchmarkJava dataset for evaluating SAST tools on Java code.
 
 This module provides the classes and logic to load the BenchmarkJava dataset, which
-consists of Java test files with known vulnerabilities. It reads test files
-from a zip archive and associates them with expected results from a CSV file.
+consists of Java test files with known vulnerabilities. It clones the source code
+from a Git repository and associates test files with expected results from a CSV file.
 """
 
 import csv
@@ -32,7 +32,7 @@ class TestCode(File):
         vuln_type: str,
         is_real: bool,
     ) -> None:
-        """Initialize a TestFile instance.
+        """Initialize a TestCode instance.
 
         Args:
             filename: The name of the file.
@@ -93,6 +93,7 @@ class BenchmarkJava(FileDataset):
             return False
 
     def download_dataset(self: Self) -> None:
+        """Download the dataset by sparsely cloning its Git repository."""
         if not self.directory.is_dir():
             repo = git.Repo.clone_from(
                 "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
@@ -113,11 +114,12 @@ class BenchmarkJava(FileDataset):
     def load_dataset(self) -> list[TestCode]:
         """Load the BenchmarkJava dataset from its source files.
 
-        Reads a CSV file for vulnerability metadata and a zip file containing
-        the Java source code. It creates a `TestFile` object for each entry.
+        Reads a CSV file for vulnerability metadata and the corresponding Java
+        source files from the cloned repository. It creates a `TestCode` object
+        for each entry.
 
         Returns:
-            A list of `TestFile` objects representing the dataset.
+            A list of `TestCode` objects representing the dataset.
 
         """
         files = []

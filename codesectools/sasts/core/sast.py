@@ -36,7 +36,6 @@ class SAST:
         commands (list[list[str]]): A list of command-line templates to be executed.
         analysis_files (list[tuple[Path, bool]]): A list of expected output files.
         parser (AnalysisResult): The parser class for the tool's results.
-        directory (Path): The directory for the SAST tool's specific files.
         result_dir (Path): The base directory for storing analysis results.
         supported_languages (list[str]): A list of supported programming languages.
         supported_datasets (list[type[Dataset]]): A list of compatible dataset classes.
@@ -59,15 +58,14 @@ class SAST:
 
         Args:
             commands: A list of command templates to run the tool.
-            analysis_files: A list of tuples `(file_path, required)` indicating
-                the output files to save.
+            analysis_files: A list of tuples `(file_path_from_project_root, required)`
+                indicating the output files to save.
             parser: The `AnalysisResult` subclass used to parse the tool's output.
             supported_languages: A list of supported language identifiers.
             supported_datasets: A list of dataset classes supported by the tool.
             color_mapping: A dictionary mapping result categories to colors.
 
         """
-        """analysis_files: (file_path_from_project_root, required)"""
         self.commands = commands
         self.analysis_files = analysis_files
         self.parser = parser
@@ -121,7 +119,7 @@ class SAST:
             result_dir: The path to save the analysis results.
 
         Raises:
-            MissingFile: If a required tool binary is not found.
+            MissingFile: If a required tool command (binary) is not found in the system's PATH.
             NonZeroExit: If a tool command returns a non-zero exit code.
 
         """
@@ -286,7 +284,6 @@ class SAST:
             A sorted list of result directory names.
 
         """
-        # TODO: limit
         result_dirs = []
         if self.result_dir.is_dir():
             for child in os.listdir(self.result_dir):

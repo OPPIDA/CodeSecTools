@@ -1,9 +1,8 @@
-"""Defines the SemgrepTest dataset for evaluating SAST tools.
+"""Defines the SemgrepCERules dataset for evaluating SAST tools.
 
-This module provides classes and logic to load the SemgrepTest dataset, which is
-derived from the test cases within Semgrep's own rule definitions. It extracts
-code snippets, associated CWEs, and other metadata from a JSON file of
-Semgrep rules.
+This module provides classes and logic to load the SemgrepCERules dataset, which is
+derived from the test cases within Semgrep's community rule definitions. It extracts
+code snippets, associated CWEs, and other metadata from Semgrep's YAML rule files.
 """
 
 import re
@@ -45,13 +44,13 @@ class TestFile(File):
 
 
 class SemgrepCERules(FileDataset):
-    """Represents the SemgrepTest dataset.
+    """Represents the SemgrepCERules dataset.
 
-    This class handles the loading of the dataset by parsing a large JSON file
-    containing Semgrep rules and their associated test cases.
+    This class handles the loading of the dataset by parsing YAML files
+    containing Semgrep community rules and their associated test cases.
 
     Attributes:
-        name (str): The name of the dataset, "SemgrepTest".
+        name (str): The name of the dataset, "SemgrepCERules".
         supported_languages (list[str]): A list of supported programming languages.
 
     """
@@ -60,7 +59,7 @@ class SemgrepCERules(FileDataset):
     supported_languages = ["java"]
 
     def __init__(self, lang: str) -> None:
-        """Initialize the SemgrepTest dataset.
+        """Initialize the SemgrepCERules dataset.
 
         Args:
             lang: The programming language of the dataset files to load.
@@ -69,6 +68,7 @@ class SemgrepCERules(FileDataset):
         super().__init__(lang)
 
     def download_dataset(self: Self) -> None:
+        """Download the dataset by sparsely cloning the semgrep-rules Git repository."""
         if not self.directory.is_dir():
             repo = git.Repo.clone_from(
                 "https://github.com/semgrep/semgrep-rules.git",
@@ -84,10 +84,10 @@ class SemgrepCERules(FileDataset):
             )
 
     def load_dataset(self) -> list[TestFile]:
-        """Load the SemgrepTest dataset from a base64-encoded JSON file.
+        """Load the SemgrepCERules dataset from the rule repository.
 
-        Decodes and parses the JSON file, iterates through Semgrep rules,
-        extracts relevant test cases for the specified language, and creates
+        Parses the YAML rule files, iterates through the rules, extracts
+        relevant test cases for the specified language, and creates
         `TestFile` objects.
 
         Returns:

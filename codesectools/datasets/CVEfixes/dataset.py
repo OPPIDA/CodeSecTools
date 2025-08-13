@@ -40,6 +40,7 @@ class CVEfixes(GitRepoDataset):
         super().__init__(lang)
 
     def download_dataset(self: Self) -> None:
+        """Prepare the dataset directory and copies the necessary CSV files."""
         if not self.directory.is_dir():
             self.directory.mkdir()
             for dataset_file in (DATASETS_DIR / self.name / "data").glob(

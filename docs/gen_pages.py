@@ -3,11 +3,11 @@
 This script is intended to be run by the `mkdocs-gen-files` plugin. It
 automates the creation of documentation pages for SAST tools and datasets.
 
-The script finds all YAML files in `docs/sasts/data/` and
-`docs/datasets/data/`. For each file, it reads the data, renders the
-appropriate Jinja2 template (`sasts.md.j2` or `datasets.md.j2`), and writes
-the resulting Markdown to a new `.md` file in the same directory.
-This dynamically builds the documentation for the MkDocs site.
+The script finds all YAML files in `docs/sasts/profiles/` and
+`docs/datasets/profiles/`. For each file, it reads the data, renders the
+`profile.md.j2` Jinja2 template, and writes the resulting Markdown to a new
+`.md` file in the same directory. This dynamically builds the documentation
+for the MkDocs site.
 """
 
 from pathlib import Path

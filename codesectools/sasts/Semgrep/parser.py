@@ -99,7 +99,7 @@ class SemgrepAnalysisResult(AnalysisResult):
     def load_from_result_dir(cls, result_dir: Path) -> Self:
         """Load and parse Semgrep analysis results from a directory.
 
-        Reads `output.json` and `cstools_cmdout.json` to construct a complete
+        Reads `output.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:
