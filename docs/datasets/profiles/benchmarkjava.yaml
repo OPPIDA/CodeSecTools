@@ -1,14 +1,14 @@
 name: BenchmarkJava
-description: The OWASP Benchmark Project is a Java test suite designed to evaluate the accuracy, coverage, and speed of automated software vulnerability detection tools. Without the ability to measure these tools, it is difficult to understand their strengths and weaknesses, and compare them to each other.
+description: OWASP Benchmark is a test suite designed to verify the speed and accuracy of software vulnerability detection tools. A fully runnable web app written in Java, it supports analysis by Static (SAST), Dynamic (DAST), and Runtime (IAST) tools that support Java.
 type: File
 url: https://github.com/OWASP-Benchmark/BenchmarkJava
-version: v1.2
+version: Latest
 licence: GPL-2.0
-licence_url: null
+licence_url: https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE
 extra: |
-  Included files:
+  ## Dataset content
+    
+  - `src/main/java/org/owasp/benchmark/testcode/*`
+  - `expectedresults-1.2.csv`
 
-    - tests.zip
-    - expectedresults-1.2.csv
-  
-  Extracted from: https://github.com/OWASP-Benchmark/BenchmarkJava
+  The files are **downloaded** from [OWASP-Benchmark/BenchmarkJava](https://github.com/OWASP-Benchmark/BenchmarkJava).

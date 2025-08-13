@@ -1,48 +1,111 @@
 name: CVEfixes
-description: Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software
+description: Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software.
 type: GitRepo
 url: https://github.com/secureIT-project/CVEfixes
 version: v1.0.8
 licence: CC BY 4.0
-licence_url: null
+licence_url: https://github.com/secureIT-project/CVEfixes/blob/main/LICENSE.txt
 extra: |
-  Included files:
+  ## Dataset content
 
-    - CVEfixes_java.csv
-  
-  Extracted from: https://zenodo.org/records/13118970
+  - `CVEfixes_java.csv`
 
-  ## Note
+  The files are **included** and pre-extracted from the original dataset, which is available at [Zenodo](https://zenodo.org/records/13118970).
 
-  CVEfixes dataset is ~50 GB big.
+  !!! warning "Large Original Dataset"
+      The full CVEfixes dataset is a SQLite database of approximately 50GB. To keep it manageable for SAST tools, we provide a pre-processed version with minimal data for specific languages.
 
-  To avoid overloading SAST tool's environment, we extract the minimal data from the dataset:
+      We extracted the following columns to create language-specific CSV files (e.g., `CVEfixes_java.csv`):
 
-  - `cve_id`: for reference only,
-  - `cwe_ids`: **compare** with SAST output,
-  - `repo_url`: download the project,
-  - `parents`: checkout to the vulnerable version,
-  - `filenames`: **compare** with SAST output.
+      - `cve_id`
+      - `cwe_ids`
+      - `repo_url`
+      - `parents` (vulnerable commit)
+      - `filenames`
 
-  We use Github REST API to get an estimate of the repository size:
+      We also added `repo_size` for each repository, fetched using the GitHub API.
 
-  - `repo_size`: repository size in bytes
+  !!! info "Extract minimal version for a specific programming language"
 
-  You need to provide a Github OAuth access token because the rate limit for unauthenticated users is only `60 reqs/hour` vs `5000 reqs/hour` for authenticated users.
+      **Requirements:**
 
-  To generate one:
+      1.  Download `CVEfixes.db` from [Zenodo](https://zenodo.org/records/13118970).
+      2.  Modify the script variables `LANG`, `LANG_EXT`, and `TOKEN` to match your needs.
 
-  - Go to [New personal access token (classic)](https://github.com/settings/tokens/new)
-  - Select scopes: `repo` -> `public_repo`
-  - Copy the token and paste it when prompted
-  - Once all extraction done, delete the token
+      **GitHub API Token:**
 
-  ```bash
-  $ python3 ./datasets/CVEfixes/extract.py 
-  Token: ghp_************************************
-  Available languages
-  - java
-  Select lang: java
-  100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 394/394 [02:13<00:00,  2.95it/s]
-  Extraction completed and available at datasets/CVEfixes/CVEfixes_java.csv
-  ```
+      A GitHub Personal Access Token (PAT) is required to query repository sizes due to API rate limits.
+
+      1.  Generate a new token at [github.com/settings/tokens/new](https://github.com/settings/tokens/new) with the `public_repo` scope.
+      2.  Paste the token into the `TOKEN` variable in the script.
+      3.  Remember to delete the token after use.
+
+        ```python
+        import csv
+        import sqlite3
+        import sys
+
+        import requests
+
+        LANG = ""
+        LANG_EXT = []
+        TOKEN = "YOUR_GITHUB_TOKEN"
+
+        def get_size(repo_url: str) -> int | None:
+            """Get Github repository size."""
+            headers = {"Authorization": f"Bearer {TOKEN}"}
+            r = requests.get(
+                repo_url.replace("github.com", "api.github.com/repos"), headers=headers
+            )
+            size_kb = r.json().get("size", None)
+            if size_kb:
+                return size_kb * 1000
+
+        headers = {"Authorization": f"Bearer {TOKEN}"}
+        r = requests.get("https://api.github.com", headers=headers)
+        if r.status_code == 401:
+            print(r.json())
+            sys.exit(1)
+
+        conn = sqlite3.connect("CVEfixes.db")
+        cursor = conn.cursor()
+        query = f"""
+        SELECT
+            cve.cve_id,
+            REPLACE(GROUP_CONCAT(DISTINCT cwe.cwe_id), ',', ';') AS cwe_ids,
+            REPLACE(GROUP_CONCAT(DISTINCT cwe.description), ',', ';') AS cwe_descriptions,
+            repository.repo_url,
+            commits.parents,
+            REPLACE(GROUP_CONCAT(DISTINCT file_change.filename), ',', ';') AS filenames
+        FROM cve
+        JOIN fixes ON fixes.cve_id = cve.cve_id
+        JOIN commits ON commits.hash = fixes.hash AND commits.repo_url = fixes.repo_url
+        JOIN file_change ON file_change.hash = commits.hash
+        JOIN repository ON repository.repo_url = commits.repo_url
+        JOIN cwe_classification ON cwe_classification.cve_id = cve.cve_id
+        JOIN cwe ON cwe.cwe_id = cwe_classification.cwe_id
+        WHERE LOWER(repository.repo_language) = '{LANG}'
+            AND cwe.cwe_id GLOB 'CWE-[0-9]*'"""
+
+        for ext in LANG_EXT:
+            query += f"""
+        AND file_change.filename GLOB '*.{ext}'"""
+
+        query += """
+        AND file_change.filename NOT GLOB '*[Tt]est*'
+        GROUP BY cve.cve_id;"""
+        cursor.execute(query)
+        rows = cursor.fetchall()
+
+        with open(f"CVEfixes_{LANG}.csv", "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            headers = [desc[0] for desc in cursor.description] + ["repo_size"]
+            writer.writerow(headers)
+
+            for row in rows:
+                repo_url = row[3]
+                size = get_size(repo_url)
+                writer.writerow(list(row) + [size])
+
+        conn.close()
+        ```

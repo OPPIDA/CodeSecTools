@@ -1,0 +1,19 @@
+name: Semgrep Community Edition Rules
+description: Semgrep Community Edition rules, maintained by Semgrep and the community. Free to use under the Semgrep Rules License.
+type: File
+url: https://github.com/semgrep/semgrep-rules
+version: Latest
+licence: Semgrep Rules License v1.0
+licence_url: https://semgrep.dev/legal/rules-license
+extra: |
+  !!! warning "Licensing Terms"
+      - Use is for internal business purposes only.
+      - Distribution of the rules, or making them available as a service, is not permitted.
+  
+  ## Dataset content
+    
+  - `$LANG/**/*.yml`
+  - `$LANG/**/*.yaml`
+  - `$LANG/**/*.$LANG_EXT`
+
+  The files are **downloaded** from [semgrep/semgrep-rules](https://github.com/semgrep/semgrep-rules).

@@ -1,0 +1,14 @@
+name: Semgrep Community Edition
+description: Lightweight static analysis for many languages. Find bug variants with patterns that look like source code.
+type: Pattern matching
+url: https://github.com/semgrep/semgrep
+version: 1.128.1
+licence: Semgrep Rules License v. 1.0
+licence_url: https://github.com/semgrep/semgrep/blob/develop/LICENSE
+extra: |
+  !!! success "Licensing Terms"
+      - The tool is free to use under the terms of its license.
+      - Sharing of analysis results is permitted under the terms of its license.
+  
+  !!! success "Requirements"
+      - An internet connection is **not required** to run the tool
