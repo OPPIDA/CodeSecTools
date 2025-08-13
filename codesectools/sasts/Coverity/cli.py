@@ -16,13 +16,4 @@ def CoverityCLI() -> None:
     pass
 
 
-CLIFactory(
-    CoverityCLI,
-    CoveritySAST(),
-    help_messages={
-        "analyze": """Quick analyze using Coverity Buildless capture""",
-        "benchmark": """Benchmark Coverity on a dataset""",
-        "list": """List existing analysis results""",
-        "plot": """Generate plot for visualization""",
-    },
-)
+CLIFactory(CoverityCLI, CoveritySAST(), custom_messages={})

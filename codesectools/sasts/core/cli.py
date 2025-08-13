@@ -5,9 +5,9 @@ standardized `click` CLI commands (analyze, benchmark, list, plot) for any
 SAST integration.
 """
 
-# TODO: TO REWORK
 import shutil
 from pathlib import Path
+from typing import Self
 
 import click
 
@@ -27,34 +27,36 @@ class CLIFactory:
     Attributes:
         cli (click.Group): The `click` group to which commands will be added.
         sast (SAST): The SAST tool instance for which the CLI is being built.
+        help_messages (dict): A dictionary of help messages for the standard commands.
 
     """
 
-    def __init__(self, cli: click.Group, sast: SAST, help_messages: dict) -> None:
+    def __init__(self, cli: click.Group, sast: SAST, custom_messages: dict) -> None:
         """Initialize the CLIFactory.
 
         Args:
             cli: The `click` command group to attach the new commands to.
             sast: An instance of the SAST tool's implementation class.
-            help_messages: A dictionary of help messages for the standard commands.
+            custom_messages: A dictionary of custom help messages to override the defaults.
 
         """
         self.cli = cli
         self.sast = sast
-        # TODO: provide default help_messages
-        self._add_minimal(help_messages)
+        self.help_messages = {
+            "analyze": f"""Analyze a project using {sast.name}.""",
+            "benchmark": f"""Benchmark a dataset using {sast.name}.""",
+            "list": """List existing analysis results.""",
+            "plot": """Generate plot for visualization.""",
+        }
+        self.help_messages.update(custom_messages)
+        self._add_minimal()
 
-    def _add_minimal(self, help_messages: dict) -> None:
-        """Add the minimal set of standard commands to the CLI group.
-
-        Args:
-            help_messages: A dictionary of help messages for each command.
-
-        """
-        self.add_analyze(help=help_messages["analyze"])
-        self.add_list(help=help_messages["list"])
-        self.add_benchmark(help=help_messages["benchmark"])
-        self.add_plot(help=help_messages["plot"])
+    def _add_minimal(self: Self) -> None:
+        """Add the minimal set of standard commands to the CLI group."""
+        self.add_analyze(help=self.help_messages["analyze"])
+        self.add_list(help=self.help_messages["list"])
+        self.add_benchmark(help=self.help_messages["benchmark"])
+        self.add_plot(help=self.help_messages["plot"])
 
     ## Analyzer
     def add_analyze(self, help: str = "") -> None:
@@ -82,6 +84,7 @@ class CLIFactory:
             help="Overwrite existing analysis results for current project",
         )
         def analyze(lang: str, force: bool) -> None:
+            """Run SAST analysis on the current directory."""
             result_dir = self.sast.result_dir / Path.cwd().name
             if result_dir.is_dir():
                 click.echo(f"Found existing analysis result at {result_dir}")
@@ -116,6 +119,7 @@ class CLIFactory:
             help="Overwrite existing results (not applicable on CVEfixes)",
         )
         def benchmark(dataset: str, overwrite: bool) -> None:
+            """Run SAST benchmark against a selected dataset."""
             dataset_name, lang = dataset.split("_")
             dataset = DATASETS_ALL[dataset_name](lang)
             if isinstance(dataset, FileDataset):
@@ -136,6 +140,7 @@ class CLIFactory:
 
         @self.cli.command(name="list", help=help)
         def list_() -> None:
+            """List available analysis results."""
             click.echo("Available analysis results:")
             if self.sast.list_results(dataset=True, project=True):
                 for dataset in self.sast.list_results(dataset=True):
@@ -197,6 +202,7 @@ class CLIFactory:
             show: bool,
             pgf: bool,
         ) -> None:
+            """Generate and export plots for a given project or dataset result."""
             if (project is None) and (dataset is None):
                 click.echo(
                     "Please provide at least a project or dataset name with --project/--dataset"

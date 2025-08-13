@@ -16,13 +16,4 @@ def SemgrepCLI() -> None:
     pass
 
 
-CLIFactory(
-    SemgrepCLI,
-    SemgrepSAST(),
-    help_messages={
-        "analyze": """Quick analyze using Semgrep Pro Engine""",
-        "benchmark": """Benchmark Semgrep on a dataset""",
-        "list": """List existing analysis results""",
-        "plot": """Generate plot for visualization""",
-    },
-)
+CLIFactory(SemgrepCLI, SemgrepSAST(), custom_messages={})
