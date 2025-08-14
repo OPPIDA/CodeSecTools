@@ -33,6 +33,7 @@ docs = [
     "mkdocs-include-markdown-plugin>=7.1.6",
     "mkdocs-literate-nav>=0.6.2",
     "mkdocs-material[imaging]>=9.6.16",
+    "mkdocs-open-in-new-tab>=1.0.8",
     "mkdocstrings[python]>=0.30.0",
     "pyyaml>=6.0.2",
     "ruff>=0.12.8",
