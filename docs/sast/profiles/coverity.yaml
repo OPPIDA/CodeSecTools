@@ -1,0 +1,57 @@
+name: Coverity Static Analysis
+description: Coverity® Static Analysis provides comprehensive code scanning that empowers developers and security teams to deliver high-quality software that complies with security, functional safety, and industry standards.
+type: Data Flow analysis
+url: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
+version: 2024.12.1
+license: Black Duck Terms of Service v2024.2
+license_type: Proprietary
+license_url: https://www.blackduck.com/company/legal/terms-of-service.html
+license_extra:
+    - A commercial license is required for use.
+    - Sharing of analysis results is not permitted.
+requirements:
+    - Existing installation and commercial license to use Coverity.
+    - "`issueTypes.json` (available in `idir/output`) to map checkers' type to CWE id."
+    - "`config.json` (user config) for supported langauges, categories of checkers."
+extra: |
+    ??? config "User configuration (`config.json`)"
+
+        Categories of checkers are used for statistic purpose only, they **do not** change the behaviour of the analysis.
+        
+        Example:        
+        ```json
+        {
+            "color_mapping": {
+                "CRITICAL": "red",
+                "MODERATE": "orange",
+                "SIGMA": "gray",
+                "SPOTBUGS": "silver"
+            },
+            "languages": {
+                "c-family":
+                    "checker_sets": {
+                        "CRITICAL": [
+                            "CHECKER_NAME"
+                        ],
+                        "MODERATE": [
+                            "CHECKER_NAME"
+                        ]
+                    },
+                    "exclude": "/test/",
+                    "include": "\\.(c|cpp|h|hpp)$"
+                },
+                "java": {
+                    "checker_sets": {
+                        "CRITICAL": [
+                            "CHECKER_NAME",
+                        ],
+                        "MODERATE": [
+                            "CHECKER_NAME",
+                        ]
+                    },
+                    "exclude": "/test/",
+                    "include": "\\.java$"
+                }
+            }
+        }
+        ```

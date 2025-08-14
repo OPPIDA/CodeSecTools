@@ -4,17 +4,19 @@ site_author: nolliv22
 nav:
   - Home: index.md
   - SAST: 
-    - sasts/index.md
+    - sast/index.md
     - Supported SASTs:
-      - sasts/profiles/*.md
+      - sast/supported/index.md
+      - sast/supported/*.j2.md
   - Dataset: 
-    - datasets/index.md
+    - dataset/index.md
     - Supported datasets:
-      - datasets/profiles/*.md
+      - dataset/supported/index.md
+      - dataset/supported/*.j2.md
   - CLI: cli.md
   - API Reference:
-    - SASTs: sasts/api.md 
-    - Datasets: datasets/api.md
+    - SASTs: api/sast.md 
+    - Datasets: api/dataset.md
 
 theme:
   name: material
@@ -29,12 +31,12 @@ theme:
     - navigation.expand
     - navigation.instant
     - navigation.instant.progress
+    - navigation.indexes 
     - navigation.tracking
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.prune 
     - toc.follow
-    - toc.integrate 
     - navigation.top
     - search.suggest
     - search.highlight
@@ -56,6 +58,7 @@ plugins:
   - offline
   - privacy
   - search
+  - open-in-new-tab
   - gen-files:
       scripts:
         - docs/gen_pages.py
@@ -75,8 +78,9 @@ plugins:
             find_stubs_package: true
             show_bases: true
             show_source: false
+            show_if_no_docstring: true
+            members_order: source
             
-            heading_level: 1
             parameter_headings: true
             show_root_heading: true
             show_symbol_type_heading: true
@@ -94,12 +98,16 @@ plugins:
             signature_crossrefs: true
             relative_crossrefs: true
             scoped_crossrefs: true
+            annotations_path: source
 
 markdown_extensions:
   - attr_list
   - mkdocs-click
   - admonition
   - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -107,6 +115,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - tables
   
 extra_css:
   - assets/extra.css

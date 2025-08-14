@@ -1,21 +1,23 @@
-# {{ name }}
+---
+title: {{ name }}
+---
+# {{ name }} [:material-open-in-new:]({{ url }})
 
 *{{ description }}*
 
-## Information
-
 Type: `{{ type }}`
-
-URL: [{{ url }}]({{ url }})
 
 Version: `{{ version }}`
 
-{% if licence_url %}
-Licence: [`{{ licence }}`]({{ licence_url }})
-{% else %}
-Licence: `{{ licence }}`
-{% endif %}
+!!! license "{{ license }} {% if license_url %}[:material-open-in-new:]({{ license_url }}){% endif %}"
+    - Type: `{{ license_type }}`
+    {% for extra in license_extra %}
+    - {{ extra }}
+    {% endfor %}
 
-{% if extra %}
-{{ extra }}
-{% endif %}
+!!! requirements "Requirements"
+    {% for requirement in requirements %}
+    - {{ requirement }}
+    {% endfor %}
+
+{% if extra %}{{ extra }}{% endif %}

@@ -1,16 +1,22 @@
 name: CVEfixes
-description: Automated Collection of Vulnerabilities and Their Fixes from Open-Source Software.
+description: CVEfixes is a comprehensive vulnerability dataset that is automatically collected and curated from Common Vulnerabilities and Exposures (CVE) records in the public U.S. National Vulnerability Database (NVD). The goal is to support data-driven security research based on source code and source code metrics related to fixes for CVEs in the NVD by providing detailed information at different interlinked levels of abstraction, such as the commit-, file-, and method level, as well as the repository- and CVE level.
 type: GitRepo
 url: https://github.com/secureIT-project/CVEfixes
 version: v1.0.8
-licence: CC BY 4.0
-licence_url: https://github.com/secureIT-project/CVEfixes/blob/main/LICENSE.txt
+license: CC BY 4.0
+license_type: Permissive
+license_url: https://github.com/secureIT-project/CVEfixes/blob/main/LICENSE.txt
+license_extra:
+    - Free to use under the terms of its license.
+    - Sharing of analysis results is permitted under the terms of its license.
+requirements: 
+  - None
 extra: |
-  ## Dataset content
+  !!! info "Dataset content"
 
-  - `CVEfixes_java.csv`
+        - `CVEfixes_java.csv`
 
-  The files are **included** and pre-extracted from the original dataset, which is available at [Zenodo](https://zenodo.org/records/13118970).
+        *Included and pre-extracted from the original dataset available at [Zenodo](https://zenodo.org/records/13118970).*
 
   !!! warning "Large Original Dataset"
       The full CVEfixes dataset is a SQLite database of approximately 50GB. To keep it manageable for SAST tools, we provide a pre-processed version with minimal data for specific languages.

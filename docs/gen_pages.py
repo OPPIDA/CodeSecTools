@@ -3,11 +3,12 @@
 This script is intended to be run by the `mkdocs-gen-files` plugin. It
 automates the creation of documentation pages for SAST tools and datasets.
 
-The script finds all YAML files in `docs/sasts/profiles/` and
-`docs/datasets/profiles/`. For each file, it reads the data, renders the
-`profile.md.j2` Jinja2 template, and writes the resulting Markdown to a new
-`.md` file in the same directory. This dynamically builds the documentation
-for the MkDocs site.
+The script finds all YAML files in `docs/sast/profiles/` and
+`docs/dataset/profiles/`. For each profile file, it reads the YAML data,
+renders a Jinja2 template to create a detailed profile page, and writes the
+resulting Markdown to the corresponding `supported` subdirectory (e.g.,
+`docs/sast/supported/`). It also generates `index.md` summary pages for both
+SASTs and datasets.
 """
 
 from pathlib import Path
@@ -18,22 +19,43 @@ from mkdocs_gen_files import open  # ty: ignore[unresolved-import]
 
 DOCS_DIR = Path("docs")
 TEMPLATE_DIR = DOCS_DIR / "templates"
-SASTS_DIR = DOCS_DIR / "sasts" / "profiles"
-DATASETS_DIR = DOCS_DIR / "datasets" / "profiles"
+SASTS_DIR = DOCS_DIR / "sast" / "profiles"
+DATASETS_DIR = DOCS_DIR / "dataset" / "profiles"
 
 env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 profile_template = env.get_template("profile.md.j2")
+profiles_template = env.get_template("profiles.md.j2")
 
+sast_profiles = []
 for sast in SASTS_DIR.glob("*.yaml"):
-    with open(Path("sasts", "profiles", sast.name), "r") as data_file:
+    with open(Path("sast", "profiles", sast.name), "r") as data_file:
         sast_data = yaml.safe_load(data_file)
+        sast_data["uri"] = f"{sast.stem}.j2.md"
+        sast_profiles.append(sast_data)
 
-    with open(Path("sasts", "profiles", f"{sast.stem}.md"), "w") as md_file:
+    with open(Path("sast", "supported", f"{sast.stem}.j2.md"), "w") as md_file:
         md_file.write(profile_template.render(sast_data))
 
-for dataset in DATASETS_DIR.glob("*.yaml"):
-    with open(Path("datasets", "profiles", dataset.name), "r") as data_file:
-        dataset_data = yaml.safe_load(data_file)
+with open(Path("sast", "supported", "index.md"), "w") as md_file:
+    md_file.write(
+        profiles_template.render(
+            name="SASTs", profiles=sorted(sast_profiles, key=lambda p: p["name"])
+        )
+    )
 
-    with open(Path("datasets", "profiles", f"{dataset.stem}.md"), "w") as md_file:
+dataset_profiles = []
+for dataset in DATASETS_DIR.glob("*.yaml"):
+    with open(Path("dataset", "profiles", dataset.name), "r") as data_file:
+        dataset_data = yaml.safe_load(data_file)
+        dataset_data["uri"] = f"{dataset.stem}.j2.md"
+        dataset_profiles.append(dataset_data)
+
+    with open(Path("dataset", "supported", f"{dataset.stem}.j2.md"), "w") as md_file:
         md_file.write(profile_template.render(dataset_data))
+
+with open(Path("dataset", "supported", "index.md"), "w") as md_file:
+    md_file.write(
+        profiles_template.render(
+            name="datasets", profiles=sorted(dataset_profiles, key=lambda p: p["name"])
+        )
+    )

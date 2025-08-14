@@ -3,6 +3,10 @@ description:
 type: 
 url: 
 version: 
-licence: 
-licence_url: 
+# https://en.wikipedia.org/wiki/Software_license
+license: 
+license_type: 
+license_url: 
+license_extra:
+requirements: 
 extra: null

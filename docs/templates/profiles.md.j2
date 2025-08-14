@@ -1,0 +1,7 @@
+# List of supported {{ name }}
+
+| Name  | Type | Version | License |
+| :---: | :---: | :---: | :---: |
+{% for p in profiles -%}
+| [**{{ p.name }}**]({{ p.uri }})  | `{{ p.type }}` | `{{ p.version }}` | `{{ p.license }} ({{ p.license_type }})` |
+{% endfor %}
