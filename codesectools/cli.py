@@ -8,8 +8,8 @@ import os
 
 import click
 
+from codesectools.datasets import DATASETS_ALL
 from codesectools.sasts import SASTS_ALL
-from codesectools.utils import PACKAGE_DIR, USER_DIR
 
 
 class OrderedGroup(click.Group):
@@ -41,8 +41,13 @@ def cli(debug: bool) -> None:
 @cli.command()
 def status() -> None:
     """Display SASTs and Datasets status."""
-    click.echo(PACKAGE_DIR)
-    click.echo(USER_DIR)
+    click.secho("Available SASTs:", bold=True)
+    for sast_name, _ in SASTS_ALL.items():
+        click.echo(f"  - {sast_name}")
+
+    click.secho("Available datasets:", bold=True)
+    for dataset_name, dataset in DATASETS_ALL.items():
+        click.echo(f"  - {dataset_name} ({' '.join(dataset.supported_languages)})")
 
 
 for _, sast_components in SASTS_ALL.items():
