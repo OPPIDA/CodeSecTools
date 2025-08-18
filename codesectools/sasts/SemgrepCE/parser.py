@@ -1,6 +1,6 @@
 """Provides classes for parsing Semgrep Community Edition analysis results.
 
-This module defines `SemgrepFinding` and `SemgrepAnalysisResult` to process
+This module defines `SemgrepCEFinding` and `SemgrepCEAnalysisResult` to process
 the JSON output from a Semgrep scan, converting it into the standardized
 format used by CodeSecTools.
 """
@@ -27,7 +27,7 @@ class SemgrepCEFinding(Defect):
     """
 
     def __init__(self, defect_data: dict) -> None:
-        """Initialize a SemgrepFinding instance from raw defect data.
+        """Initialize a SemgrepCEFinding instance from raw defect data.
 
         Args:
             defect_data: A dictionary representing a single finding, parsed
@@ -67,7 +67,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
     """
 
     def __init__(self, output_dir: Path, result_data: dict, cmdout: dict) -> None:
-        """Initialize a SemgrepAnalysisResult instance.
+        """Initialize a SemgrepCEAnalysisResult instance.
 
         Args:
             output_dir: The directory where the results are stored.
@@ -106,7 +106,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
             output_dir: The directory containing the Semgrep Community Edition output files.
 
         Returns:
-            An instance of `SemgrepAnalysisResult`.
+            An instance of `SemgrepCEAnalysisResult`.
 
         Raises:
             MissingFile: If a required result file is not found.
