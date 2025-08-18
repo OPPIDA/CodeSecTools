@@ -119,14 +119,14 @@ class AnalysisResult(ABC):
 
     @classmethod
     @abstractmethod
-    def load_from_result_dir(cls, result_dir: Path) -> Self:
+    def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse analysis results from a specified directory.
 
         This method must be implemented by subclasses to handle the specific
         output files of a SAST tool.
 
         Args:
-            result_dir: The directory containing the raw analysis output files.
+            output_dir: The directory containing the raw analysis output files.
 
         Returns:
             An instance of the `AnalysisResult` subclass.
@@ -135,19 +135,19 @@ class AnalysisResult(ABC):
         pass
 
     @classmethod
-    def load_from_result_dirs(cls, result_dirs: str) -> list[Self]:
+    def load_from_output_dirs(cls, output_dirs: str) -> list[Self]:
         """Load and parse analysis results from multiple directories.
 
         Args:
-            result_dirs: An iterable of directory paths containing results.
+            output_dirs: An iterable of directory paths containing results.
 
         Returns:
             A list of `AnalysisResult` subclass instances.
 
         """
         analysis_results = []
-        for result_dir in result_dirs:
-            analysis_results.append(cls.load_from_result_dir(result_dir))
+        for output_dir in output_dirs:
+            analysis_results.append(cls.load_from_output_dir(output_dir))
         return analysis_results
 
     def checker_to_category(self, checker: str) -> str:

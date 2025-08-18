@@ -81,7 +81,7 @@ class CoverityAnalysisResult(AnalysisResult):
 
     def __init__(
         self,
-        result_dir: Path,
+        output_dir: Path,
         result_data: dict,
         config_data: str,
         captured_list: str,
@@ -90,7 +90,7 @@ class CoverityAnalysisResult(AnalysisResult):
         """Initialize a CoverityAnalysisResult instance.
 
         Args:
-            result_dir: The directory where the results are stored.
+            output_dir: The directory where the results are stored.
             result_data: Parsed data from ANALYSIS.metrics.xml.
             config_data: Parsed data from coverity.yaml.
             captured_list: A string containing the list of captured source files.
@@ -98,7 +98,7 @@ class CoverityAnalysisResult(AnalysisResult):
 
         """
         super().__init__(
-            name=result_dir.name,
+            name=output_dir.name,
             lang=None,
             files=None,
             defects=defects,
@@ -138,14 +138,14 @@ class CoverityAnalysisResult(AnalysisResult):
         self.loc = self.code_lines_by_lang[self.lang]
 
     @classmethod
-    def load_from_result_dir(cls, result_dir: Path) -> Self:
+    def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse Coverity analysis results from a directory.
 
         Reads ANALYSIS.metrics.xml, coverity.yaml, captured file lists, and
         error XML files to construct a complete analysis result object.
 
         Args:
-            result_dir: The directory containing the Coverity output files.
+            output_dir: The directory containing the Coverity output files.
 
         Returns:
             An instance of `CoverityAnalysisResult`.
@@ -155,14 +155,14 @@ class CoverityAnalysisResult(AnalysisResult):
 
         """
         # Analysis metrics
-        file_path = result_dir / "ANALYSIS.metrics.xml"
+        file_path = output_dir / "ANALYSIS.metrics.xml"
         if file_path.is_file():
             analysis_data = xmltodict.parse(file_path.open("rb"))
         else:
             raise MissingFile(["ANALYSIS.metrics.xml"])
 
         # Config
-        file_path = result_dir / "coverity.yaml"
+        file_path = output_dir / "coverity.yaml"
         if file_path.is_file():
             config_data = yaml.load(file_path.open("r"), Loader=yaml.Loader)
         else:
@@ -170,12 +170,12 @@ class CoverityAnalysisResult(AnalysisResult):
 
         # Captured source file list
         captured_list = ""
-        for file in result_dir.glob("capture-files-src-list*"):
+        for file in output_dir.glob("capture-files-src-list*"):
             captured_list += open(file, "r").read()
 
         # Defects
         defects = []
-        for file in result_dir.glob("*errors.xml"):
+        for file in output_dir.glob("*errors.xml"):
             f = open(file, "r")
             try:
                 errors = xmltodict.parse(f"<root>{f.read()}</root>".encode())["root"][
@@ -190,4 +190,4 @@ class CoverityAnalysisResult(AnalysisResult):
             else:
                 defects.append(CoverityDefect(errors))
 
-        return cls(result_dir, analysis_data, config_data, captured_list, defects)
+        return cls(output_dir, analysis_data, config_data, captured_list, defects)

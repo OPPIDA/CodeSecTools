@@ -36,7 +36,7 @@ class SAST:
         commands (list[list[str]]): A list of command-line templates to be executed.
         analysis_files (list[tuple[Path, bool]]): A list of expected output files.
         parser (AnalysisResult): The parser class for the tool's results.
-        result_dir (Path): The base directory for storing analysis results.
+        output_dir (Path): The base directory for storing analysis results.
         supported_languages (list[str]): A list of supported programming languages.
         supported_datasets (list[type[Dataset]]): A list of compatible dataset classes.
         color_mapping (dict): A mapping of result categories to colors for plotting.
@@ -69,7 +69,7 @@ class SAST:
         self.commands = commands
         self.analysis_files = analysis_files
         self.parser = parser
-        self.result_dir = USER_OUTPUT_DIR / self.name
+        self.output_dir = USER_OUTPUT_DIR / self.name
         self.supported_languages = supported_languages
         self.supported_datasets = [DATASETS_ALL[d] for d in supported_datasets]
         self.color_mapping = color_mapping
@@ -107,7 +107,7 @@ class SAST:
                     _command[i] = arg.replace(pattern, value)
         return _command
 
-    def run_analysis(self, lang: str, project_dir: Path, result_dir: Path) -> None:
+    def run_analysis(self, lang: str, project_dir: Path, output_dir: Path) -> None:
         """Run the SAST analysis on a given project directory.
 
         Executes the tool's commands, times the analysis, calculates LoC,
@@ -116,7 +116,7 @@ class SAST:
         Args:
             lang: The programming language of the project.
             project_dir: The path to the project's source code.
-            result_dir: The path to save the analysis results.
+            output_dir: The path to save the analysis results.
 
         Raises:
             MissingFile: If a required tool command (binary) is not found in the system's PATH.
@@ -139,21 +139,21 @@ class SAST:
         loc = cloc_get_loc(project_dir, lang)
 
         extra = {"logs": command_output, "duration": end - start, "loc": loc}
-        self.save_results(project_dir, result_dir, extra)
+        self.save_results(project_dir, output_dir, extra)
 
-    def save_results(self, project_dir: Path, result_dir: Path, extra: dict) -> None:
+    def save_results(self, project_dir: Path, output_dir: Path, extra: dict) -> None:
         """Save the results of a SAST analysis.
 
         Copies the tool's output files and saves any extra metadata to the result directory.
 
         Args:
             project_dir: The directory where the analysis was run.
-            result_dir: The directory where results should be saved.
+            output_dir: The directory where results should be saved.
             extra: A dictionary of extra metadata to save as JSON.
 
         """
-        result_dir.mkdir(exist_ok=True)
-        json.dump(extra, (result_dir / "cstools_output.json").open("w"))
+        output_dir.mkdir(exist_ok=True)
+        json.dump(extra, (output_dir / "cstools_output.json").open("w"))
 
         missing_files = []
         for path_from_root, required in self.analysis_files:
@@ -162,7 +162,7 @@ class SAST:
             if "*" not in filename:
                 file_path = project_dir / parent_dir / filename
                 if file_path.is_file():
-                    shutil.copy2(file_path, result_dir / filename)
+                    shutil.copy2(file_path, output_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -170,12 +170,12 @@ class SAST:
                 file_paths = (project_dir / parent_dir).glob(filename)
                 if file_paths:
                     for file_path in file_paths:
-                        shutil.copy2(file_path, result_dir / file_path.name)
+                        shutil.copy2(file_path, output_dir / file_path.name)
                 else:
                     if required:
                         missing_files.append(filename)
 
-        click.echo(f"Results are saved in {result_dir}")
+        click.echo(f"Results are saved in {output_dir}")
 
     def analyze_files(self, dataset: FileDataset, overwrite: bool = False) -> None:
         """Analyze a dataset composed of individual files.
@@ -188,7 +188,7 @@ class SAST:
             overwrite: If True, overwrite existing results for this dataset.
 
         """
-        result_path = self.result_dir / dataset.full_name
+        result_path = self.output_dir / dataset.full_name
         result_path.mkdir(exist_ok=True)
 
         if result_path.is_dir():
@@ -223,7 +223,7 @@ class SAST:
             overwrite: If True, re-analyze repositories with existing results.
 
         """
-        base_result_path = self.result_dir / dataset.full_name
+        base_result_path = self.output_dir / dataset.full_name
         base_result_path.mkdir(exist_ok=True)
         click.echo(
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
@@ -284,23 +284,23 @@ class SAST:
             A sorted list of result directory names.
 
         """
-        result_dirs = []
-        if self.result_dir.is_dir():
-            for child in os.listdir(self.result_dir):
-                child_path = self.result_dir / child
+        output_dirs = []
+        if self.output_dir.is_dir():
+            for child in os.listdir(self.output_dir):
+                child_path = self.output_dir / child
                 if child_path.is_dir():
                     if (
                         any(child in d.list_dataset() for d in self.supported_datasets)
                         and dataset
                     ):
-                        result_dirs.append(child)
+                        output_dirs.append(child)
                     elif (
                         not any(
                             child in d.list_dataset() for d in self.supported_datasets
                         )
                         and project
                     ):
-                        result_dirs.append(child)
+                        output_dirs.append(child)
 
-        result_dirs = sorted(result_dirs)
-        return result_dirs
+        output_dirs = sorted(output_dirs)
+        return output_dirs

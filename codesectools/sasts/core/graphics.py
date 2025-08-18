@@ -33,7 +33,7 @@ class Graphics:
 
     Attributes:
         sast (SAST): The SAST tool instance.
-        result_dir (Path): The directory containing the analysis results.
+        output_dir (Path): The directory containing the analysis results.
         color_mapping (dict): A mapping of categories to colors for plotting.
         plot_functions (list): A list of methods that generate plots.
         limit (int): The maximum number of items to show in top-N plots.
@@ -50,7 +50,7 @@ class Graphics:
 
         """
         self.sast = sast
-        self.result_dir = sast.result_dir / project_name
+        self.output_dir = sast.output_dir / project_name
         self.color_mapping = sast.color_mapping
         self.color_mapping["NONE"] = "BLACK"
         self.plot_functions = []
@@ -90,7 +90,7 @@ class Graphics:
                     fig.savefig(f"{temp.name}.png", bbox_inches="tight")
                     click.launch(f"{temp.name}.png", wait=False)
 
-            figure_dir = self.result_dir / "_figures"
+            figure_dir = self.output_dir / "_figures"
             figure_dir.mkdir(exist_ok=True)
             figure_path = figure_dir / f"{fig_name}.png"
             if figure_path.is_file() and not force:
@@ -127,7 +127,7 @@ class ProjectGraphics(Graphics):
 
         """
         super().__init__(sast=sast, project_name=project_name)
-        self.result = sast.parser.load_from_result_dir(self.result_dir)
+        self.result = sast.parser.load_from_output_dir(self.output_dir)
         self.plot_functions.extend([self.plot_overview])
 
     def checker_to_category(self, checker: str) -> str:
@@ -355,10 +355,10 @@ class GitRepoDatasetGraphics(Graphics):
         super().__init__(sast=sast, project_name=dataset.full_name)
         self.dataset = dataset
         analyzed_repo = {repo.name for repo in dataset.repos} & set(
-            dir.name for dir in self.result_dir.iterdir()
+            dir.name for dir in self.output_dir.iterdir()
         )
-        repo_paths = (self.result_dir / repo_name for repo_name in analyzed_repo)
-        self.results = sast.parser.load_from_result_dirs(repo_paths)
+        repo_paths = (self.output_dir / repo_name for repo_name in analyzed_repo)
+        self.results = sast.parser.load_from_output_dirs(repo_paths)
         self.benchmark_data = self.dataset.validate(self.results)
         self.plot_functions.extend(
             [

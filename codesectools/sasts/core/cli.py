@@ -85,16 +85,16 @@ class CLIFactory:
         )
         def analyze(lang: str, force: bool) -> None:
             """Run SAST analysis on the current directory."""
-            result_dir = self.sast.result_dir / Path.cwd().name
-            if result_dir.is_dir():
-                click.echo(f"Found existing analysis result at {result_dir}")
+            output_dir = self.sast.output_dir / Path.cwd().name
+            if output_dir.is_dir():
+                click.echo(f"Found existing analysis result at {output_dir}")
                 if force:
-                    shutil.rmtree(result_dir)
-                    self.sast.run_analysis(lang, Path.cwd(), result_dir)
+                    shutil.rmtree(output_dir)
+                    self.sast.run_analysis(lang, Path.cwd(), output_dir)
                 else:
                     click.echo("Use --force to overwrite it")
             else:
-                self.sast.run_analysis(lang, Path.cwd(), result_dir)
+                self.sast.run_analysis(lang, Path.cwd(), output_dir)
 
     def add_benchmark(self, help: str = "") -> None:
         """Add the 'benchmark' command to the CLI.

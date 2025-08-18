@@ -66,17 +66,17 @@ class SemgrepCEAnalysisResult(AnalysisResult):
 
     """
 
-    def __init__(self, result_dir: Path, result_data: dict, cmdout: dict) -> None:
+    def __init__(self, output_dir: Path, result_data: dict, cmdout: dict) -> None:
         """Initialize a SemgrepAnalysisResult instance.
 
         Args:
-            result_dir: The directory where the results are stored.
+            output_dir: The directory where the results are stored.
             result_data: Parsed data from the main Semgrep Community Edition JSON output.
             cmdout: Parsed data from the command output log.
 
         """
         super().__init__(
-            name=result_dir.name,
+            name=output_dir.name,
             lang=result_data["interfile_languages_used"],
             files=result_data["paths"]["scanned"],
             defects=[],
@@ -96,14 +96,14 @@ class SemgrepCEAnalysisResult(AnalysisResult):
             self.loc = int(self.coverage * cmdout["loc"])
 
     @classmethod
-    def load_from_result_dir(cls, result_dir: Path) -> Self:
+    def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse Semgrep Community Edition analysis results from a directory.
 
         Reads `semgrep_output.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:
-            result_dir: The directory containing the Semgrep Community Edition output files.
+            output_dir: The directory containing the Semgrep Community Edition output files.
 
         Returns:
             An instance of `SemgrepAnalysisResult`.
@@ -113,13 +113,13 @@ class SemgrepCEAnalysisResult(AnalysisResult):
 
         """
         # Cmdout
-        cmdout = json.load((result_dir / "cstools_output.json").open())
+        cmdout = json.load((output_dir / "cstools_output.json").open())
 
         # Analysis outputs
-        analysis_output_path = result_dir / "semgrep_output.json"
+        analysis_output_path = output_dir / "semgrep_output.json"
         if analysis_output_path.is_file():
             analysis_output = json.load(analysis_output_path.open("r"))
         else:
             raise MissingFile(["output.json"])
 
-        return cls(result_dir, analysis_output, cmdout)
+        return cls(output_dir, analysis_output, cmdout)
