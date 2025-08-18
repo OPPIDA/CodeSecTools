@@ -6,6 +6,7 @@ the execution of Semgrep Community Edition scans using the core SAST framework.
 
 from pathlib import Path
 
+from codesectools.datasets.SemgrepCERules.dataset import SemgrepCERules
 from codesectools.sasts.core.sast import SAST
 from codesectools.sasts.SemgrepCE.constants import (
     COLOR_MAPPING,
@@ -13,6 +14,7 @@ from codesectools.sasts.SemgrepCE.constants import (
     SUPPORTED_DATASETS,
 )
 from codesectools.sasts.SemgrepCE.parser import SemgrepCEAnalysisResult
+from codesectools.utils import USER_CACHE_DIR
 
 
 class SemgrepCESAST(SAST):
@@ -30,9 +32,10 @@ class SemgrepCESAST(SAST):
 
     def __init__(self) -> None:
         """Initialize the SemgrepCESAST integration."""
+        rule_path = str(USER_CACHE_DIR / SemgrepCERules.name / "{lang}")
         super().__init__(
             commands=[
-                "semgrep scan --config=p/{lang} --metrics=off --json-output=semgrep_output.json --jobs=4".split(
+                f"semgrep scan --config={rule_path} --metrics=off --json-output=semgrep_output.json --jobs=4".split(
                     " "
                 )
             ],
