@@ -39,7 +39,7 @@ class SemgrepCESAST(SAST):
                     " "
                 )
             ],
-            analysis_files=[
+            output_files=[
                 (Path("analysis.log"), True),
                 (Path("semgrep_output.json"), True),
             ],

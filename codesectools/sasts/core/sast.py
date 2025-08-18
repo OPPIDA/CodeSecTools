@@ -34,7 +34,7 @@ class SAST:
     Attributes:
         name (str): The name of the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
-        analysis_files (list[tuple[Path, bool]]): A list of expected output files.
+        output_files (list[tuple[Path, bool]]): A list of expected output files.
         parser (AnalysisResult): The parser class for the tool's results.
         output_dir (Path): The base directory for storing analysis results.
         supported_languages (list[str]): A list of supported programming languages.
@@ -48,7 +48,7 @@ class SAST:
     def __init__(
         self,
         commands: list[list[str]],
-        analysis_files: list[tuple[Path, bool]],
+        output_files: list[tuple[Path, bool]],
         parser: AnalysisResult,
         supported_languages: list[str],
         supported_datasets: list[type[Dataset]],
@@ -58,7 +58,7 @@ class SAST:
 
         Args:
             commands: A list of command templates to run the tool.
-            analysis_files: A list of tuples `(file_path_from_project_root, required)`
+            output_files: A list of tuples `(file_path_from_project_root, required)`
                 indicating the output files to save.
             parser: The `AnalysisResult` subclass used to parse the tool's output.
             supported_languages: A list of supported language identifiers.
@@ -67,7 +67,7 @@ class SAST:
 
         """
         self.commands = commands
-        self.analysis_files = analysis_files
+        self.output_files = output_files
         self.parser = parser
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.supported_languages = supported_languages
@@ -156,7 +156,7 @@ class SAST:
         json.dump(extra, (output_dir / "cstools_output.json").open("w"))
 
         missing_files = []
-        for path_from_root, required in self.analysis_files:
+        for path_from_root, required in self.output_files:
             parent_dir = path_from_root.parent
             filename = path_from_root.name
             if "*" not in filename:

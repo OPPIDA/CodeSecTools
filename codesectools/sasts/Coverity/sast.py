@@ -39,7 +39,7 @@ class CoveritySAST(SAST):
                     " "
                 ),
             ],
-            analysis_files=[
+            output_files=[
                 (Path("coverity.yaml"), False),
                 (Path("idir", "coverity-cli", "capture-files-src-list*"), True),
                 (Path("idir", "output", "*.xml"), False),
