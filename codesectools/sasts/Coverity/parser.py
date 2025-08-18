@@ -13,7 +13,7 @@ import xmltodict
 import yaml
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
-from codesectools.sasts.Coverity.constants import LANGUAGES, TYPE_TO_CWE
+from codesectools.sasts.Coverity.config import LANGUAGES, TYPE_TO_CWE
 from codesectools.utils import MissingFile
 
 

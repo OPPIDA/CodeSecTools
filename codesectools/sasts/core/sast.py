@@ -17,7 +17,7 @@ import git
 import humanize
 
 from codesectools.datasets import DATASETS_ALL
-from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
+from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import cloc_get_loc
 from codesectools.utils import (
@@ -34,45 +34,33 @@ class SAST:
     Attributes:
         name (str): The name of the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
-        output_files (list[tuple[Path, bool]]): A list of expected output files.
+        output_files (list[tuple[Path, bool]]): A list of expected output files and
+            whether they are required.
         parser (AnalysisResult): The parser class for the tool's results.
         output_dir (Path): The base directory for storing analysis results.
         supported_languages (list[str]): A list of supported programming languages.
-        supported_datasets (list[type[Dataset]]): A list of compatible dataset classes.
+        supported_dataset_names (list[str]): A list of names of compatible datasets.
         color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
     name: str
+    supported_languages: list[str]
+    supported_dataset_names: list[str]
+    commands: list[list[str]]
+    output_files: list[tuple[Path, bool]]
+    parser: AnalysisResult
+    color_mapping: dict
 
-    def __init__(
-        self,
-        commands: list[list[str]],
-        output_files: list[tuple[Path, bool]],
-        parser: AnalysisResult,
-        supported_languages: list[str],
-        supported_datasets: list[type[Dataset]],
-        color_mapping: dict,
-    ) -> None:
-        """Initialize a SAST instance.
+    def __init__(self) -> None:
+        """Initialize the SAST instance.
 
-        Args:
-            commands: A list of command templates to run the tool.
-            output_files: A list of tuples `(file_path_from_project_root, required)`
-                indicating the output files to save.
-            parser: The `AnalysisResult` subclass used to parse the tool's output.
-            supported_languages: A list of supported language identifiers.
-            supported_datasets: A list of dataset classes supported by the tool.
-            color_mapping: A dictionary mapping result categories to colors.
-
+        Sets up the list of supported dataset objects and defines the output directory.
         """
-        self.commands = commands
-        self.output_files = output_files
-        self.parser = parser
+        self.supported_datasets = [
+            DATASETS_ALL[d] for d in self.supported_dataset_names
+        ]
         self.output_dir = USER_OUTPUT_DIR / self.name
-        self.supported_languages = supported_languages
-        self.supported_datasets = [DATASETS_ALL[d] for d in supported_datasets]
-        self.color_mapping = color_mapping
 
     def check_commands(self) -> list:
         """Check if the necessary command-line binaries for the tool are available.
