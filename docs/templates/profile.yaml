@@ -2,7 +2,7 @@ name:
 description: 
 type: 
 url: 
-version: 
+supported_version: 
 # https://en.wikipedia.org/wiki/Software_license
 license: 
 license_type: 

@@ -2,7 +2,7 @@ name: Semgrep Community Edition Rules
 description: Semgrep Community Edition rules, maintained by Semgrep and the community. Free to use under the Semgrep Rules License.
 type: File
 url: https://github.com/semgrep/semgrep-rules
-version: Latest
+supported_version: Latest
 license: Semgrep Rules License v. 1.0
 license_type: Noncommercial
 license_url: https://github.com/semgrep/semgrep/blob/develop/LICENSE
