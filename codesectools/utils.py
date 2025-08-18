@@ -17,7 +17,6 @@ import click
 
 # Package internal files
 PACKAGE_DIR = Path(files("codesectools.utils"))
-
 DATA_DIR = PACKAGE_DIR / "data"
 SHARED_DIR = PACKAGE_DIR / "shared"
 SASTS_DIR = PACKAGE_DIR / "sasts"
@@ -25,9 +24,9 @@ DATASETS_DIR = PACKAGE_DIR / "datasets"
 
 # User output directory
 USER_DIR = Path.home() / ".codesectools"
-USER_SASTS_DIR = USER_DIR / "sasts"
-USER_DATASETS_DIR = USER_DIR / "datasets"
-USER_RESULTS_DIR = USER_DIR / "results"
+USER_CONFIG_DIR = USER_DIR / "config"
+USER_CACHE_DIR = USER_DIR / "cache"
+USER_OUTPUT_DIR = USER_DIR / "output"
 
 
 # Debugging

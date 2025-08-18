@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import git
 import humanize
 
-from codesectools.utils import USER_DATASETS_DIR
+from codesectools.utils import USER_CACHE_DIR
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -49,7 +49,7 @@ class Dataset(ABC):
                 of the supported languages for the dataset class.
 
         """
-        self.directory = USER_DATASETS_DIR / self.name
+        self.directory = USER_CACHE_DIR / self.name
         self.lang = lang
         self.full_name = f"{self.name}_{self.lang}"
         assert self.full_name in self.list_dataset()

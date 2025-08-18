@@ -21,7 +21,7 @@ from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoData
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import cloc_get_loc
 from codesectools.utils import (
-    USER_RESULTS_DIR,
+    USER_OUTPUT_DIR,
     MissingFile,
     NonZeroExit,
     run_command,
@@ -69,7 +69,7 @@ class SAST:
         self.commands = commands
         self.analysis_files = analysis_files
         self.parser = parser
-        self.result_dir = USER_RESULTS_DIR / self.name
+        self.result_dir = USER_OUTPUT_DIR / self.name
         self.supported_languages = supported_languages
         self.supported_datasets = [DATASETS_ALL[d] for d in supported_datasets]
         self.color_mapping = color_mapping
