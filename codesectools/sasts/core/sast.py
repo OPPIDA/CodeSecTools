@@ -57,27 +57,30 @@ class SAST:
     def __init__(self) -> None:
         """Initialize the SAST instance.
 
-        Sets up the list of supported dataset objects and defines the output directory.
+        Sets up the list of supported dataset objects, defines the output directory,
+        and verifies that the required command-line tools are available.
+
+        Raises:
+            MissingFile: If a required command-line tool is not found in the system's PATH.
+
         """
         self.supported_datasets = [
             DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
+        self.check_commands()
 
-    def check_commands(self) -> list:
+    def check_commands(self) -> None | MissingFile:
         """Check if the necessary command-line binaries for the tool are available.
 
-        Returns:
-            A list of missing binary names.
+        Raises:
+            MissingFile: If a required command-line tool is not found in the system's PATH.
 
         """
-        missing = []
         for command in self.commands:
             binary = command[0]
             if not shutil.which(binary):
-                missing.append(binary)
-
-        return missing
+                raise MissingFile([binary])
 
     def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
         """Render a command template by replacing placeholders with values.
@@ -108,14 +111,7 @@ class SAST:
             project_dir: The path to the project's source code.
             output_dir: The path to save the analysis results.
 
-        Raises:
-            MissingFile: If a required tool command (binary) is not found in the system's PATH.
-            NonZeroExit: If a tool command returns a non-zero exit code.
-
         """
-        if missing := self.check_commands():
-            raise MissingFile(missing)
-
         command_output = ""
         start = time.time()
         for command in self.commands:
