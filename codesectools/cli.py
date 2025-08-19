@@ -7,6 +7,8 @@ It dynamically discovers and adds CLI commands from all available SAST tools.
 import os
 
 import typer
+from rich import print
+from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
@@ -28,15 +30,42 @@ def main(
 
 @cli.command()
 def status() -> None:
-    """Display SASTs and Datasets status."""
-    typer.echo("Available SASTs:")
-    for sast_name, _ in SASTS_ALL.items():
-        typer.echo(f" - {sast_name}")
+    """Display the availability status of SASTs and the cache status of datasets."""
+    table = Table(width=80, show_lines=True)
+    table.add_column("SAST name", justify="center", no_wrap=True)
+    table.add_column("Available", justify="center", no_wrap=True)
+    table.add_column("Note", justify="center")
+    for sast_name, sast_data in SASTS_ALL.items():
+        if sast_data["available"]:
+            table.add_row(sast_name, "✅", f"See subcommand [b]{sast_name.lower()}[/b]")
+        else:
+            table.add_row(
+                sast_name,
+                "❌",
+                f"Binaries or config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
+            )
+    print(table)
 
-    typer.echo("Available datasets:")
-    for dataset_name, dataset in DATASETS_ALL.items():
-        typer.echo(f" - {dataset_name} ({' '.join(dataset.supported_languages)})")
+    table = Table(width=80, show_lines=True)
+    table.add_column("Dataset name", justify="center", no_wrap=True)
+    table.add_column("Cached", justify="center", no_wrap=True)
+    table.add_column("Note", justify="center")
+    for dataset_name, dataset_data in DATASETS_ALL.items():
+        if dataset_data["cached"]:
+            table.add_row(
+                dataset_name,
+                "✅",
+                f"Supported languages: [b]{''.join(dataset_data['dataset'].supported_languages)}[/b]",
+            )
+        else:
+            table.add_row(
+                dataset_name,
+                "❌",
+                "Dataset is automatically download when using it for the first time",
+            )
+    print(table)
 
 
-for _, sast_components in SASTS_ALL.items():
-    cli.add_typer(sast_components["cli"])
+for _, sast_data in SASTS_ALL.items():
+    if sast_data["available"]:
+        cli.add_typer(sast_data["cli"])

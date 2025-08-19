@@ -65,7 +65,7 @@ class SAST:
 
         """
         self.supported_datasets = [
-            DATASETS_ALL[d] for d in self.supported_dataset_names
+            DATASETS_ALL[d]["dataset"] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.check_commands()
@@ -77,10 +77,14 @@ class SAST:
             MissingFile: If a required command-line tool is not found in the system's PATH.
 
         """
+        missing_binaries = []
         for command in self.commands:
             binary = command[0]
             if not shutil.which(binary):
-                raise MissingFile([binary])
+                missing_binaries.append(binary)
+
+        if missing_binaries:
+            raise MissingFile(missing_binaries)
 
     def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
         """Render a command template by replacing placeholders with values.

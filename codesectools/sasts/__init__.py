@@ -7,8 +7,11 @@ necessary components (SAST class, AnalysisResult class, and Typer CLI applicatio
 and adds them to the `SASTS_ALL` dictionary.
 
 Attributes:
-    SASTS_ALL (dict): A dictionary mapping SAST tool names to their components,
-        including the SAST implementation, the result parser, and the CLI command group.
+    SASTS_ALL (dict): A dictionary mapping SAST tool names to their status and
+        components. Each value is a dictionary indicating if the tool is
+        'available' and, if so, includes the SAST implementation class, the
+        result parser class, and the CLI command group. If unavailable, it
+        includes a list of 'missing' dependencies.
 
 """
 
@@ -41,10 +44,12 @@ for child in SASTS_DIR.iterdir():
                 cli: typer.Typer = getattr(cli_module, f"{sast_name}CLI")
 
                 SASTS_ALL[sast_name] = {
+                    "available": True,
                     "sast": sast,
                     "analysis_result": analysis_result,
                     "cli": cli,
                 }
-            except MissingFile:
-                # TODO: Print message
-                continue
+            except MissingFile as e:
+                SASTS_ALL[sast_name] = {"available": False, "missing": e.files}
+
+SASTS_ALL = dict(sorted(SASTS_ALL.items()))

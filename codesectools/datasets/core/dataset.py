@@ -54,12 +54,22 @@ class Dataset(ABC):
         self.full_name = f"{self.name}_{self.lang}"
         assert self.full_name in self.list_dataset()
 
-        is_complete = self.directory / ".complete"
-        if not is_complete.is_file():
+        if not self.is_cached():
             self.download_dataset()
-            is_complete.write_bytes(b"\x42")
+            (self.directory / ".complete").write_bytes(b"\x42")
 
         self.files: list[File] = self.load_dataset()
+
+    @classmethod
+    def is_cached(cls) -> bool:
+        """Check if the dataset has been downloaded and is cached locally.
+
+        Returns:
+            True if the dataset is cached, False otherwise.
+
+        """
+        is_complete = USER_CACHE_DIR / cls.name / ".complete"
+        return is_complete.is_file()
 
     @abstractmethod
     def download_dataset(self) -> None:

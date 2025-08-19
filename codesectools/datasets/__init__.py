@@ -7,28 +7,29 @@ the dataset module and adds the dataset class to the `DATASETS_ALL` dictionary.
 
 Attributes:
     DATASETS_ALL (dict): A dictionary mapping dataset names to their
-        corresponding Dataset class instances.
+        corresponding metadata, including the dataset class and its cache status.
 
 """
 
 import importlib
 
 from codesectools.datasets.core.dataset import Dataset
-from codesectools.utils import DATASETS_DIR, MissingFile
+from codesectools.utils import DATASETS_DIR
 
 DATASETS_ALL = {}
 for child in DATASETS_DIR.iterdir():
     if child.is_dir():
         if list(child.glob("dataset.py")) and child.name != "core":
-            try:
-                dataset_name = child.name
+            dataset_name = child.name
 
-                dataset_module = importlib.import_module(
-                    f"codesectools.datasets.{dataset_name}.dataset"
-                )
-                dataset: Dataset = getattr(dataset_module, dataset_name)
+            dataset_module = importlib.import_module(
+                f"codesectools.datasets.{dataset_name}.dataset"
+            )
+            dataset: Dataset = getattr(dataset_module, dataset_name)
 
-                DATASETS_ALL[dataset_name] = dataset
-            except MissingFile:
-                # TODO: Print message
-                continue
+            DATASETS_ALL[dataset_name] = {
+                "cached": dataset.is_cached(),
+                "dataset": dataset,
+            }
+
+DATASETS_ALL = dict(sorted(DATASETS_ALL.items()))
