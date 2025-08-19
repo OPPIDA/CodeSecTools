@@ -14,4 +14,4 @@ doc-serve:
 	@mkdocs serve
 
 doc-deploy:
-	@mkdocs gh-deploy --remote-name main --no-history --force --strict
+	@mkdocs gh-deploy --no-history --force --strict
