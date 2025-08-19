@@ -143,7 +143,7 @@ class SAST:
             extra: A dictionary of extra metadata to save as JSON.
 
         """
-        output_dir.mkdir(exist_ok=True)
+        output_dir.mkdir(exist_ok=True, parents=True)
         json.dump(extra, (output_dir / "cstools_output.json").open("w"))
 
         missing_files = []
@@ -180,7 +180,7 @@ class SAST:
 
         """
         result_path = self.output_dir / dataset.full_name
-        result_path.mkdir(exist_ok=True)
+        result_path.mkdir(exist_ok=True, parents=True)
 
         if result_path.is_dir():
             if os.listdir(result_path) and not overwrite:
@@ -215,7 +215,7 @@ class SAST:
 
         """
         base_result_path = self.output_dir / dataset.full_name
-        base_result_path.mkdir(exist_ok=True)
+        base_result_path.mkdir(exist_ok=True, parents=True)
         typer.echo(
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
         )

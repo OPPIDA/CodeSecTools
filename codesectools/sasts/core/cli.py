@@ -41,7 +41,7 @@ class CLIFactory:
             custom_messages: A dictionary of custom help messages to override the defaults.
 
         """
-        self.cli = typer.Typer(name=sast.name.lower())
+        self.cli = typer.Typer(name=sast.name.lower(), no_args_is_help=True)
         self.sast = sast
         self.help_messages = {
             "main": f"""{sast.name}""",

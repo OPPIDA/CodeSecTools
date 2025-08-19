@@ -91,7 +91,7 @@ class Graphics:
                     typer.launch(f"{temp.name}.png", wait=False)
 
             figure_dir = self.output_dir / "_figures"
-            figure_dir.mkdir(exist_ok=True)
+            figure_dir.mkdir(exist_ok=True, parents=True)
             figure_path = figure_dir / f"{fig_name}.png"
             if figure_path.is_file() and not force:
                 if not typer.confirm(

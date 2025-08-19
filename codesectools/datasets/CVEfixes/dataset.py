@@ -42,7 +42,7 @@ class CVEfixes(GitRepoDataset):
     def download_dataset(self: Self) -> None:
         """Prepare the dataset directory and copies the necessary CSV files."""
         if not self.directory.is_dir():
-            self.directory.mkdir()
+            self.directory.mkdir(exist_ok=True, parents=True)
             for dataset_file in (DATA_DIR / self.name).glob("CVEfixes_*.csv"):
                 (self.directory / dataset_file.name).write_bytes(
                     dataset_file.read_bytes()
