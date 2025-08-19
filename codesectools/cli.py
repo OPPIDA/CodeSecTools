@@ -21,12 +21,7 @@ def main(
         bool, typer.Option("-d", "--debug", help="Show debugging messages")
     ] = False,
 ) -> None:
-    """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
-
-    Args:
-        debug: If True, enables debug mode, which shows more verbose output.
-
-    """
+    """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
     if debug:
         os.environ["DEBUG"] = "1"
 
