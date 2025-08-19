@@ -54,10 +54,12 @@ class SemgrepCESAST(SAST):
     }
 
     def __init__(self) -> None:
-        """Initialize Semgrep Community Edition.
+        """Initialize the SemgrepCESAST instance.
 
-        It automatically installs rules needed to run Semgrep CE.
+        This constructor automatically downloads the Semgrep Community Edition rules
+        required for analysis by initializing the `SemgrepCERules` dataset for each
+        supported language.
         """
         super().__init__()
         for lang in self.supported_languages:
-            SemgrepCERules(lang=lang).download_dataset()
+            SemgrepCERules(lang=lang)  # Download rules during initialization
