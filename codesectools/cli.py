@@ -4,6 +4,7 @@ This script sets up the main entry point for the application using `typer`.
 It dynamically discovers and adds CLI commands from all available SAST tools.
 """
 
+import importlib.metadata
 import os
 
 import typer
@@ -26,6 +27,12 @@ def main(
     """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
     if debug:
         os.environ["DEBUG"] = "1"
+
+
+@cli.command()
+def version() -> None:
+    """Show the tool's version."""
+    print(importlib.metadata.version("codesectools"))
 
 
 @cli.command()
