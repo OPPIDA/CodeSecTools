@@ -53,7 +53,12 @@ class Dataset(ABC):
         self.lang = lang
         self.full_name = f"{self.name}_{self.lang}"
         assert self.full_name in self.list_dataset()
-        self.download_dataset()
+
+        is_complete = self.directory / ".complete"
+        if not is_complete.is_file():
+            self.download_dataset()
+            is_complete.write_bytes(b"\x42")
+
         self.files: list[File] = self.load_dataset()
 
     @abstractmethod
@@ -72,6 +77,10 @@ class Dataset(ABC):
 
         This method must be implemented by subclasses to define how the
         dataset's contents are loaded.
+
+        Returns:
+            A list of `File` objects representing the dataset.
+
         """
         pass
 
