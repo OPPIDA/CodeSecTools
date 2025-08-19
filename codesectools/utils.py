@@ -7,11 +7,8 @@ standardized error reporting.
 
 import os
 import subprocess
-import sys
-import traceback
 from importlib.resources import files
 from pathlib import Path
-from types import TracebackType
 
 import click
 
@@ -79,59 +76,38 @@ def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
 class MissingFile(Exception):
     """Exception raised when a required file is not found."""
 
-    pass
+    def __init__(self, files: list[str]) -> None:
+        """Initialize the MissingFile exception.
+
+        Args:
+            files: A list of file paths that were not found.
+
+        """
+        self.files = files
+
+    def __str__(self) -> str:
+        """Return a user-friendly string representation of the exception."""
+        match len(self.files):
+            case 1:
+                return f"File not found: {self.files[0]}"
+            case _:
+                return f"Files not found: {', '.join(self.files)}"
 
 
 class NonZeroExit(Exception):
     """Exception raised when a subprocess returns a non-zero exit code."""
 
-    pass
+    def __init__(self, command: list[str], command_output: str) -> None:
+        """Initialize the NonZeroExit exception.
 
+        Args:
+            command: The command that was executed, as a list of strings.
+            command_output: The captured stdout/stderr from the command.
 
-# Global error handler
-def global_excepthook(
-    exc_type: type[BaseException],
-    exc_value: BaseException,
-    exc_traceback: TracebackType | None,
-) -> None:
-    """Handle uncaught exceptions globally.
+        """
+        self.command = " ".join(str(c) for c in command)
+        self.command_output = self.command_output
 
-    Provides custom, user-friendly error messages for specific exception types
-    like `MissingFile` and `NonZeroExit`. Falls back to the default
-    excepthook for other exceptions. If in debug mode, it prints the full traceback.
-
-    Args:
-        exc_type: The type of the exception.
-        exc_value: The exception instance.
-        exc_traceback: The traceback object.
-
-    """
-    if DEBUG():
-        traceback.print_exception(exc_type, exc_value, exc_traceback)
-
-    if issubclass(exc_type, MissingFile):
-        files = exc_value.args[0]
-        match len(files):
-            case 1:
-                click.echo(
-                    f"[ERROR] File not found: {click.style(files[0], fg='red', bold=True)}",
-                    err=True,
-                )
-            case _:
-                click.echo(
-                    f"[ERROR] Files not found: {click.style(', '.join(files), fg='red', bold=True)}",
-                    err=True,
-                )
-    elif issubclass(exc_type, NonZeroExit):
-        command, command_output = exc_value.args
-        command = " ".join(str(c) for c in command)
-        click.echo(
-            f"[ERROR] Non zero return code while running command:\n{click.style(command, fg='red', bold=True)}",
-            err=True,
-        )
-        click.echo(click.style(command_output, fg="red", italic=True), err=True)
-    else:
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-
-
-sys.excepthook = global_excepthook
+    def __str__(self) -> str:
+        """Return a user-friendly string representation of the exception."""
+        return f"Non zero return code while running command:\n{self.command}\n{self.command_output}"
