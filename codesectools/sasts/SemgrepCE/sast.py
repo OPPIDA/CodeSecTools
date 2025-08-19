@@ -52,3 +52,12 @@ class SemgrepCESAST(SAST):
         "maintainability": "CYAN",
         "portability": "GRAY",
     }
+
+    def __init__(self) -> None:
+        """Initialize Semgrep Community Edition.
+
+        It automatically installs rules needed to run Semgrep CE.
+        """
+        super().__init__()
+        for lang in self.supported_languages:
+            SemgrepCERules(lang=lang).download_dataset()
