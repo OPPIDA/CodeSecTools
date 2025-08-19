@@ -69,7 +69,9 @@ class SemgrepCERules(FileDataset):
 
     def download_dataset(self: Self) -> None:
         """Download the dataset by sparsely cloning the semgrep-rules Git repository."""
-        if not self.directory.is_dir():
+        is_complete = self.directory / ".complete"
+
+        if not is_complete.is_file():
             repo = git.Repo.clone_from(
                 "https://github.com/semgrep/semgrep-rules.git",
                 self.directory,
@@ -82,6 +84,7 @@ class SemgrepCERules(FileDataset):
                 "--no-cone",
                 *self.supported_languages,
             )
+            is_complete.write_bytes(b"\x42")
 
     def load_dataset(self) -> list[TestFile]:
         """Load the SemgrepCERules dataset from the rule repository.

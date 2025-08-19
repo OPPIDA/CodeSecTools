@@ -94,7 +94,9 @@ class BenchmarkJava(FileDataset):
 
     def download_dataset(self: Self) -> None:
         """Download the dataset by sparsely cloning its Git repository."""
-        if not self.directory.is_dir():
+        is_complete = self.directory / ".complete"
+
+        if not is_complete.is_file():
             repo = git.Repo.clone_from(
                 "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
                 self.directory,
@@ -110,6 +112,7 @@ class BenchmarkJava(FileDataset):
                     "expectedresults-1.2.csv",
                 ],
             )
+            is_complete.write_bytes(b"\x42")
 
     def load_dataset(self) -> list[TestCode]:
         """Load the BenchmarkJava dataset from its source files.
