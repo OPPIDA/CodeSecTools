@@ -12,9 +12,9 @@ import tempfile
 import time
 from pathlib import Path
 
-import click
 import git
 import humanize
+import typer
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
@@ -33,14 +33,17 @@ class SAST:
 
     Attributes:
         name (str): The name of the SAST tool.
+        supported_languages (list[str]): A list of supported programming languages.
+        supported_dataset_names (list[str]): A list of names of compatible datasets.
         commands (list[list[str]]): A list of command-line templates to be executed.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
-        parser (AnalysisResult): The parser class for the tool's results.
-        output_dir (Path): The base directory for storing analysis results.
-        supported_languages (list[str]): A list of supported programming languages.
-        supported_dataset_names (list[str]): A list of names of compatible datasets.
+        parser (type[AnalysisResult]): The parser class for the tool's results.
         color_mapping (dict): A mapping of result categories to colors for plotting.
+        supported_datasets (list): Initialized in the constructor; a list of supported
+            dataset classes based on `supported_dataset_names`.
+        output_dir (Path): The base directory for storing analysis results, initialized
+            in the constructor.
 
     """
 
@@ -163,7 +166,7 @@ class SAST:
                     if required:
                         missing_files.append(filename)
 
-        click.echo(f"Results are saved in {output_dir}")
+        typer.echo(f"Results are saved in {output_dir}")
 
     def analyze_files(self, dataset: FileDataset, overwrite: bool = False) -> None:
         """Analyze a dataset composed of individual files.
@@ -181,7 +184,7 @@ class SAST:
 
         if result_path.is_dir():
             if os.listdir(result_path) and not overwrite:
-                click.echo(
+                typer.echo(
                     "Results already exist, please use --overwrite to delete old results"
                 )
                 return
@@ -213,18 +216,18 @@ class SAST:
         """
         base_result_path = self.output_dir / dataset.full_name
         base_result_path.mkdir(exist_ok=True)
-        click.echo(
+        typer.echo(
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
         )
 
         for repo in dataset.repos:
-            click.echo("=================================")
-            click.echo(repo)
+            typer.echo("=================================")
+            typer.echo(repo)
 
             result_path = base_result_path / repo.name
             if result_path.is_dir():
                 if list(result_path.iterdir()) and not overwrite:
-                    click.echo(
+                    typer.echo(
                         "Results already exist, please use --overwrite to analyze again"
                     )
 
@@ -236,8 +239,8 @@ class SAST:
             try:
                 repo.save(repo_path)
             except git.GitCommandError as e:
-                click.echo(e, err=True)
-                click.echo("Skipping")
+                typer.echo(e)
+                typer.echo("Skipping")
                 continue
 
             # Run analysis

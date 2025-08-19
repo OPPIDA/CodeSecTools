@@ -1,39 +1,32 @@
 """Defines the main command-line interface (CLI) for CodeSecTools.
 
-This script sets up the main entry point for the application using `click`.
+This script sets up the main entry point for the application using `typer`.
 It dynamically discovers and adds CLI commands from all available SAST tools.
 """
 
 import os
 
-import click
+import typer
+from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.sasts import SASTS_ALL
 
-
-class OrderedGroup(click.Group):
-    """A click Group that lists commands in the order they were added."""
-
-    def list_commands(self, ctx: click.Context) -> list:
-        """List the command names in the order of definition.
-
-        Args:
-            ctx: The click context.
-
-        Returns:
-            A list of command names.
-
-        """
-        return self.commands.keys()
+cli = typer.Typer(no_args_is_help=True)
 
 
-@click.group(cls=OrderedGroup)
-@click.option(
-    "-d", "--debug", required=False, is_flag=True, help="Show debugging messages"
-)
-def cli(debug: bool) -> None:
-    """CodeSecTools."""
+@cli.callback()
+def main(
+    debug: Annotated[
+        bool, typer.Option("-d", "--debug", help="Show debugging messages")
+    ] = False,
+) -> None:
+    """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
+
+    Args:
+        debug: If True, enables debug mode, which shows more verbose output.
+
+    """
     if debug:
         os.environ["DEBUG"] = "1"
 
@@ -41,14 +34,14 @@ def cli(debug: bool) -> None:
 @cli.command()
 def status() -> None:
     """Display SASTs and Datasets status."""
-    click.secho("Available SASTs:", bold=True)
+    typer.echo("Available SASTs:")
     for sast_name, _ in SASTS_ALL.items():
-        click.echo(f"  - {sast_name}")
+        typer.echo(f" - {sast_name}")
 
-    click.secho("Available datasets:", bold=True)
+    typer.echo("Available datasets:")
     for dataset_name, dataset in DATASETS_ALL.items():
-        click.echo(f"  - {dataset_name} ({' '.join(dataset.supported_languages)})")
+        typer.echo(f" - {dataset_name} ({' '.join(dataset.supported_languages)})")
 
 
 for _, sast_components in SASTS_ALL.items():
-    cli.add_command(sast_components["cli"])
+    cli.add_typer(sast_components["cli"])

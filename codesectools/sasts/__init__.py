@@ -1,10 +1,10 @@
 """Dynamically discovers and registers all available SAST integrations.
 
 This module iterates through the subdirectories of the `codesectools/sasts`
-directory. For each subdirectory that represents a SAST tool (i.e., contains
-sast.py and cli.py files), it dynamically imports the necessary components
-(SAST class, AnalysisResult class, and CLI group) and adds them to the
-`SASTS_ALL` dictionary.
+directory. For each subdirectory that represents a SAST tool (i.e., contains a
+`sast.py` file and is not the `core` directory), it dynamically imports the
+necessary components (SAST class, AnalysisResult class, and Typer CLI application)
+and adds them to the `SASTS_ALL` dictionary.
 
 Attributes:
     SASTS_ALL (dict): A dictionary mapping SAST tool names to their components,
@@ -14,7 +14,7 @@ Attributes:
 
 import importlib
 
-from click import Group
+import typer
 
 from codesectools.sasts.core.sast import SAST, AnalysisResult
 from codesectools.utils import SASTS_DIR, MissingFile
@@ -38,7 +38,7 @@ for child in SASTS_DIR.iterdir():
                 cli_module = importlib.import_module(
                     f"codesectools.sasts.{sast_name}.cli"
                 )
-                cli: Group = getattr(cli_module, f"{sast_name}CLI")
+                cli: typer.Typer = getattr(cli_module, f"{sast_name}CLI")
 
                 SASTS_ALL[sast_name] = {
                     "sast": sast,

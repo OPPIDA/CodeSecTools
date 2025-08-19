@@ -9,10 +9,10 @@ import re
 import shutil
 import tempfile
 
-import click
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import typer
 from matplotlib.figure import Figure
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
@@ -69,7 +69,7 @@ class Graphics:
                 }
             )
         else:
-            click.echo("pdflatex not found, pgf will not be generated")
+            typer.echo("pdflatex not found, pgf will not be generated")
 
     def export(self, force: bool, pgf: bool, show: bool) -> None:
         """Generate, save, and optionally display all registered plots.
@@ -88,25 +88,25 @@ class Graphics:
             if show:
                 with tempfile.NamedTemporaryFile(delete=True) as temp:
                     fig.savefig(f"{temp.name}.png", bbox_inches="tight")
-                    click.launch(f"{temp.name}.png", wait=False)
+                    typer.launch(f"{temp.name}.png", wait=False)
 
             figure_dir = self.output_dir / "_figures"
             figure_dir.mkdir(exist_ok=True)
             figure_path = figure_dir / f"{fig_name}.png"
             if figure_path.is_file() and not force:
-                if not click.confirm(
+                if not typer.confirm(
                     f"Found existing figure at {figure_path}, would you like to overwrite?"
                 ):
-                    click.echo(f"Figure {fig_name} not saved")
+                    typer.echo(f"Figure {fig_name} not saved")
                     continue
 
             fig.savefig(figure_path, bbox_inches="tight")
-            click.echo(f"Figure {fig_name} saved at {figure_path}")
+            typer.echo(f"Figure {fig_name} saved at {figure_path}")
 
             if pgf and self.has_latex:
                 figure_path_pgf = figure_dir / f"{fig_name}.pgf"
                 fig.savefig(figure_path_pgf, bbox_inches="tight")
-                click.echo(f"Figure {fig_name} exported to pgf")
+                typer.echo(f"Figure {fig_name} exported to pgf")
 
 
 ## Single project
@@ -137,7 +137,7 @@ class ProjectGraphics(Graphics):
             checker: The name of the checker.
 
         Returns:
-            The category string for the checker.
+            The category string for the checker, or "NONE" if not found.
 
         """
         return self.result.checker_to_category(checker)
@@ -376,7 +376,7 @@ class GitRepoDatasetGraphics(Graphics):
             checker: The name of the checker.
 
         Returns:
-            The category string for the checker.
+            The category string for the checker, or "NONE" if not found.
 
         """
         return self.results[0].checker_to_category(checker)
