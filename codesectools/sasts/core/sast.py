@@ -23,7 +23,6 @@ from codesectools.shared.cloc import cloc_get_loc
 from codesectools.utils import (
     USER_OUTPUT_DIR,
     MissingFile,
-    NonZeroExit,
     run_command,
 )
 
@@ -123,8 +122,6 @@ class SAST:
             rendered_command = self.render_command(command, {"{lang}": lang})
             retcode, out = run_command(rendered_command, project_dir)
             command_output += out
-            if retcode != 0:
-                raise NonZeroExit(rendered_command, command_output)
         end = time.time()
 
         loc = cloc_get_loc(project_dir, lang)
