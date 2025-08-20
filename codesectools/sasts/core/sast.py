@@ -65,7 +65,7 @@ class SAST:
 
         """
         self.supported_datasets = [
-            DATASETS_ALL[d]["dataset"] for d in self.supported_dataset_names
+            DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.check_commands()

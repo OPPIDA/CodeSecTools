@@ -57,12 +57,12 @@ def status() -> None:
     table.add_column("Dataset name", justify="center", no_wrap=True)
     table.add_column("Cached", justify="center", no_wrap=True)
     table.add_column("Note", justify="center")
-    for dataset_name, dataset_data in DATASETS_ALL.items():
-        if dataset_data["cached"]:
+    for dataset_name, dataset in DATASETS_ALL.items():
+        if dataset.is_cached():
             table.add_row(
                 dataset_name,
                 "✅",
-                f"Supported languages: [b]{''.join(dataset_data['dataset'].supported_languages)}[/b]",
+                f"Supported languages: [b]{''.join(dataset.supported_languages)}[/b]",
             )
         else:
             table.add_row(

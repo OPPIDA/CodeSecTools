@@ -27,9 +27,6 @@ for child in DATASETS_DIR.iterdir():
             )
             dataset: Dataset = getattr(dataset_module, dataset_name)
 
-            DATASETS_ALL[dataset_name] = {
-                "cached": dataset.is_cached(),
-                "dataset": dataset,
-            }
+            DATASETS_ALL[dataset_name] = dataset
 
 DATASETS_ALL = dict(sorted(DATASETS_ALL.items()))
