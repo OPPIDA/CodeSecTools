@@ -35,13 +35,13 @@ class Dataset(ABC):
 
     """
 
-    name = ""
-    supported_languages = []
+    name: str
+    supported_languages: list[str]
 
     def __init__(self, lang: str) -> None:
         """Initialize the Dataset instance.
 
-        Sets up paths, validates the language, and triggers the download and
+        Set up paths, validate the language, and trigger the download and
         loading process for the dataset.
 
         Args:
@@ -223,7 +223,7 @@ class FileDataset(Dataset):
     def validate(self, analysis_result: AnalysisResult) -> FileDatasetData:
         """Validate a SAST analysis result against the ground truth of the dataset.
 
-        Compares the defects found by a SAST tool with the known vulnerabilities
+        Compare the defects found by a SAST tool with the known vulnerabilities
         in the dataset files to categorize them as true positives, false positives, etc.
 
         Args:
@@ -455,7 +455,7 @@ class GitRepoDataset(Dataset):
     def validate(self, analysis_results: list[AnalysisResult]) -> GitRepoDatasetData:
         """Validate SAST analysis results against the ground truth of the dataset.
 
-        Compares the defects found by a SAST tool for each repository with the
+        Compare the defects found by a SAST tool for each repository with the
         known vulnerabilities (CWEs and file locations) in the dataset to
         categorize them as correct, partial, or incorrect.
 

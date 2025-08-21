@@ -36,41 +36,50 @@ def version() -> None:
 
 
 @cli.command()
-def status() -> None:
+def status(
+    sasts: Annotated[bool, typer.Option("--sasts", help="Show sasts only")] = False,
+    datasets: Annotated[
+        bool, typer.Option("--datasets", help="Show datasets only")
+    ] = False,
+) -> None:
     """Display the availability status of SASTs and the cache status of datasets."""
-    table = Table(width=80, show_lines=True)
-    table.add_column("SAST name", justify="center", no_wrap=True)
-    table.add_column("Available", justify="center", no_wrap=True)
-    table.add_column("Note", justify="center")
-    for sast_name, sast_data in SASTS_ALL.items():
-        if sast_data["available"]:
-            table.add_row(sast_name, "✅", f"See subcommand [b]{sast_name.lower()}[/b]")
-        else:
-            table.add_row(
-                sast_name,
-                "❌",
-                f"Binaries or config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
-            )
-    print(table)
+    if sasts or (not sasts and not datasets):
+        table = Table(width=80, show_lines=True)
+        table.add_column("SAST name", justify="center", no_wrap=True)
+        table.add_column("Available", justify="center", no_wrap=True)
+        table.add_column("Note", justify="center")
+        for sast_name, sast_data in SASTS_ALL.items():
+            if sast_data["available"]:
+                table.add_row(
+                    sast_name, "✅", f"See subcommand [b]{sast_name.lower()}[/b]"
+                )
+            else:
+                table.add_row(
+                    sast_name,
+                    "❌",
+                    f"Binaries or config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
+                )
+        print(table)
 
-    table = Table(width=80, show_lines=True)
-    table.add_column("Dataset name", justify="center", no_wrap=True)
-    table.add_column("Cached", justify="center", no_wrap=True)
-    table.add_column("Note", justify="center")
-    for dataset_name, dataset in DATASETS_ALL.items():
-        if dataset.is_cached():
-            table.add_row(
-                dataset_name,
-                "✅",
-                f"Supported languages: [b]{''.join(dataset.supported_languages)}[/b]",
-            )
-        else:
-            table.add_row(
-                dataset_name,
-                "❌",
-                "Dataset is automatically download when using it for the first time",
-            )
-    print(table)
+    if datasets or (not sasts and not datasets):
+        table = Table(width=80, show_lines=True)
+        table.add_column("Dataset name", justify="center", no_wrap=True)
+        table.add_column("Cached", justify="center", no_wrap=True)
+        table.add_column("Note", justify="center")
+        for dataset_name, dataset in DATASETS_ALL.items():
+            if dataset.is_cached():
+                table.add_row(
+                    dataset_name,
+                    "✅",
+                    f"Supported languages: [b]{''.join(dataset.supported_languages)}[/b]",
+                )
+            else:
+                table.add_row(
+                    dataset_name,
+                    "❌",
+                    "Dataset is automatically download when using it for the first time",
+                )
+        print(table)
 
 
 for _, sast_data in SASTS_ALL.items():

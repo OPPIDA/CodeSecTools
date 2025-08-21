@@ -10,6 +10,10 @@ check:
 	@ruff format
 	@ty check
 
+test:
+	@docker build -f tests/Dockerfile -t cstools_test .
+	@docker run --rm cstools_test
+
 doc-serve:
 	@mkdocs serve
 

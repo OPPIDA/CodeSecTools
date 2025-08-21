@@ -33,4 +33,7 @@ def cloc_get_loc(
     if retcode != 0:
         raise NonZeroExit(command, out)
     json_out = json.loads(out)
-    return json_out[to_cloc_name[lang]]["code"]
+    if lang_stats := json_out.get(to_cloc_name[lang]):
+        return lang_stats["code"]
+    else:
+        return 0

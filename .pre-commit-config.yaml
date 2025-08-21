@@ -1,4 +1,14 @@
+fail_fast: true
 repos:
+  - repo: local
+    hooks:
+      - id: cstools-test
+        name: cstools-test
+        entry: make test
+        language: system
+        files: ^(codesectools/|tests/).*\.py$
+        pass_filenames: false
+
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.8.9
     hooks:

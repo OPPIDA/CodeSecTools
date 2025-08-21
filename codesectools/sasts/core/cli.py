@@ -97,10 +97,10 @@ class CLIFactory:
                     metavar="LANG",
                 ),
             ],
-            force: Annotated[
+            overwrite: Annotated[
                 bool,
                 typer.Option(
-                    "--force",
+                    "--overwrite",
                     help="Overwrite existing analysis results for current project",
                 ),
             ] = False,
@@ -109,17 +109,17 @@ class CLIFactory:
 
             Args:
                 lang: The source code language to analyze.
-                force: If True, overwrite any existing analysis results for the project.
+                overwrite: If True, overwrite any existing analysis results for the project.
 
             """
             output_dir = self.sast.output_dir / Path.cwd().name
             if output_dir.is_dir():
                 typer.echo(f"Found existing analysis result at {output_dir}")
-                if force:
+                if overwrite:
                     shutil.rmtree(output_dir)
                     self.sast.run_analysis(lang, Path.cwd(), output_dir)
                 else:
-                    typer.echo("Use --force to overwrite it")
+                    typer.echo("Use --overwrite to overwrite it")
             else:
                 self.sast.run_analysis(lang, Path.cwd(), output_dir)
 
@@ -149,6 +149,13 @@ class CLIFactory:
                     help="Overwrite existing results (not applicable on CVEfixes)",
                 ),
             ] = False,
+            testing: Annotated[
+                bool,
+                typer.Option(
+                    "--testing",
+                    help="Run benchmark over a single dataset unit for testing",
+                ),
+            ] = False,
         ) -> None:
             """Run a SAST benchmark against a selected dataset.
 
@@ -156,14 +163,15 @@ class CLIFactory:
                 dataset: The name of the dataset to use for benchmarking
                     (e.g., "BenchmarkJava_java").
                 overwrite: If True, overwrite existing benchmark results.
+                testing: If True, run benchmark over a single dataset unit for testing.
 
             """
             dataset_name, lang = dataset.split("_")
             dataset = DATASETS_ALL[dataset_name](lang)
             if isinstance(dataset, FileDataset):
-                self.sast.analyze_files(dataset, overwrite)
+                self.sast.analyze_files(dataset, overwrite, testing)
             elif isinstance(dataset, GitRepoDataset):
-                self.sast.analyze_repos(dataset, overwrite)
+                self.sast.analyze_repos(dataset, overwrite, testing)
 
     ## Parser
     def add_list(self, help: str = "") -> None:

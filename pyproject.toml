@@ -38,6 +38,9 @@ docs = [
     "pyyaml>=6.0.2",
     "ruff>=0.12.8",
 ]
+test = [
+    "pytest>=8.4.1",
+]
 
 [project.scripts]
 cstools = "codesectools.cli:cli"

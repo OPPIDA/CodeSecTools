@@ -17,7 +17,7 @@ import humanize
 import typer
 
 from codesectools.datasets import DATASETS_ALL
-from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
+from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import cloc_get_loc
 from codesectools.utils import (
@@ -49,6 +49,7 @@ class SAST:
     name: str
     supported_languages: list[str]
     supported_dataset_names: list[str]
+    supported_datasets: list[Dataset]
     commands: list[list[str]]
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
@@ -57,8 +58,8 @@ class SAST:
     def __init__(self) -> None:
         """Initialize the SAST instance.
 
-        Sets up the list of supported dataset objects, defines the output directory,
-        and verifies that the required command-line tools are available.
+        Set up the list of supported dataset objects, define the output directory,
+        and verify that the required command-line tools are available.
 
         Raises:
             MissingFile: If a required command-line tool is not found in the system's PATH.
@@ -68,6 +69,7 @@ class SAST:
             DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
+        self.output_files.append((Path("cstools_output.json"), True))
         self.check_commands()
 
     def check_commands(self) -> None | MissingFile:
@@ -107,8 +109,8 @@ class SAST:
     def run_analysis(self, lang: str, project_dir: Path, output_dir: Path) -> None:
         """Run the SAST analysis on a given project directory.
 
-        Executes the tool's commands, times the analysis, calculates LoC,
-        and saves the results.
+        Execute the tool's commands, time the analysis, calculate LoC,
+        and save the results.
 
         Args:
             lang: The programming language of the project.
@@ -132,7 +134,7 @@ class SAST:
     def save_results(self, project_dir: Path, output_dir: Path, extra: dict) -> None:
         """Save the results of a SAST analysis.
 
-        Copies the tool's output files and saves any extra metadata to the result directory.
+        Copy the tool's output files and save any extra metadata to the result directory.
 
         Args:
             project_dir: The directory where the analysis was run.
@@ -165,15 +167,18 @@ class SAST:
 
         typer.echo(f"Results are saved in {output_dir}")
 
-    def analyze_files(self, dataset: FileDataset, overwrite: bool = False) -> None:
+    def analyze_files(
+        self, dataset: FileDataset, overwrite: bool = False, testing: bool = False
+    ) -> None:
         """Analyze a dataset composed of individual files.
 
-        Sets up a temporary directory, saves the dataset files, runs the analysis,
-        and cleans up.
+        Set up a temporary directory, save the dataset files, run the analysis,
+        and clean up.
 
         Args:
             dataset: The `FileDataset` instance to analyze.
             overwrite: If True, overwrite existing results for this dataset.
+            testing: If True, run analysis on a single file for testing purposes.
 
         """
         result_path = self.output_dir / dataset.full_name
@@ -193,6 +198,8 @@ class SAST:
         # Copy files into the temporary directory
         for file in dataset.files:
             file.save(temp_path)
+            if testing:
+                break
 
         # Run analysis
         self.run_analysis(dataset.lang, temp_path, result_path)
@@ -200,15 +207,18 @@ class SAST:
         # Clear temporary directory
         temp_dir.cleanup()
 
-    def analyze_repos(self, dataset: GitRepoDataset, overwrite: bool = False) -> None:
+    def analyze_repos(
+        self, dataset: GitRepoDataset, overwrite: bool = False, testing: bool = False
+    ) -> None:
         """Analyze a dataset composed of Git repositories.
 
-        Iterates through each repository in the dataset, clones it, checks out
-        the specified commit, runs the analysis, and saves the results.
+        Iterate through each repository in the dataset, clone it, check out
+        the specified commit, run the analysis, and save the results.
 
         Args:
             dataset: The `GitRepoDataset` instance to analyze.
             overwrite: If True, re-analyze repositories with existing results.
+            testing: If True, run analysis on a single repository for testing purposes.
 
         """
         base_result_path = self.output_dir / dataset.full_name
@@ -246,6 +256,9 @@ class SAST:
             # Clear temporary directory
             temp_dir.cleanup()
 
+            if testing:
+                break
+
     def list_supported_datasets(self) -> list[str]:
         """List all language-specific datasets supported by this SAST tool.
 
@@ -255,6 +268,7 @@ class SAST:
         """
         all_datasets = []
         for dataset in self.supported_datasets:
+            # TODO: CHECK LANGUAGE!!!
             all_datasets.extend(dataset.list_dataset())
         return all_datasets
 

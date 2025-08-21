@@ -13,7 +13,7 @@ from codesectools.utils import USER_CACHE_DIR
 
 
 class SemgrepCESAST(SAST):
-    """SAST integration for Semgrep Community Edition.
+    """Implement the SAST integration for Semgrep Community Edition.
 
     Attributes:
         name (str): The name of the SAST tool.
@@ -40,7 +40,6 @@ class SemgrepCESAST(SAST):
         ]
     ]
     output_files = [
-        (Path("analysis.log"), True),
         (Path("semgrep_output.json"), True),
     ]
     parser = SemgrepCEAnalysisResult
@@ -56,9 +55,8 @@ class SemgrepCESAST(SAST):
     def __init__(self) -> None:
         """Initialize the SemgrepCESAST instance.
 
-        This constructor automatically downloads the Semgrep Community Edition rules
-        required for analysis by initializing the `SemgrepCERules` dataset for each
-        supported language.
+        Download the Semgrep Community Edition rules required for analysis by
+        initializing the `SemgrepCERules` dataset for each supported language.
         """
         super().__init__()
         for lang in self.supported_languages:
