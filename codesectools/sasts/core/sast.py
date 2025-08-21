@@ -19,7 +19,7 @@ import typer
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
-from codesectools.shared.cloc import cloc_get_loc
+from codesectools.shared.cloc import Cloc
 from codesectools.utils import (
     USER_OUTPUT_DIR,
     MissingFile,
@@ -126,7 +126,7 @@ class SAST:
             command_output += out
         end = time.time()
 
-        loc = cloc_get_loc(project_dir, lang)
+        loc = Cloc(project_dir, lang).get_loc()
 
         extra = {"logs": command_output, "duration": end - start, "loc": loc}
         self.save_results(project_dir, output_dir, extra)

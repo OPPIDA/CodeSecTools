@@ -1,39 +1,92 @@
-"""Provides a function to count lines of code using the cloc tool.
+"""Provide a wrapper for counting lines of code using the cloc tool.
 
-This module contains a wrapper around the `cloc.pl` Perl script to calculate
-the number of physical lines of source code for a specific language within
-a directory.
+This module contains the `Cloc` class, a wrapper around the `cloc` tool,
+to calculate the number of physical lines of source code for a specific
+language within a directory.
 """
 
 import json
+import shutil
 from pathlib import Path
 
-from codesectools.utils import DATA_DIR, NonZeroExit, run_command
+import requests
+
+from codesectools.utils import USER_CACHE_DIR, MissingFile, NonZeroExit, run_command
 
 
-def cloc_get_loc(
-    dir: Path, lang: str, include: str | None = None, exclude: str | None = None
-) -> int:
-    """Get the lines of code for a specific language in a directory.
+class Cloc:
+    """A wrapper for the 'cloc' (Count Lines of Code) tool.
 
-    Args:
-        dir: The directory to analyze.
-        lang: The language to count (e.g., "java").
-        include: A pattern for files to include (not currently used).
-        exclude: A pattern for files to exclude (not currently used).
+    Find the 'cloc' executable or download and use the Perl script if the
+    executable is not available but Perl is. Provide a method to count
+    lines of code for a specific language.
 
-    Returns:
-        The number of physical lines of code for the specified language.
+    Attributes:
+        version (str): The version of the cloc Perl script to download.
+        cloc_names (dict): A mapping from internal language names to the names
+            used by cloc.
+        dir (Path): The directory to run cloc in.
+        lang (str): The programming language to count, mapped to the cloc name.
+        base_command (list[str]): The command list to execute cloc.
 
     """
-    to_cloc_name = {"java": "Java"}
-    command = ["perl", DATA_DIR / "cloc" / "cloc.pl", ".", "--json"]
-    command.append(f"--include-lang={to_cloc_name[lang]}")
-    retcode, out = run_command(command, dir)
-    if retcode != 0:
-        raise NonZeroExit(command, out)
-    json_out = json.loads(out)
-    if lang_stats := json_out.get(to_cloc_name[lang]):
-        return lang_stats["code"]
-    else:
-        return 0
+
+    version = "2.06"
+    cloc_names = {"java": "Java"}
+
+    def __init__(self, dir: Path, lang: str) -> None:
+        """Initialize the Cloc wrapper.
+
+        Check for the 'cloc' binary. If not found, check for 'perl' and
+        download the 'cloc.pl' script if it doesn't exist locally.
+
+        Args:
+            dir: The directory to run cloc in.
+            lang: The programming language to count.
+
+        """
+        self.dir = dir
+        self.lang = self.cloc_names[lang]
+        if shutil.which("cloc"):
+            self.base_command = ["cloc", ".", "--json"]
+        else:
+            if shutil.which("perl"):
+                cloc_pl = USER_CACHE_DIR / "cloc.pl"
+                if not cloc_pl.is_file():
+                    cloc_pl.write_bytes(
+                        requests.get(
+                            f"https://github.com/AlDanial/cloc/releases/download/v{self.version}/cloc-{self.version}.pl"
+                        ).content
+                    )
+                self.base_command = [
+                    "perl",
+                    str(USER_CACHE_DIR / "cloc.pl"),
+                    ".",
+                    "--json",
+                ]
+            else:
+                raise MissingFile(["perl", "cloc"])
+
+    def get_loc(self) -> int:
+        """Get the lines of code for the specified language.
+
+        Execute the cloc command, parse the JSON output, and return the
+        number of source code lines.
+
+        Returns:
+            The number of lines of code, or 0 if the language is not found
+            in the output.
+
+        Raises:
+            NonZeroExit: If the cloc command fails.
+
+        """
+        full_command = self.base_command + [f"--include-lang={self.lang}"]
+        retcode, out = run_command(full_command, self.dir)
+        if retcode != 0:
+            raise NonZeroExit(full_command, out)
+        json_out = json.loads(out)
+        if lang_stats := json_out.get(self.lang):
+            return lang_stats["code"]
+        else:
+            return 0
