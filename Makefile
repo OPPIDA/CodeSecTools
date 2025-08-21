@@ -14,7 +14,7 @@ check:		## Lint, format, and type-check the code
 
 test:		## Run tests in a Docker container
 	@docker build -f tests/Dockerfile -t cstools_test .
-	@docker run --rm cstools_test
+	@docker run --rm --tty cstools_test
 
 test-debug:	## Spawn an interactive shell in the test container to debug
 	@docker build -f tests/Dockerfile -t cstools_test .
