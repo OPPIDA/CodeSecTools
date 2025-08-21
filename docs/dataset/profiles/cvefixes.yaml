@@ -31,7 +31,7 @@ extra: |
 
       We also added `repo_size` for each repository, fetched using the GitHub API.
 
-  !!! info "Extract minimal supported_version for a specific programming language"
+  ??? config "Extract minimal version for a specific programming language"
 
       **Requirements:**
 
