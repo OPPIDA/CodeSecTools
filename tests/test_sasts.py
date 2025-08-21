@@ -1,5 +1,6 @@
 """Test SAST tool integrations."""
 
+import logging
 import tempfile
 from pathlib import Path
 
@@ -21,6 +22,7 @@ TEST_CODES = {
 def test_sasts() -> None | AssertionError:
     """Test the availability and help command for all SASTs."""
     for sast_name, sast_data in SASTS_ALL.items():
+        logging.info(f"Checking {sast_name} commands")
         sast_cli = sast_name.lower()
         result = runner.invoke(cli, [sast_cli, "--help"])
         if sast_data["available"]:
@@ -42,6 +44,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
         sast_cli = sast_name.lower()
         sast = sast_data["sast"]()
         for lang in sast.supported_languages:
+            logging.info(f"Testing {sast_name} analyze command on {lang} code")
             with tempfile.TemporaryDirectory() as temp_dir:
                 monkeypatch.chdir(temp_dir)
                 file_name, file_content = TEST_CODES[lang]
@@ -70,6 +73,9 @@ def test_sasts_benchmark() -> None | AssertionError:
         sast_cli = sast_name.lower()
         sast = sast_data["sast"]()
         for dataset_full_name in sast.list_supported_datasets():
+            logging.info(
+                f"Testing {sast_name} benchmark command on {dataset_full_name}"
+            )
             result = runner.invoke(
                 cli, [sast_cli, "benchmark", dataset_full_name, "--testing"]
             )
