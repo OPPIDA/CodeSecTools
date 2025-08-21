@@ -3,8 +3,9 @@
 all:
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
-install: 	## Install all Python dependencies
+install: 	## Install all Python dependencies and pre-commits
 	@uv sync --all-extras
+	@.venv/bin/pre-commit install
 
 check:		## Lint, format, and type-check the code
 	@ruff check --fix
