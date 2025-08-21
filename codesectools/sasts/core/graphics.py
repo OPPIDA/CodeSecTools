@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
-from codesectools.shared.cwe import CWE
+from codesectools.shared.cwe import CWEs
 
 ## Matplotlib config
 matplotlib.rcParams.update(
@@ -291,9 +291,10 @@ class FileDatasetGraphics(ProjectGraphics):
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
         for cwe_id, v in sorted_cwes[: self.limit]:
-            cwe_name = (
-                CWE.get(cwe_id, {}).get("Name", "None") if CWE.get(cwe_id) else "None"
-            )
+            if cwe := CWEs().from_id(cwe_id):
+                cwe_name = cwe.name
+            else:
+                cwe_name = "None"
             if r := re.search(r"\('(.*)'\)", cwe_name):
                 cwe_name = r.group(1)
             X.append(f"{cwe_name} (ID: {cwe_id})")
@@ -473,9 +474,10 @@ class GitRepoDatasetGraphics(Graphics):
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
         for cwe_id, v in sorted_cwes[: self.limit]:
-            cwe_name = (
-                CWE.get(cwe_id, {}).get("Name", "None") if CWE.get(cwe_id) else "None"
-            )
+            if cwe := CWEs().from_id(cwe_id):
+                cwe_name = cwe.name
+            else:
+                cwe_name = "None"
             if r := re.search(r"\('(.*)'\)", cwe_name):
                 cwe_name = r.group(1)
             X.append(f"{cwe_name} (ID: {cwe_id})")
