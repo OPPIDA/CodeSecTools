@@ -12,6 +12,7 @@ import git
 import yaml
 
 from codesectools.datasets.core.dataset import File, FileDataset
+from codesectools.shared.cwe import CWE, CWEs
 
 
 class TestFile(File):
@@ -25,7 +26,7 @@ class TestFile(File):
         self,
         filename: str,
         content: str | bytes,
-        cwe_ids: list[int],
+        cwes: list[CWE],
         is_real: bool = True,
     ) -> None:
         """Initialize a TestFile instance.
@@ -33,14 +34,12 @@ class TestFile(File):
         Args:
             filename: The name of the file.
             content: The content of the file, as a string or bytes.
-            cwe_ids: A list of CWE IDs associated with the file.
+            cwes: A list of CWEs associated with the file.
             is_real: A boolean indicating if the vulnerability is real.
                      Defaults to True.
 
         """
-        super().__init__(
-            filename=filename, content=content, cwe_ids=cwe_ids, is_real=True
-        )
+        super().__init__(filename=filename, content=content, cwes=cwes, is_real=True)
 
 
 class SemgrepCERules(FileDataset):
@@ -109,12 +108,12 @@ class SemgrepCERules(FileDataset):
             if isinstance(cwes, str):
                 cwes = [cwes]
 
-            cwe_ids = []
+            cwes = []
             for cwe in cwes:
                 if match := re.search(r"[CWE|cwe]-(\d+)", cwe):
-                    cwe_ids.append(int(match.group(1)))
+                    cwes.append(CWEs().from_id(int(match.group(1))))
 
             if self.lang in rule["languages"]:
                 test_file = next(LANG_RULES.rglob(f"{rule_file.stem}*"))
-                files.append(TestFile(test_file.name, test_file.read_bytes(), cwe_ids))
+                files.append(TestFile(test_file.name, test_file.read_bytes(), cwes))
         return files

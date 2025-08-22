@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Self
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
+from codesectools.shared.cwe import CWEs
 from codesectools.utils import MissingFile
 
 
@@ -34,18 +35,18 @@ class SemgrepCEFinding(Defect):
                 from Semgrep Community Edition's JSON output.
 
         """
-        if cwe_id_match := re.search(
+        if cwe_match := re.search(
             r"CWE-(\d+)", defect_data["extra"]["metadata"]["cwe"][0]
         ):
-            cwe_id = int(cwe_id_match.groups()[0])
+            cwe = CWEs().from_id(int(cwe_match.groups()[0]))
         else:
-            cwe_id = None
+            cwe = CWEs().from_id(-1)
 
         super().__init__(
             file=Path(defect_data["path"]).name,
             checker=defect_data["check_id"].split(".")[-1],
             category=defect_data["extra"]["metadata"]["category"],
-            cwe_id=cwe_id,
+            cwe=cwe,
             data=defect_data,
         )
 
@@ -77,7 +78,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
         """
         super().__init__(
             name=output_dir.name,
-            lang=result_data["interfile_languages_used"],
+            lang=cmdout["lang"],
             files=result_data["paths"]["scanned"],
             defects=[],
             time=result_data["time"]["profiling_times"]["total_time"],

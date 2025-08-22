@@ -128,7 +128,12 @@ class SAST:
 
         loc = Cloc(project_dir, lang).get_loc()
 
-        extra = {"logs": command_output, "duration": end - start, "loc": loc}
+        extra = {
+            "lang": lang,
+            "logs": command_output,
+            "duration": end - start,
+            "loc": loc,
+        }
         self.save_results(project_dir, output_dir, extra)
 
     def save_results(self, project_dir: Path, output_dir: Path, extra: dict) -> None:

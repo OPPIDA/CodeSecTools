@@ -5,6 +5,7 @@ the XML and YAML output from a Coverity scan, converting it into the standardize
 format used by CodeSecTools.
 """
 
+import json
 import re
 from pathlib import Path
 from typing import Self
@@ -14,6 +15,7 @@ import yaml
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.sasts.Coverity.config import LANGUAGES, TYPE_TO_CWE
+from codesectools.shared.cwe import CWEs
 from codesectools.utils import MissingFile
 
 
@@ -41,7 +43,7 @@ class CoverityDefect(Defect):
             file=Path(defect_data["file"]).name,
             checker=defect_data["checker"],
             category=None,
-            cwe_id=TYPE_TO_CWE.get(defect_data["type"], None),
+            cwe=CWEs().from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
             data=defect_data,
         )
 
@@ -86,6 +88,7 @@ class CoverityAnalysisResult(AnalysisResult):
         config_data: str,
         captured_list: str,
         defects: list[Defect],
+        cmdout: dict,
     ) -> None:
         """Initialize a CoverityAnalysisResult instance.
 
@@ -95,16 +98,17 @@ class CoverityAnalysisResult(AnalysisResult):
             config_data: Parsed data from coverity.yaml.
             captured_list: A string containing the list of captured source files.
             defects: A list of `CoverityDefect` objects.
+            cmdout: A dictionary with metadata from the command execution.
 
         """
         super().__init__(
             name=output_dir.name,
-            lang=None,
+            lang=cmdout["lang"],
             files=None,
             defects=defects,
             time=None,
             loc=None,
-            data=(result_data, config_data, captured_list),
+            data=(result_data, config_data, captured_list, cmdout),
         )
 
         self.metrics = {}
@@ -154,6 +158,8 @@ class CoverityAnalysisResult(AnalysisResult):
             MissingFile: If a required result file is not found.
 
         """
+        cmdout = json.load((output_dir / "cstools_output.json").open())
+
         # Analysis metrics
         file_path = output_dir / "ANALYSIS.metrics.xml"
         if file_path.is_file():
@@ -190,4 +196,6 @@ class CoverityAnalysisResult(AnalysisResult):
             else:
                 defects.append(CoverityDefect(errors))
 
-        return cls(output_dir, analysis_data, config_data, captured_list, defects)
+        return cls(
+            output_dir, analysis_data, config_data, captured_list, defects, cmdout
+        )

@@ -5,7 +5,6 @@ visual representations of SAST analysis data, such as defect distributions and
 benchmark performance.
 """
 
-import re
 import shutil
 import tempfile
 
@@ -17,7 +16,6 @@ from matplotlib.figure import Figure
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
-from codesectools.shared.cwe import CWEs
 
 ## Matplotlib config
 matplotlib.rcParams.update(
@@ -71,11 +69,11 @@ class Graphics:
         else:
             typer.echo("pdflatex not found, pgf will not be generated")
 
-    def export(self, force: bool, pgf: bool, show: bool) -> None:
+    def export(self, overwrite: bool, pgf: bool, show: bool) -> None:
         """Generate, save, and optionally display all registered plots.
 
         Args:
-            force: If True, overwrite existing figure files.
+            overwrite: If True, overwrite existing figure files.
             pgf: If True and LaTeX is available, export figures in PGF format.
             show: If True, open the generated figures using the default viewer.
 
@@ -93,7 +91,7 @@ class Graphics:
             figure_dir = self.output_dir / "_figures"
             figure_dir.mkdir(exist_ok=True, parents=True)
             figure_path = figure_dir / f"{fig_name}.png"
-            if figure_path.is_file() and not force:
+            if figure_path.is_file() and not overwrite:
                 if not typer.confirm(
                     f"Found existing figure at {figure_path}, would you like to overwrite?"
                 ):
@@ -266,23 +264,23 @@ class FileDatasetGraphics(ProjectGraphics):
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
         cwe_counter = {}
-        for cwe_id in b.cwes_list:
-            if cwe_counter.get(cwe_id, None):
-                cwe_counter[cwe_id]["actual"] += 1
+        for cwe in b.cwes_list:
+            if cwe_counter.get(cwe, None):
+                cwe_counter[cwe]["actual"] += 1
             else:
-                cwe_counter[cwe_id] = {"good": 0, "wrong": 0, "actual": 1}
+                cwe_counter[cwe] = {"good": 0, "wrong": 0, "actual": 1}
 
-        for cwe_id in b.correct_cwes:
-            if cwe_counter.get(cwe_id, None):
-                cwe_counter[cwe_id]["good"] += 1
+        for cwe in b.correct_cwes:
+            if cwe_counter.get(cwe, None):
+                cwe_counter[cwe]["good"] += 1
             else:
-                cwe_counter[cwe_id] = {"good": 1, "wrong": 0, "actual": 0}
+                cwe_counter[cwe] = {"good": 1, "wrong": 0, "actual": 0}
 
-        for cwe_id in b.incorrect_cwes:
-            if cwe_counter.get(cwe_id, None):
-                cwe_counter[cwe_id]["wrong"] += 1
+        for cwe in b.incorrect_cwes:
+            if cwe_counter.get(cwe, None):
+                cwe_counter[cwe]["wrong"] += 1
             else:
-                cwe_counter[cwe_id] = {"good": 0, "wrong": 1, "actual": 0}
+                cwe_counter[cwe] = {"good": 0, "wrong": 1, "actual": 0}
 
         X, Y1, Y2, Y3 = [], [], [], []
         sorted_cwes = sorted(
@@ -290,14 +288,8 @@ class FileDatasetGraphics(ProjectGraphics):
         )
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
-        for cwe_id, v in sorted_cwes[: self.limit]:
-            if cwe := CWEs().from_id(cwe_id):
-                cwe_name = cwe.name
-            else:
-                cwe_name = "None"
-            if r := re.search(r"\('(.*)'\)", cwe_name):
-                cwe_name = r.group(1)
-            X.append(f"{cwe_name} (ID: {cwe_id})")
+        for cwe, v in sorted_cwes[: self.limit]:
+            X.append(f"{cwe.name} (ID: {cwe.id})")
             Y1.append(v["actual"])
             Y2.append(v["good"])
             Y3.append(v["wrong"])
@@ -449,23 +441,23 @@ class GitRepoDatasetGraphics(Graphics):
         fig, ax = plt.subplots(1, 1, layout="constrained")
         cwe_counter = {}
         for result in b.validated_repos:
-            for cwe_id in result["cwes_list"]:
-                if cwe_counter.get(cwe_id, None):
-                    cwe_counter[cwe_id]["actual"] += 1
+            for cwe in result["cwes_list"]:
+                if cwe_counter.get(cwe, None):
+                    cwe_counter[cwe]["actual"] += 1
                 else:
-                    cwe_counter[cwe_id] = {"good": 0, "wrong": 0, "actual": 1}
+                    cwe_counter[cwe] = {"good": 0, "wrong": 0, "actual": 1}
 
-            for cwe_id in result["correct_cwes"]:
-                if cwe_counter.get(cwe_id, None):
-                    cwe_counter[cwe_id]["good"] += 1
+            for cwe in result["correct_cwes"]:
+                if cwe_counter.get(cwe, None):
+                    cwe_counter[cwe]["good"] += 1
                 else:
-                    cwe_counter[cwe_id] = {"good": 1, "wrong": 0, "actual": 0}
+                    cwe_counter[cwe] = {"good": 1, "wrong": 0, "actual": 0}
 
-            for cwe_id in result["incorrect_cwes"]:
-                if cwe_counter.get(cwe_id, None):
-                    cwe_counter[cwe_id]["wrong"] += 1
+            for cwe in result["incorrect_cwes"]:
+                if cwe_counter.get(cwe, None):
+                    cwe_counter[cwe]["wrong"] += 1
                 else:
-                    cwe_counter[cwe_id] = {"good": 0, "wrong": 1, "actual": 0}
+                    cwe_counter[cwe] = {"good": 0, "wrong": 1, "actual": 0}
 
         X, Y1, Y2, Y3 = [], [], [], []
         sorted_cwes = sorted(
@@ -473,14 +465,8 @@ class GitRepoDatasetGraphics(Graphics):
         )
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
         sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
-        for cwe_id, v in sorted_cwes[: self.limit]:
-            if cwe := CWEs().from_id(cwe_id):
-                cwe_name = cwe.name
-            else:
-                cwe_name = "None"
-            if r := re.search(r"\('(.*)'\)", cwe_name):
-                cwe_name = r.group(1)
-            X.append(f"{cwe_name} (ID: {cwe_id})")
+        for cwe, v in sorted_cwes[: self.limit]:
+            X.append(f"{cwe.name} (ID: {cwe.id})")
             Y1.append(v["actual"])
             Y2.append(v["good"])
             Y3.append(v["wrong"])

@@ -9,6 +9,7 @@ import csv
 from typing import Self
 
 from codesectools.datasets.core.dataset import GitRepo, GitRepoDataset
+from codesectools.shared.cwe import CWEs
 from codesectools.utils import DATA_DIR
 
 
@@ -40,7 +41,7 @@ class CVEfixes(GitRepoDataset):
         super().__init__(lang)
 
     def download_dataset(self: Self) -> None:
-        """Prepare the dataset directory and copies the necessary CSV files."""
+        """Prepare the dataset directory and copy the necessary CSV files."""
         self.directory.mkdir(exist_ok=True, parents=True)
         for dataset_file in (DATA_DIR / self.name).glob("CVEfixes_*.csv"):
             (self.directory / dataset_file.name).write_bytes(dataset_file.read_bytes())
@@ -67,11 +68,12 @@ class CVEfixes(GitRepoDataset):
                 url = row["repo_url"]
                 commit = eval(row["parents"])[0]
                 size = int(row["repo_size"])
-                cwe_ids = [
-                    int(cwe_id.split("-")[1]) for cwe_id in row["cwe_ids"].split(";")
+                cwes = [
+                    CWEs().from_id(int(cwe_id.split("-")[1]))
+                    for cwe_id in row["cwe_ids"].split(";")
                 ]
                 files = row["filenames"].split(";")
-                repo = GitRepo(name, url, commit, size, cwe_ids, files)
+                repo = GitRepo(name, url, commit, size, cwes, files)
                 if repo.size < self.max_repo_size:
                     repos.append(repo)
         return repos

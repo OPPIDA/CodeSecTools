@@ -10,6 +10,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Self
 
+from codesectools.shared.cwe import CWE
+
 
 class Defect:
     """Represents a single defect or finding reported by a SAST tool.
@@ -18,13 +20,13 @@ class Defect:
         file (str): The name of the file where the defect was found.
         checker (str): The name of the checker or rule that reported the defect.
         category (str): The category of the checker (e.g., security, performance).
-        cwe_id (int): The CWE ID associated with the defect, if available.
+        cwe (CWE): The CWE associated with the defect.
         data (tuple[Any]): A tuple containing the raw data for the defect.
 
     """
 
     def __init__(
-        self, file: str, checker: str, category: str, cwe_id: int, data: tuple[Any]
+        self, file: str, checker: str, category: str, cwe: CWE, data: tuple[Any]
     ) -> None:
         """Initialize a Defect instance.
 
@@ -32,18 +34,18 @@ class Defect:
             file: The file path of the defect.
             checker: The name of the rule/checker.
             category: The category of the checker.
-            cwe_id: The associated CWE identifier.
+            cwe: The CWE associated with the defect.
             data: Raw data from the SAST tool for this defect.
 
         """
         self.file = file
         self.checker = checker
         self.category = category
-        self.cwe_id = cwe_id
+        self.cwe = cwe
         self.data = data
 
     def __repr__(self) -> str:
-        """Provide a developer-friendly string representation of the Defect.
+        """Return a developer-friendly string representation of the Defect.
 
         Returns:
             A string showing the class name and key attributes of the defect.
@@ -53,7 +55,7 @@ class Defect:
     file: \t{self.file}
     checker: \t{self.checker}
     category: \t{self.category}
-    cwe_id: \t{self.cwe_id}
+    cwe: \t{self.cwe}
 )"""
 
 
@@ -102,7 +104,7 @@ class AnalysisResult(ABC):
         self.data = data
 
     def __repr__(self) -> str:
-        """Provide a developer-friendly string representation of the AnalysisResult.
+        """Return a developer-friendly string representation of the AnalysisResult.
 
         Returns:
             A string showing key metrics of the analysis.
@@ -238,10 +240,10 @@ class AnalysisResult(ABC):
         """
         stats = {}
         for defect in self.defects:
-            if defect.cwe_id not in stats.keys():
-                stats[defect.cwe_id] = {"count": 1, "files": {defect.file}}
+            if defect.cwe not in stats.keys():
+                stats[defect.cwe] = {"count": 1, "files": {defect.file}}
             else:
-                stats[defect.cwe_id]["files"].add(defect.file)
-                stats[defect.cwe_id]["count"] = len(stats[defect.cwe]["files"])
+                stats[defect.cwe]["files"].add(defect.file)
+                stats[defect.cwe]["count"] = len(stats[defect.cwe]["files"])
 
         return stats

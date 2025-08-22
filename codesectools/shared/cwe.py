@@ -6,7 +6,9 @@ and provides classes to access and manage CWE data.
 
 import csv
 import io
+import re
 import zipfile
+from typing import Self
 
 import requests
 
@@ -14,7 +16,14 @@ from codesectools.utils import USER_CACHE_DIR
 
 
 class CWE:
-    """Represent a single Common Weakness Enumeration."""
+    """Represent a single Common Weakness Enumeration.
+
+    Attributes:
+        id (int): The CWE identifier.
+        name (str): The name of the weakness.
+        description (str): A description of the weakness.
+
+    """
 
     def __init__(self, id: int, name: str, description: str) -> None:
         """Initialize a CWE instance.
@@ -26,12 +35,56 @@ class CWE:
 
         """
         self.id = id
-        self.name = name
+        if r := re.search(r"\('(.*)'\)", name):
+            self.name = r.group(1)
+            self.full_name = name
+        else:
+            self.name = self.full_name = name
+
         self.description = description
+
+    def __eq__(self, other: Self | int) -> bool:
+        """Compare this CWE with another object for equality.
+
+        Args:
+            other: The object to compare with. Can be another CWE instance
+                   or an integer representing the CWE ID.
+
+        Returns:
+            True if the IDs are equal, False otherwise.
+
+        """
+        if isinstance(other, self.__class__):
+            return self.id == other.id
+        elif isinstance(other, int):
+            return self.id == other
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        """Return the hash of the CWE instance, based on its ID."""
+        return hash(self.id)
+
+    def __repr__(self) -> str:
+        """Return a developer-friendly string representation of the CWE.
+
+        Returns:
+            A string showing the class name and CWE ID.
+
+        """
+        return f"{self.__class__.__name__}(id={self.id})"
 
 
 class CWEs:
-    """Manage the collection of CWEs."""
+    """Manage the collection of all CWEs.
+
+    Downloads and loads the official CWE list from a CSV file.
+
+    Attributes:
+        file (Path): The path to the cached CWE CSV file.
+        cwes (list[CWE]): A list of all loaded CWE objects.
+
+    """
 
     def __init__(self) -> None:
         """Initialize the CWEs collection.
@@ -74,10 +127,10 @@ class CWEs:
             id: The integer ID of the CWE to find.
 
         Returns:
-            The CWE object if found, otherwise None.
+            The CWE object if found, otherwise a default CWE object with ID -1.
 
         """
         for cwe in self.cwes:
             if cwe.id == id:
                 return cwe
-        return None
+        return CWE(id=-1, name="None", description="None")

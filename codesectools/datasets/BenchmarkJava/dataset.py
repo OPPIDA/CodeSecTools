@@ -11,6 +11,7 @@ from typing import Self
 import git
 
 from codesectools.datasets.core.dataset import File, FileDataset
+from codesectools.shared.cwe import CWE, CWEs
 
 
 class TestCode(File):
@@ -28,7 +29,7 @@ class TestCode(File):
         self,
         filename: str,
         content: str | bytes,
-        cwe_ids: list[int],
+        cwes: list[CWE],
         vuln_type: str,
         is_real: bool,
     ) -> None:
@@ -37,14 +38,12 @@ class TestCode(File):
         Args:
             filename: The name of the file.
             content: The content of the file, as a string or bytes.
-            cwe_ids: A list of CWE IDs associated with the file.
+            cwes: A list of CWEs associated with the file.
             vuln_type: The type of vulnerability.
             is_real: A boolean indicating if the vulnerability is real or a false positive test case.
 
         """
-        super().__init__(
-            filename=filename, content=content, cwe_ids=cwe_ids, is_real=is_real
-        )
+        super().__init__(filename=filename, content=content, cwes=cwes, is_real=is_real)
 
         self.vuln_type = vuln_type
 
@@ -137,9 +136,9 @@ class BenchmarkJava(FileDataset):
         for row in reader:
             filename = f"{row[0]}.java"
             content = (testcode_dir / filename).read_text()
-            cwe_ids = [int(row[3])]
+            cwes = [CWEs().from_id(int(row[3]))]
             vuln_type = row[1]
             is_real = True if row[2] == "true" else False
-            files.append(TestCode(filename, content, cwe_ids, vuln_type, is_real))
+            files.append(TestCode(filename, content, cwes, vuln_type, is_real))
 
         return files

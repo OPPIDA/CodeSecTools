@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from typing import Self
 
     from codesectools.sasts.core.parser import AnalysisResult, Defect
+    from codesectools.shared.cwe import CWE
 
 
 class Dataset(ABC):
@@ -131,15 +132,14 @@ class File(DatasetUnit):
     Attributes:
         filename (str): The name of the file.
         content (bytes): The byte content of the file.
-        cwe_ids (list[int]): A list of CWE IDs associated with vulnerabilities
-            in the file.
+        cwes (list[CWE]): A list of CWEs associated with the file.
         is_real (bool): True if the vulnerability is real, False if it's
             intended to be a false positive test case.
 
     """
 
     def __init__(
-        self, filename: str, content: str | bytes, cwe_ids: list[int], is_real: bool
+        self, filename: str, content: str | bytes, cwes: list[CWE], is_real: bool
     ) -> None:
         """Initialize a File instance.
 
@@ -147,21 +147,21 @@ class File(DatasetUnit):
             filename: The name of the file.
             content: The content of the file, as a string or bytes. It will be
                 converted to bytes if provided as a string.
-            cwe_ids: A list of CWE IDs associated with the file.
+            cwes: A list of CWEs associated with the file.
             is_real: True if the vulnerability is real, False if it's
                 intended to be a false positive test case.
 
         """
         self.filename = filename
         self.content = content
-        self.cwe_ids = cwe_ids
+        self.cwes = cwes
         self.is_real = is_real
 
         if isinstance(content, str):
             self.content = content.encode()
 
     def __repr__(self) -> str:
-        """Provide a developer-friendly string representation of the File.
+        """Return a developer-friendly string representation of the File.
 
         Returns:
             A string showing the class name, filename, and CWE IDs.
@@ -169,7 +169,7 @@ class File(DatasetUnit):
         """
         return f"""{self.__class__.__name__}(
     filename: \t{self.filename}
-    cwe_ids: \t{self.cwe_ids}
+    cwes: \t{self.cwes}
 )"""
 
     def __eq__(self, other: str | Self) -> bool:
@@ -235,12 +235,12 @@ class FileDataset(Dataset):
         """
         files = self.files
 
-        file_cwes = {file.filename: file.cwe_ids for file in files}
+        file_cwes = {file.filename: file.cwes for file in files}
         file_is_real = {file.filename: file.is_real for file in files}
 
         file_number = len(files)
         defect_number = len(analysis_result.defects)
-        cwes_list = [cwe_id for file in files for cwe_id in file.cwe_ids]
+        cwes_list = [cwe for file in files for cwe in file.cwes]
 
         correct_defects = []
         incorrect_defects = []
@@ -248,30 +248,30 @@ class FileDataset(Dataset):
         correct_cwes = []
         incorrect_cwes = []
         for defect in analysis_result.defects:
-            # Ignore defect without cwe_id
-            if not defect.cwe_id:
+            # Ignore defect without cwe
+            if not defect.cwe:
                 continue
 
             # Identified vulns
-            if defect.cwe_id in file_cwes[defect.file]:
+            if defect.cwe in file_cwes[defect.file]:
                 if file_is_real[defect.file]:
                     # True Positive
                     correct_defects.append(defect)
-                    correct_cwes.append(defect.cwe_id)
+                    correct_cwes.append(defect.cwe)
                 else:
                     # False Positive
                     incorrect_defects.append(defect)
-                    incorrect_cwes.append(defect.cwe_id)
+                    incorrect_cwes.append(defect.cwe)
             # Not identified vulns
             else:
                 if not file_is_real[defect.file]:
                     # True negative (not identified and there was indeed no vuln)
                     correct_defects.append(defect)
-                    correct_cwes.append(defect.cwe_id)
+                    correct_cwes.append(defect.cwe)
                 else:
                     # Flase Negative (not identified and there was a vuln)
                     incorrect_defects.append(defect)
-                    incorrect_cwes.append(defect.cwe_id)
+                    incorrect_cwes.append(defect.cwe)
 
         unique_correct_number = len(set(defect.file for defect in correct_defects))
 
@@ -295,9 +295,9 @@ class FileDatasetData(BenchmarkData):
         dataset (FileDataset): The dataset used for the benchmark.
         correct_defects (list[Defect]): Defects correctly identified.
         incorrect_defects (list[Defect]): Defects incorrectly identified.
-        cwes_list (list[int]): All CWEs present in the dataset's ground truth.
-        correct_cwes (list[int]): CWEs of correctly identified defects.
-        incorrect_cwes (list[int]): CWEs of incorrectly identified defects.
+        cwes_list (list[CWE]): All CWEs present in the dataset's ground truth.
+        correct_cwes (list[CWE]): CWEs of correctly identified defects.
+        incorrect_cwes (list[CWE]): CWEs of incorrectly identified defects.
         file_number (int): Total number of files in the dataset.
         defect_number (int): Total number of defects reported by the tool.
         unique_correct_number (int): Number of files with at least one
@@ -351,7 +351,7 @@ class GitRepo(DatasetUnit):
         url (str): The URL to clone the Git repository.
         commit (str): The specific commit hash to check out.
         size (int): The size of the repository in bytes.
-        cwe_ids (list[int]): A list of CWE IDs associated with the commit.
+        cwes (list[CWE]): A list of CWEs associated with the repository.
         files (list[str]): A list of filenames known to be vulnerable in
             this commit.
 
@@ -363,7 +363,7 @@ class GitRepo(DatasetUnit):
         url: str,
         commit: str,
         size: int,
-        cwe_ids: list[int],
+        cwes: list[CWE],
         files: list[str],
     ) -> None:
         """Initialize a GitRepo instance.
@@ -373,7 +373,7 @@ class GitRepo(DatasetUnit):
             url: The clone URL of the repository.
             commit: The commit hash to analyze.
             size: The size of the repository in bytes.
-            cwe_ids: A list of associated CWE IDs.
+            cwes: A list of CWEs associated with the repository.
             files: A list of vulnerable files in the specified commit.
 
         """
@@ -381,11 +381,11 @@ class GitRepo(DatasetUnit):
         self.url = url
         self.commit = commit
         self.size = size
-        self.cwe_ids = cwe_ids
+        self.cwes = cwes
         self.files = files
 
     def __repr__(self) -> str:
-        """Provide a developer-friendly string representation of the GitRepo.
+        """Return a developer-friendly string representation of the GitRepo.
 
         Returns:
             A string showing the repo's name, URL, commit, size, CWEs, and files.
@@ -396,7 +396,7 @@ class GitRepo(DatasetUnit):
     url: \t{self.url}
     commit: \t{self.commit}
     size: \t{humanize.naturalsize(self.size)}
-    cwe_ids: \t{self.cwe_ids}
+    cwes: \t{self.cwes}
     files: \t{self.files}
 )"""
 
@@ -480,28 +480,28 @@ class GitRepoDataset(Dataset):
             correct_cwes = []
             incorrect_cwes = []
             for defect in analysis_result.defects:
-                # Ignore defect without cwe_id
-                if not defect.cwe_id:
+                # Ignore defect without cwe
+                if not defect.cwe:
                     continue
 
                 # Found vulnerable file and the right CWE
-                if defect.file in repo.files and defect.cwe_id in repo.cwe_ids:
+                if defect.file in repo.files and defect.cwe in repo.cwes:
                     correct_defects.append(defect)
-                    correct_cwes.append(defect.cwe_id)
+                    correct_cwes.append(defect.cwe)
                 # Found vulnerable file but not for the right reason
                 elif defect.file in repo.files and defect.file:
                     partial_defects.append(defect)
-                    incorrect_cwes.append(defect.cwe_id)
+                    incorrect_cwes.append(defect.cwe)
                 # False positive
                 else:
                     incorrect_defects.append(defect)
-                    incorrect_cwes.append(defect.cwe_id)
+                    incorrect_cwes.append(defect.cwe)
 
             result = {
                 "correct_defects": correct_defects,
                 "partial_defects": partial_defects,
                 "incorrect_defects": incorrect_defects,
-                "cwes_list": repo.cwe_ids,
+                "cwes_list": repo.cwes,
                 "correct_cwes": correct_cwes,
                 "incorrect_cwes": incorrect_cwes,
                 "time": analysis_result.time,
