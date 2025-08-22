@@ -41,13 +41,13 @@ for child in SASTS_DIR.iterdir():
                 cli_module = importlib.import_module(
                     f"codesectools.sasts.{sast_name}.cli"
                 )
-                cli: typer.Typer = getattr(cli_module, f"{sast_name}CLI")
+                cli_factory: typer.Typer = getattr(cli_module, f"{sast_name}CLIFactory")
 
                 SASTS_ALL[sast_name] = {
                     "available": True,
                     "sast": sast,
                     "analysis_result": analysis_result,
-                    "cli": cli,
+                    "cli_factory": cli_factory,
                 }
             except MissingFile as e:
                 SASTS_ALL[sast_name] = {"available": False, "missing": e.files}

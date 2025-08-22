@@ -4,7 +4,7 @@ from typer.testing import CliRunner
 
 from codesectools.cli import cli
 
-runner = CliRunner()
+runner = CliRunner(env={"COLUMNS": "200"})
 
 
 def test_help() -> None | AssertionError:

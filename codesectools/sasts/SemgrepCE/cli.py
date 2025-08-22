@@ -7,6 +7,6 @@ This script sets up the `typer` command group for Semgrep Community Edition and 
 from codesectools.sasts.core.cli import CLIFactory
 from codesectools.sasts.SemgrepCE.sast import SemgrepCESAST
 
-SemgrepCECLI = CLIFactory(
+SemgrepCECLIFactory = CLIFactory(
     SemgrepCESAST(), custom_messages={"main": "Semgrep Community Edition Engine"}
-).cli
+)

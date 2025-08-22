@@ -15,7 +15,7 @@ from typing_extensions import Annotated
 from codesectools.datasets import DATASETS_ALL
 from codesectools.sasts import SASTS_ALL
 
-cli = typer.Typer(no_args_is_help=True)
+cli = typer.Typer(name="cstools", no_args_is_help=True)
 
 
 @cli.callback()
@@ -44,7 +44,7 @@ def status(
 ) -> None:
     """Display the availability status of SASTs and the cache status of datasets."""
     if sasts or (not sasts and not datasets):
-        table = Table(width=80, show_lines=True)
+        table = Table(show_lines=True)
         table.add_column("SAST name", justify="center", no_wrap=True)
         table.add_column("Available", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
@@ -62,20 +62,23 @@ def status(
         print(table)
 
     if datasets or (not sasts and not datasets):
-        table = Table(width=80, show_lines=True)
+        table = Table(show_lines=True)
         table.add_column("Dataset name", justify="center", no_wrap=True)
+        table.add_column("Type", justify="center", no_wrap=True)
         table.add_column("Cached", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
         for dataset_name, dataset in DATASETS_ALL.items():
             if dataset.is_cached():
                 table.add_row(
                     dataset_name,
+                    dataset.__bases__[0].__name__,
                     "✅",
                     f"Supported languages: [b]{''.join(dataset.supported_languages)}[/b]",
                 )
             else:
                 table.add_row(
                     dataset_name,
+                    dataset.__bases__[0].__name__,
                     "❌",
                     "Dataset is automatically download when using it for the first time",
                 )
@@ -84,4 +87,4 @@ def status(
 
 for _, sast_data in SASTS_ALL.items():
     if sast_data["available"]:
-        cli.add_typer(sast_data["cli"])
+        cli.add_typer(sast_data["cli_factory"].build_cli())

@@ -11,6 +11,8 @@ from typing import Self
 
 import typer
 from click import Choice
+from rich import print
+from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
@@ -41,7 +43,6 @@ class CLIFactory:
             custom_messages: A dictionary of custom help messages to override the defaults.
 
         """
-        self.cli = typer.Typer(name=sast.name.lower(), no_args_is_help=True)
         self.sast = sast
         self.help_messages = {
             "main": f"""{sast.name}""",
@@ -51,7 +52,13 @@ class CLIFactory:
             "plot": """Generate plot for results visualization.""",
         }
         self.help_messages.update(custom_messages)
+        self.build_cli()
+
+    def build_cli(self) -> typer.Typer:
+        """Build and return the Typer CLI application for the SAST tool."""
+        self.cli = typer.Typer(name=self.sast.name.lower(), no_args_is_help=True)
         self._add_minimal()
+        return self.cli
 
     def _add_minimal(self: Self) -> None:
         """Add the minimal set of standard commands to the CLI."""
@@ -138,7 +145,7 @@ class CLIFactory:
             dataset: Annotated[
                 str,
                 typer.Argument(
-                    click_type=Choice(self.sast.list_supported_datasets()),
+                    click_type=Choice(self.sast.supported_dataset_full_names),
                     metavar="DATASET",
                 ),
             ],
@@ -185,16 +192,23 @@ class CLIFactory:
         """
 
         @self.cli.command(help=help)
-        def results() -> None:
+        def list() -> None:
             """List available analysis results."""
-            typer.echo("Available analysis results:")
-            if self.sast.list_results(dataset=True, project=True):
-                for dataset in self.sast.list_results(dataset=True):
-                    typer.echo(f"- [Dataset] {dataset}")
-                for project in self.sast.list_results(project=True):
-                    typer.echo(f"- [Project] {project}")
-            else:
-                typer.echo("No analysis result available")
+            table = Table(show_lines=True)
+            table.add_column("Name", justify="center", no_wrap=True)
+            table.add_column("Type", justify="center", no_wrap=True)
+            table.add_column("Result directory", justify="center", no_wrap=True)
+
+            for dataset_full_name in self.sast.list_results(dataset=True):
+                table.add_row(
+                    dataset_full_name,
+                    "Dataset",
+                    str(self.sast.output_dir / dataset_full_name),
+                )
+            for project in self.sast.list_results(project=True):
+                table.add_row(project, "Project", str(self.sast.output_dir / project))
+
+            print(table)
 
     # Graphics
     def add_plot(self, help: str = "") -> None:
@@ -209,7 +223,6 @@ class CLIFactory:
 
         @self.cli.command(help=help)
         def plot(
-            ctx: typer.Context,
             result: Annotated[
                 str,
                 typer.Argument(
@@ -219,11 +232,11 @@ class CLIFactory:
                     metavar="RESULT",
                 ),
             ],
-            force: Annotated[
+            overwrite: Annotated[
                 bool,
                 typer.Option(
-                    "--force",
-                    help="Force overwriting existing figures",
+                    "--overwrite",
+                    help="Overwrite existing figures",
                 ),
             ] = False,
             show: Annotated[
@@ -244,9 +257,8 @@ class CLIFactory:
             """Generate and export plots for a given project or dataset result.
 
             Args:
-                ctx: The Typer context.
                 result: The name of the analysis result to plot.
-                force: If True, overwrite existing figure files.
+                overwrite: If True, overwrite existing figure files.
                 show: If True, display the generated figures.
                 pgf: If True, export figures in PGF format for LaTeX documents.
 
@@ -254,7 +266,7 @@ class CLIFactory:
             if result in self.sast.list_results(project=True):
                 project = result
                 project_graphics = ProjectGraphics(self.sast, project_name=project)
-                project_graphics.export(force=force, show=show, pgf=pgf)
+                project_graphics.export(overwrite=overwrite, show=show, pgf=pgf)
             elif result in self.sast.list_results(dataset=True):
                 dataset = result
                 dataset_name, lang = dataset.split("_")
@@ -263,11 +275,15 @@ class CLIFactory:
                     file_dataset_graphics = FileDatasetGraphics(
                         self.sast, dataset=dataset
                     )
-                    file_dataset_graphics.export(force=force, show=show, pgf=pgf)
+                    file_dataset_graphics.export(
+                        overwrite=overwrite, show=show, pgf=pgf
+                    )
                 elif isinstance(dataset, GitRepoDataset):
                     git_repo_dataset_graphics = GitRepoDatasetGraphics(
                         self.sast, dataset=dataset
                     )
-                    git_repo_dataset_graphics.export(force=force, show=show, pgf=pgf)
+                    git_repo_dataset_graphics.export(
+                        overwrite=overwrite, show=show, pgf=pgf
+                    )
                 else:
                     typer.echo("Not supported yet")

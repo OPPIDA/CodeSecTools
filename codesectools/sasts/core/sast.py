@@ -264,18 +264,21 @@ class SAST:
             if testing:
                 break
 
-    def list_supported_datasets(self) -> list[str]:
+    @property
+    def supported_dataset_full_names(self) -> list[str]:
         """List all language-specific datasets supported by this SAST tool.
 
         Returns:
             A list of dataset name strings (e.g., "MyDataset_java").
 
         """
-        all_datasets = []
+        datasets_full_name = []
         for dataset in self.supported_datasets:
-            # TODO: CHECK LANGUAGE!!!
-            all_datasets.extend(dataset.list_dataset())
-        return all_datasets
+            for dataset_full_name in dataset.list_dataset_full_names():
+                dataset_name, lang = dataset_full_name.split("_")
+                if lang in self.supported_languages:
+                    datasets_full_name.append(dataset_full_name)
+        return datasets_full_name
 
     def list_results(
         self, project: bool = False, dataset: bool = False, limit: int | None = None
@@ -293,21 +296,24 @@ class SAST:
         """
         output_dirs = []
         if self.output_dir.is_dir():
-            for child in os.listdir(self.output_dir):
-                child_path = self.output_dir / child
-                if child_path.is_dir():
+            for result in self.output_dir.iterdir():
+                if result.is_dir():
                     if (
-                        any(child in d.list_dataset() for d in self.supported_datasets)
+                        any(
+                            result.name in d.list_dataset_full_names()
+                            for d in self.supported_datasets
+                        )
                         and dataset
                     ):
-                        output_dirs.append(child)
+                        output_dirs.append(result.name)
                     elif (
                         not any(
-                            child in d.list_dataset() for d in self.supported_datasets
+                            result.name in d.list_dataset_full_names()
+                            for d in self.supported_datasets
                         )
                         and project
                     ):
-                        output_dirs.append(child)
+                        output_dirs.append(result.name)
 
         output_dirs = sorted(output_dirs)
         return output_dirs

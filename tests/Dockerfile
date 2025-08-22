@@ -26,4 +26,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
 COPY tests /app/tests
 
-CMD ["pytest", "--showlocals", "--full-trace", "-vvv", "--log-cli-level=INFO"]
+CMD ["pytest", "--showlocals", "-vvv", "--log-cli-level=INFO"]

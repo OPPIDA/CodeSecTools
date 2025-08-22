@@ -53,7 +53,7 @@ class Dataset(ABC):
         self.directory = USER_CACHE_DIR / self.name
         self.lang = lang
         self.full_name = f"{self.name}_{self.lang}"
-        assert self.full_name in self.list_dataset()
+        assert self.full_name in self.list_dataset_full_names()
 
         if not self.is_cached():
             self.download_dataset()
@@ -96,7 +96,7 @@ class Dataset(ABC):
         pass
 
     @classmethod
-    def list_dataset(cls) -> list[str]:
+    def list_dataset_full_names(cls) -> list[str]:
         """List all available language-specific versions of this dataset.
 
         Returns:
