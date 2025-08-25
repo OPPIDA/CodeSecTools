@@ -24,6 +24,7 @@ class SemgrepCESAST(SAST):
             whether they are required.
         parser (type[SemgrepCEAnalysisResult]): The parser class for the tool's results.
         color_mapping (dict): A mapping of result categories to colors for plotting.
+        install_help_url (str): The URL for installation instructions.
 
     """
 
@@ -51,6 +52,7 @@ class SemgrepCESAST(SAST):
         "maintainability": "CYAN",
         "portability": "GRAY",
     }
+    install_help_url = "https://semgrep.dev/docs/getting-started/quickstart"
 
     def __init__(self) -> None:
         """Initialize the SemgrepCESAST instance.

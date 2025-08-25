@@ -22,24 +22,28 @@ def test_sasts() -> None | AssertionError:
     """Test the availability and help command for all SASTs."""
     for sast_name, sast_data in SASTS_ALL.items():
         logging.info(f"Checking {sast_name} commands")
-        if sast_data["available"]:
+        if sast_data["status"] in ["full", "partial"]:
             sast_cli = sast_data["cli_factory"].build_cli()
             result = runner.invoke(sast_cli, ["--help"])
             assert result.exit_code == 0
-            assert all(
-                command in result.output
-                for command in ["analyze", "list", "benchmark", "plot"]
-            )
+            if sast_data["status"] == "full":
+                assert all(
+                    command in result.output
+                    for command in ["analyze", "benchmark", "list", "plot"]
+                )
+            elif sast_data["status"] == "partial":
+                assert all(
+                    command in result.output for command in ["install", "list", "plot"]
+                )
 
 
 SAST_RESULTS = []
+FULL_SASTS = {k: v for k, v in SASTS_ALL.items() if v["status"] == "full"}.items()
 
 
 def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError:
     """Test the 'analyze' command for all available SASTs."""
-    for sast_name, sast_data in {
-        k: v for k, v in SASTS_ALL.items() if v["available"]
-    }.items():
+    for sast_name, sast_data in FULL_SASTS:
         sast_cli = sast_data["cli_factory"].build_cli()
         sast = sast_data["sast"]()
         for lang in sast.supported_languages:
@@ -67,9 +71,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
 def test_sasts_benchmark() -> None | AssertionError:
     """Test the 'benchmark' command for all available SASTs."""
-    for sast_name, sast_data in {
-        k: v for k, v in SASTS_ALL.items() if v["available"]
-    }.items():
+    for sast_name, sast_data in FULL_SASTS:
         sast_cli = sast_data["cli_factory"].build_cli()
         sast = sast_data["sast"]()
         for dataset_full_name in sast.supported_dataset_full_names:
@@ -107,9 +109,7 @@ def test_sasts_benchmark() -> None | AssertionError:
 
 def test_sasts_list() -> None | AssertionError:
     """Test the 'list' command for all available SASTs."""
-    for sast_name, sast_data in {
-        k: v for k, v in SASTS_ALL.items() if v["available"]
-    }.items():
+    for sast_name, sast_data in FULL_SASTS:
         sast_cli = sast_data["cli_factory"].build_cli()
         result = runner.invoke(sast_cli, ["list"])
         assert result.exit_code == 0
@@ -122,9 +122,7 @@ def test_sasts_list() -> None | AssertionError:
 
 def test_sasts_plot() -> None | AssertionError:
     """Test the 'plot' command for all available SASTs."""
-    for sast_name, sast_data in {
-        k: v for k, v in SASTS_ALL.items() if v["available"]
-    }.items():
+    for sast_name, sast_data in FULL_SASTS:
         sast = sast_data["sast"]()
         sast_cli = sast_data["cli_factory"].build_cli()
 

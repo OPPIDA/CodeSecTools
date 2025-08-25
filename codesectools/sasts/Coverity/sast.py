@@ -12,7 +12,20 @@ from codesectools.sasts.Coverity.parser import CoverityAnalysisResult
 
 
 class CoveritySAST(SAST):
-    """SAST integration for Coverity."""
+    """SAST integration for Coverity.
+
+    Attributes:
+        name (str): The name of the SAST tool.
+        supported_languages (list[str]): A list of supported programming languages.
+        supported_dataset_names (list[str]): A list of names of compatible datasets.
+        commands (list[list[str]]): A list of command-line templates to be executed.
+        output_files (list[tuple[Path, bool]]): A list of expected output files and
+            whether they are required.
+        parser (type[CoverityAnalysisResult]): The parser class for the tool's results.
+        color_mapping (dict): A mapping of result categories to colors for plotting.
+        install_help_url (str): The URL for installation instructions.
+
+    """
 
     name = "Coverity"
     supported_languages = LANGUAGES.keys()
@@ -40,3 +53,4 @@ class CoveritySAST(SAST):
     ]
     parser = CoverityAnalysisResult
     color_mapping = COLOR_MAPPING
+    install_help_url = "https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html"

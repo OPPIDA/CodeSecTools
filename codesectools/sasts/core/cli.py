@@ -46,6 +46,7 @@ class CLIFactory:
         self.sast = sast
         self.help_messages = {
             "main": f"""{sast.name}""",
+            "install": f"Display instruction to install {sast.name}.",
             "analyze": f"""Analyze a project using {sast.name}.""",
             "benchmark": f"""Benchmark a dataset using {sast.name}.""",
             "list": """List existing analysis results.""",
@@ -63,9 +64,12 @@ class CLIFactory:
     def _add_minimal(self: Self) -> None:
         """Add the minimal set of standard commands to the CLI."""
         self.add_main(help=self.help_messages["main"])
-        self.add_analyze(help=self.help_messages["analyze"])
+        if self.sast.missing_commands():
+            self.add_install(help=self.help_messages["install"])
+        else:
+            self.add_analyze(help=self.help_messages["analyze"])
+            self.add_benchmark(help=self.help_messages["benchmark"])
         self.add_list(help=self.help_messages["list"])
-        self.add_benchmark(help=self.help_messages["benchmark"])
         self.add_plot(help=self.help_messages["plot"])
 
     def add_main(self: Self, help: str = "") -> None:
@@ -83,7 +87,22 @@ class CLIFactory:
         def main() -> None:
             pass
 
-    ## Analyzer
+    def add_install(self: Self, help: str = "") -> None:
+        """Add the 'install' command to the CLI.
+
+        This command opens the tool's installation guide URL in a web browser.
+
+        Args:
+            help: The help string for the command.
+
+        """
+
+        @self.cli.command(help=help)
+        def install() -> None:
+            """Display installation instructions for the SAST tool."""
+            if url := self.sast.install_help_url:
+                typer.launch(url)
+
     def add_analyze(self: Self, help: str = "") -> None:
         """Add the 'analyze' command to the CLI.
 

@@ -8,10 +8,10 @@ and adds them to the `SASTS_ALL` dictionary.
 
 Attributes:
     SASTS_ALL (dict): A dictionary mapping SAST tool names to their status and
-        components. Each value is a dictionary indicating if the tool is
-        'available' and, if so, includes the SAST implementation class, the
-        result parser class, and the CLI command group. If unavailable, it
-        includes a list of 'missing' dependencies.
+        components. Each value is a dictionary containing the tool's 'status'
+        ('full', 'partial', or 'none'). If the status is 'full' or 'partial',
+        it also includes the SAST class, the analysis result class, and the
+        CLI factory. If 'none', it includes a list of 'missing' dependencies.
 
 """
 
@@ -44,12 +44,12 @@ for child in SASTS_DIR.iterdir():
                 cli_factory: typer.Typer = getattr(cli_module, f"{sast_name}CLIFactory")
 
                 SASTS_ALL[sast_name] = {
-                    "available": True,
+                    "status": "full" if not sast.missing_commands() else "partial",
                     "sast": sast,
                     "analysis_result": analysis_result,
                     "cli_factory": cli_factory,
                 }
             except MissingFile as e:
-                SASTS_ALL[sast_name] = {"available": False, "missing": e.files}
+                SASTS_ALL[sast_name] = {"status": "none", "missing": e.files}
 
 SASTS_ALL = dict(sorted(SASTS_ALL.items()))

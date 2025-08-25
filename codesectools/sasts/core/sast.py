@@ -22,7 +22,6 @@ from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import Cloc
 from codesectools.utils import (
     USER_OUTPUT_DIR,
-    MissingFile,
     run_command,
 )
 
@@ -39,6 +38,7 @@ class SAST:
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
         color_mapping (dict): A mapping of result categories to colors for plotting.
+        install_help_url (str | None): An optional URL for installation instructions.
         supported_datasets (list): Initialized in the constructor; a list of supported
             dataset classes based on `supported_dataset_names`.
         output_dir (Path): The base directory for storing analysis results, initialized
@@ -54,39 +54,34 @@ class SAST:
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
     color_mapping: dict
+    install_help_url: str | None
 
     def __init__(self) -> None:
         """Initialize the SAST instance.
 
-        Set up the list of supported dataset objects, define the output directory,
-        and verify that the required command-line tools are available.
-
-        Raises:
-            MissingFile: If a required command-line tool is not found in the system's PATH.
-
+        Set up the list of supported dataset objects and define the output directory.
         """
         self.supported_datasets = [
             DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.output_files.append((Path("cstools_output.json"), True))
-        self.check_commands()
 
-    def check_commands(self) -> None | MissingFile:
-        """Check if the necessary command-line binaries for the tool are available.
+    @classmethod
+    def missing_commands(cls) -> list[str]:
+        """Check for missing command-line binaries required by the tool.
 
-        Raises:
-            MissingFile: If a required command-line tool is not found in the system's PATH.
+        Returns:
+            A list of command names that are not found in the system's PATH.
 
         """
         missing_binaries = []
-        for command in self.commands:
+        for command in cls.commands:
             binary = command[0]
             if not shutil.which(binary):
                 missing_binaries.append(binary)
 
-        if missing_binaries:
-            raise MissingFile(missing_binaries)
+        return missing_binaries
 
     def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
         """Render a command template by replacing placeholders with values.

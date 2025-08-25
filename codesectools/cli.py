@@ -45,25 +45,33 @@ def status(
     """Display the availability status of SASTs and the cache status of datasets."""
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
-        table.add_column("SAST name", justify="center", no_wrap=True)
+        table.add_column("SAST", justify="center", no_wrap=True)
         table.add_column("Available", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
         for sast_name, sast_data in SASTS_ALL.items():
-            if sast_data["available"]:
+            if sast_data["status"] == "full":
                 table.add_row(
                     sast_name, "✅", f"See subcommand [b]{sast_name.lower()}[/b]"
+                )
+            elif sast_data["status"] == "partial":
+                missing_binaries = sast_data["sast"].missing_commands()
+                print(missing_binaries)
+                table.add_row(
+                    sast_name,
+                    "⚠️",
+                    f"See subcommand [b]{sast_name.lower()}[/b]\n(Missing binaries: {', '.join(missing_binaries)})",
                 )
             else:
                 table.add_row(
                     sast_name,
                     "❌",
-                    f"Binaries or config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
+                    f"Binaries and config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
                 )
         print(table)
 
     if datasets or (not sasts and not datasets):
         table = Table(show_lines=True)
-        table.add_column("Dataset name", justify="center", no_wrap=True)
+        table.add_column("Dataset", justify="center", no_wrap=True)
         table.add_column("Type", justify="center", no_wrap=True)
         table.add_column("Cached", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
@@ -86,5 +94,5 @@ def status(
 
 
 for _, sast_data in SASTS_ALL.items():
-    if sast_data["available"]:
+    if sast_data["status"] != "none":
         cli.add_typer(sast_data["cli_factory"].build_cli())
