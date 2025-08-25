@@ -7,8 +7,11 @@ the execution of Coverity scans using the core SAST framework.
 from pathlib import Path
 
 from codesectools.sasts.core.sast import SAST
-from codesectools.sasts.Coverity.config import COLOR_MAPPING, LANGUAGES
-from codesectools.sasts.Coverity.parser import CoverityAnalysisResult
+from codesectools.sasts.Coverity.parser import (
+    COLOR_MAPPING,
+    LANGUAGES,
+    CoverityAnalysisResult,
+)
 
 
 class CoveritySAST(SAST):
