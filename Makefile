@@ -14,11 +14,11 @@ check:		## Lint, format, and type-check the code
 
 test:		## Run tests in a Docker container
 	@docker build -f tests/Dockerfile -t cstools_test .
-	@docker run --rm --tty cstools_test
+	@docker run --rm --tty --mount type=bind,src="$$HOME"/.codesectools/config,dst=/root/.codesectools/config,ro cstools_test
 
 test-debug:	## Spawn an interactive shell in the test container to debug
 	@docker build -f tests/Dockerfile -t cstools_test .
-	@docker run --rm -it cstools_test /bin/sh
+	@docker run --rm -it --mount type=bind,src="$$HOME"/.codesectools/config,dst=/root/.codesectools/config,ro cstools_test /bin/sh
 
 doc-serve:	## Serve the documentation locally
 	@mkdocs serve
