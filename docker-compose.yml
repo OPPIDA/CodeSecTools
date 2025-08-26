@@ -1,0 +1,18 @@
+services:
+  test:
+    image: cstools_test
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+
+    tty: true
+    stdin_open: true
+
+    volumes:
+      - type: bind
+        source: ${HOME}/.codesectools/config
+        target: /root/.codesectools/config
+        read_only: true
+    
+    environment:
+      _TYPER_STANDARD_TRACEBACK: 1
