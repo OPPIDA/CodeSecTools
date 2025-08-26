@@ -55,7 +55,6 @@ def status(
                 )
             elif sast_data["status"] == "partial":
                 missing_binaries = sast_data["sast"].missing_commands()
-                print(missing_binaries)
                 table.add_row(
                     sast_name,
                     "⚠️",
