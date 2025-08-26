@@ -38,18 +38,23 @@ def DEBUG() -> bool:
 
 
 # Subprocess wrapper
-def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
+def run_command(
+    command: list[str], cwd: Path, env: dict[str, str] | None = None
+) -> tuple[int | None, str]:
     """Execute a command in a subprocess and capture its output.
 
     Args:
         command: The command to execute, as a list of strings.
         cwd: The working directory for the command.
+        env: Optional dictionary of environment variables to set for the command.
 
     Returns:
         A tuple containing the command's return code and its combined
         stdout/stderr output as a string.
 
     """
+    modified_env = {**os.environ, **env} if env else os.environ
+
     process = subprocess.Popen(
         command,
         cwd=cwd,
@@ -57,6 +62,7 @@ def run_command(command: list[str], cwd: Path) -> tuple[int | None, str]:
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        env=modified_env,
     )
 
     stdout = ""

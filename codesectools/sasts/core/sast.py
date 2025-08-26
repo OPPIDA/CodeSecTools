@@ -14,35 +14,36 @@ from pathlib import Path
 
 import git
 import humanize
-import typer
+from rich import print
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import Cloc
-from codesectools.utils import (
-    USER_OUTPUT_DIR,
-    run_command,
-)
+from codesectools.utils import USER_OUTPUT_DIR, MissingFile, run_command
 
 
 class SAST:
     """Abstract base class for a SAST tool integration.
 
+    Subclasses of this abstract class must define various class attributes to
+    configure the integration with a specific SAST tool.
+
     Attributes:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
-        supported_dataset_names (list[str]): A list of names of compatible datasets.
-        commands (list[list[str]]): A list of command-line templates to be executed.
-        output_files (list[tuple[Path, bool]]): A list of expected output files and
+        supported_dataset_names (list[str]): Names of compatible datasets.
+        commands (list[list[str]]): Command-line templates to be executed.
+        environ (dict[str, str]): Environment variables to set for commands.
+        output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
-        install_help_url (str | None): An optional URL for installation instructions.
-        supported_datasets (list): Initialized in the constructor; a list of supported
-            dataset classes based on `supported_dataset_names`.
-        output_dir (Path): The base directory for storing analysis results, initialized
-            in the constructor.
+        color_mapping (dict): A mapping of categories to colors for plotting.
+        install_help_url (str | None): An optional URL for installation help.
+        supported_datasets (list): (Instance attribute) A list of supported
+            dataset classes.
+        output_dir (Path): (Instance attribute) The base directory for storing
+            analysis results.
 
     """
 
@@ -51,21 +52,23 @@ class SAST:
     supported_dataset_names: list[str]
     supported_datasets: list[Dataset]
     commands: list[list[str]]
+    environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
     color_mapping: dict
-    install_help_url: str | None
+    install_help_url: str | None = None
 
     def __init__(self) -> None:
         """Initialize the SAST instance.
 
-        Set up the list of supported dataset objects and define the output directory.
+        Set up the list of supported dataset objects based on the
+        `supported_dataset_names` class attribute and define the tool-specific
+        output directory.
         """
         self.supported_datasets = [
             DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
-        self.output_files.append((Path("cstools_output.json"), True))
 
     @classmethod
     def missing_commands(cls) -> list[str]:
@@ -117,7 +120,7 @@ class SAST:
         start = time.time()
         for command in self.commands:
             rendered_command = self.render_command(command, {"{lang}": lang})
-            retcode, out = run_command(rendered_command, project_dir)
+            retcode, out = run_command(rendered_command, project_dir, self.environ)
             command_output += out
         end = time.time()
 
@@ -165,7 +168,10 @@ class SAST:
                     if required:
                         missing_files.append(filename)
 
-        typer.echo(f"Results are saved in {output_dir}")
+        if missing_files:
+            raise MissingFile(missing_files)
+
+        print(f"Results are saved in {output_dir}")
 
     def analyze_files(
         self, dataset: FileDataset, overwrite: bool = False, testing: bool = False
@@ -186,7 +192,7 @@ class SAST:
 
         if result_path.is_dir():
             if os.listdir(result_path) and not overwrite:
-                typer.echo(
+                print(
                     "Results already exist, please use --overwrite to delete old results"
                 )
                 return
@@ -223,18 +229,18 @@ class SAST:
         """
         base_result_path = self.output_dir / dataset.full_name
         base_result_path.mkdir(exist_ok=True, parents=True)
-        typer.echo(
+        print(
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
         )
 
         for repo in dataset.repos:
-            typer.echo("=================================")
-            typer.echo(repo)
+            print("=================================")
+            print(repo)
 
             result_path = base_result_path / repo.name
             if result_path.is_dir():
                 if list(result_path.iterdir()) and not overwrite:
-                    typer.echo(
+                    print(
                         "Results already exist, please use --overwrite to analyze again"
                     )
 
@@ -246,8 +252,8 @@ class SAST:
             try:
                 repo.save(repo_path)
             except git.GitCommandError as e:
-                typer.echo(e)
-                typer.echo("Skipping")
+                print(e)
+                print("Skipping")
                 continue
 
             # Run analysis
