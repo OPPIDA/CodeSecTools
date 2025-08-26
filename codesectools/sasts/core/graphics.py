@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import typer
 from matplotlib.figure import Figure
+from rich import print
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
@@ -67,7 +68,7 @@ class Graphics:
                 }
             )
         else:
-            typer.echo("pdflatex not found, pgf will not be generated")
+            print("pdflatex not found, pgf will not be generated")
 
     def export(self, overwrite: bool, pgf: bool, show: bool) -> None:
         """Generate, save, and optionally display all registered plots.
@@ -95,16 +96,16 @@ class Graphics:
                 if not typer.confirm(
                     f"Found existing figure at {figure_path}, would you like to overwrite?"
                 ):
-                    typer.echo(f"Figure {fig_name} not saved")
+                    print(f"Figure {fig_name} not saved")
                     continue
 
             fig.savefig(figure_path, bbox_inches="tight")
-            typer.echo(f"Figure {fig_name} saved at {figure_path}")
+            print(f"Figure {fig_name} saved at {figure_path}")
 
             if pgf and self.has_latex:
                 figure_path_pgf = figure_dir / f"{fig_name}.pgf"
                 fig.savefig(figure_path_pgf, bbox_inches="tight")
-                typer.echo(f"Figure {fig_name} exported to pgf")
+                print(f"Figure {fig_name} exported to pgf")
 
 
 ## Single project
