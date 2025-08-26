@@ -35,12 +35,7 @@ class SemgrepCEFinding(Defect):
                 from Semgrep Community Edition's JSON output.
 
         """
-        if cwe_match := re.search(
-            r"CWE-(\d+)", defect_data["extra"]["metadata"]["cwe"][0]
-        ):
-            cwe = CWEs().from_id(int(cwe_match.groups()[0]))
-        else:
-            cwe = CWEs().from_id(-1)
+        cwe = CWEs.from_string(defect_data["extra"]["metadata"]["cwe"][0])
 
         super().__init__(
             file=Path(defect_data["path"]).name,

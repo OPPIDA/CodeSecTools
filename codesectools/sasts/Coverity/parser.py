@@ -78,7 +78,7 @@ class CoverityDefect(Defect):
             file=Path(defect_data["file"]).name,
             checker=defect_data["checker"],
             category=None,
-            cwe=CWEs().from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
+            cwe=CWEs.from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
             data=defect_data,
         )
 

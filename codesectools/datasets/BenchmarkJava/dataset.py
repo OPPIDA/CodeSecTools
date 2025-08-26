@@ -136,7 +136,7 @@ class BenchmarkJava(FileDataset):
         for row in reader:
             filename = f"{row[0]}.java"
             content = (testcode_dir / filename).read_text()
-            cwes = [CWEs().from_id(int(row[3]))]
+            cwes = [CWEs.from_id(int(row[3]))]
             vuln_type = row[1]
             is_real = True if row[2] == "true" else False
             files.append(TestCode(filename, content, cwes, vuln_type, is_real))

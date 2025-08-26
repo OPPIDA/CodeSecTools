@@ -69,8 +69,7 @@ class CVEfixes(GitRepoDataset):
                 commit = eval(row["parents"])[0]
                 size = int(row["repo_size"])
                 cwes = [
-                    CWEs().from_id(int(cwe_id.split("-")[1]))
-                    for cwe_id in row["cwe_ids"].split(";")
+                    CWEs.from_string(cwe_id) for cwe_id in row["cwe_ids"].split(";")
                 ]
                 files = row["filenames"].split(";")
                 repo = GitRepo(name, url, commit, size, cwes, files)

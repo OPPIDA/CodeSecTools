@@ -5,7 +5,6 @@ derived from the test cases within Semgrep's community rule definitions. It extr
 code snippets, associated CWEs, and other metadata from Semgrep's YAML rule files.
 """
 
-import re
 from typing import Self
 
 import git
@@ -110,8 +109,7 @@ class SemgrepCERules(FileDataset):
 
             cwes = []
             for cwe in cwes:
-                if match := re.search(r"[CWE|cwe]-(\d+)", cwe):
-                    cwes.append(CWEs().from_id(int(match.group(1))))
+                cwes.append(CWEs.from_string(cwe))
 
             if self.lang in rule["languages"]:
                 test_file = next(LANG_RULES.rglob(f"{rule_file.stem}*"))

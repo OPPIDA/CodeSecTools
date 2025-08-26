@@ -75,7 +75,7 @@ class CWE:
         return f"{self.__class__.__name__}(id={self.id})"
 
 
-class CWEs:
+class CWEsCollection:
     """Manage the collection of all CWEs.
 
     Downloads and loads the official CWE list from a CSV file.
@@ -91,13 +91,20 @@ class CWEs:
 
         Download the CWE data from cwe.mitre.org if it's not present in the user cache.
         """
-        self.file = USER_CACHE_DIR / "699.csv"
-        if not self.file.is_file():
-            zip_file = io.BytesIO(
-                requests.get("https://cwe.mitre.org/data/csv/699.csv.zip").content
-            )
-            with zipfile.ZipFile(zip_file, "r") as zip_ref:
-                zip_ref.extract("699.csv", USER_CACHE_DIR)
+        self.cwes_data = {
+            "Software Development": "699.csv",
+            "Hardware Design": "1194.csv",
+            "Research Concepts": "1000.csv",
+        }
+        for filename in self.cwes_data.values():
+            if not (USER_CACHE_DIR / filename).is_file():
+                zip_file = io.BytesIO(
+                    requests.get(
+                        f"https://cwe.mitre.org/data/csv/{filename}.zip"
+                    ).content
+                )
+                with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                    zip_ref.extract(filename, USER_CACHE_DIR)
 
         self.cwes = self.load()
 
@@ -109,28 +116,47 @@ class CWEs:
 
         """
         cwes = []
-        reader = csv.DictReader(self.file.open(encoding="utf-8"))
-        for cwe_dict in reader:
-            cwes.append(
-                CWE(
-                    id=int(cwe_dict["CWE-ID"]),
-                    name=cwe_dict["Name"],
-                    description=cwe_dict["Description"],
+        for filename in self.cwes_data.values():
+            reader = csv.DictReader((USER_CACHE_DIR / filename).open(encoding="utf-8"))
+            for cwe_dict in reader:
+                cwes.append(
+                    CWE(
+                        id=int(cwe_dict["CWE-ID"]),
+                        name=cwe_dict["Name"],
+                        description=cwe_dict["Description"],
+                    )
                 )
-            )
         return cwes
 
-    def from_id(self, id: int) -> CWE | None:
+    def from_string(self, cwe_string: str) -> CWE:
+        """Get a CWE from a string like 'CWE-79'.
+
+        Args:
+            cwe_string: The string representation of the CWE ID.
+
+        Returns:
+            The corresponding CWE object, or a default 'Invalid CWE' object if the string is malformed.
+
+        """
+        if match := re.search(r"[CWE|cwe]-(\d+)", cwe_string):
+            return self.from_id(int(match.group(1)))
+        else:
+            return CWE(id=-1, name="Invalid CWE", description="None")
+
+    def from_id(self, cwe_id: int) -> CWE:
         """Get a CWE by its identifier.
 
         Args:
-            id: The integer ID of the CWE to find.
+            cwe_id: The integer ID of the CWE to find.
 
         Returns:
             The CWE object if found, otherwise a default CWE object with ID -1.
 
         """
-        for cwe in self.cwes:
-            if cwe.id == id:
-                return cwe
-        return CWE(id=-1, name="None", description="None")
+        try:
+            return self.cwes[self.cwes.index(cwe_id)]
+        except ValueError:
+            return CWE(id=-1, name="Invalid CWE", description="None")
+
+
+CWEs = CWEsCollection()
