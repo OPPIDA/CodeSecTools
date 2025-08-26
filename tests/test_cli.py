@@ -17,7 +17,7 @@ def test_help() -> None | AssertionError:
 
 def test_version() -> None | AssertionError:
     """Test the 'version' command."""
-    result = runner.invoke(cli, ["version"])
+    result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
 
 

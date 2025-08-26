@@ -6,6 +6,7 @@ It dynamically discovers and adds CLI commands from all available SAST tools.
 
 import importlib.metadata
 import os
+from typing import Optional
 
 import typer
 from rich import print
@@ -18,21 +19,31 @@ from codesectools.sasts import SASTS_ALL
 cli = typer.Typer(name="cstools", no_args_is_help=True)
 
 
+def version_callback(value: bool) -> None:
+    """Print the application version and exit."""
+    if value:
+        print(importlib.metadata.version("codesectools"))
+        raise typer.Exit()
+
+
 @cli.callback()
 def main(
     debug: Annotated[
         bool, typer.Option("-d", "--debug", help="Show debugging messages")
     ] = False,
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "-v",
+            "--version",
+            help="Show the tool's version.",
+            callback=version_callback,
+        ),
+    ] = None,
 ) -> None:
     """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
     if debug:
         os.environ["DEBUG"] = "1"
-
-
-@cli.command()
-def version() -> None:
-    """Show the tool's version."""
-    print(importlib.metadata.version("codesectools"))
 
 
 @cli.command()
