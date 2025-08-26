@@ -14,7 +14,14 @@ from codesectools.sasts import SASTS_ALL
 runner = CliRunner(env={"COLUMNS": "200"})
 
 TEST_CODES = {
-    "java": ("test.java", """System.out.print("Hello world!");"""),
+    "java": (
+        "test.java",
+        """import java.io.BufferedReader;
+import java.io.InputStreamReader;
+BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+String userInput = br.readLine();
+Runtime.getRuntime().exec("ping -c 1 " + userInput);""",
+    ),
 }
 
 
@@ -37,8 +44,8 @@ def test_sasts() -> None | AssertionError:
                 )
 
 
-SAST_RESULTS = []
 FULL_SASTS = {k: v for k, v in SASTS_ALL.items() if v["status"] == "full"}.items()
+SAST_RESULTS = {sast_name: [] for sast_name, _ in FULL_SASTS}
 
 
 def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError:
@@ -62,7 +69,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
                             sast.output_dir / Path(temp_dir).name / expected_files
                         ).is_file()
 
-                SAST_RESULTS.append(Path(temp_dir).name)
+                SAST_RESULTS[sast_name].append(Path(temp_dir).name)
 
                 result = runner.invoke(sast_cli, ["analyze", lang])
                 assert result.exit_code == 0
@@ -93,13 +100,13 @@ def test_sasts_benchmark() -> None | AssertionError:
                         assert (
                             sast.output_dir / dataset_full_name / expected_files
                         ).is_file()
-                SAST_RESULTS.append(dataset_full_name)
+                SAST_RESULTS[sast_name].append(dataset_full_name)
             elif isinstance(dataset, GitRepoDataset):
                 for repo in (sast.output_dir / dataset_full_name).iterdir():
                     for expected_files, required in sast.output_files:
                         if required:
                             assert (repo / expected_files).is_file()
-                SAST_RESULTS.append(dataset_full_name)
+                SAST_RESULTS[sast_name].append(dataset_full_name)
             result = runner.invoke(
                 sast_cli, ["benchmark", dataset_full_name, "--testing"]
             )
@@ -113,7 +120,7 @@ def test_sasts_list() -> None | AssertionError:
         sast_cli = sast_data["cli_factory"].build_cli()
         result = runner.invoke(sast_cli, ["list"])
         assert result.exit_code == 0
-        for sast_result in SAST_RESULTS:
+        for sast_result in SAST_RESULTS[sast_name]:
             logging.info(
                 f"Checking {sast_name} list command contains {sast_result} from previous commands"
             )
@@ -126,7 +133,7 @@ def test_sasts_plot() -> None | AssertionError:
         sast = sast_data["sast"]()
         sast_cli = sast_data["cli_factory"].build_cli()
 
-        for sast_result in SAST_RESULTS:
+        for sast_result in SAST_RESULTS[sast_name]:
             logging.info(f"Testing {sast_name} plot command on {sast_result}")
             result = runner.invoke(sast_cli, ["plot", sast_result])
             assert result.exit_code == 0
