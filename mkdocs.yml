@@ -1,5 +1,7 @@
 site_name: CodeSecTools
 site_author: nolliv22
+repo_url: https://github.com/OPPIDA/CodeSecTools
+repo_name: OPPIDA/CodeSecTools
 
 nav:
   - Home: index.md
@@ -26,6 +28,8 @@ theme:
   favicon: assets/logo.svg
   font:
     text: Noto Sans    
+  icon:
+    repo: fontawesome/brands/github
 
   features:
     - content.code.copy
