@@ -15,6 +15,7 @@ nav:
       - dataset/supported/*.j2.md
   - CLI: cli.md
   - API Reference:
+    - api/index.md 
     - SASTs: api/sast.md 
     - Datasets: api/dataset.md
 
@@ -66,8 +67,6 @@ plugins:
       nav_file: SUMMARY.md
   - include-markdown:
       rewrite_relative_urls: true
-      start: <!--include-doc-start-->
-      end: <!--include-doc-end-->
   - mkdocstrings:
       handlers:
         python:
