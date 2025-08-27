@@ -6,7 +6,7 @@ the execution of Coverity scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import SAST, Binary, Config, SASTRequirements
 from codesectools.sasts.Coverity.parser import (
     COLOR_MAPPING,
     LANGUAGES,
@@ -33,6 +33,10 @@ class CoveritySAST(SAST):
     name = "Coverity"
     supported_languages = LANGUAGES.keys()
     supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
+    requirements = SASTRequirements(
+        full_reqs=[Binary("coverity"), Binary("cov-analyze")],
+        partial_reqs=[Config("issueTypes.json"), Config("config.json")],
+    )
     commands = [
         [
             "coverity",

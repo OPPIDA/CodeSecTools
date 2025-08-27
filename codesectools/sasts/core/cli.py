@@ -64,13 +64,17 @@ class CLIFactory:
     def _add_minimal(self: Self) -> None:
         """Add the minimal set of standard commands to the CLI."""
         self.add_main(help=self.help_messages["main"])
-        if self.sast.missing_commands():
-            self.add_install(help=self.help_messages["install"])
-        else:
+        if self.sast.status == "full":
             self.add_analyze(help=self.help_messages["analyze"])
             self.add_benchmark(help=self.help_messages["benchmark"])
-        self.add_list(help=self.help_messages["list"])
-        self.add_plot(help=self.help_messages["plot"])
+            self.add_list(help=self.help_messages["list"])
+            self.add_plot(help=self.help_messages["plot"])
+        elif self.sast.status == "partial":
+            self.add_install(help=self.help_messages["install"])
+            self.add_list(help=self.help_messages["list"])
+            self.add_plot(help=self.help_messages["plot"])
+        else:
+            self.add_install(help=self.help_messages["install"])
 
     def add_main(self: Self, help: str = "") -> None:
         """Add the main callback command to the CLI.

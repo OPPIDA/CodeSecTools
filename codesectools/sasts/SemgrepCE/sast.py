@@ -7,7 +7,7 @@ the execution of Semgrep Community Edition scans using the core SAST framework.
 from pathlib import Path
 
 from codesectools.datasets.SemgrepCERules.dataset import SemgrepCERules
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import SAST, Binary, SASTRequirements
 from codesectools.sasts.SemgrepCE.parser import SemgrepCEAnalysisResult
 from codesectools.utils import USER_CACHE_DIR
 
@@ -31,6 +31,7 @@ class SemgrepCESAST(SAST):
     name = "SemgrepCE"
     supported_languages = ["java"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
+    requirements = SASTRequirements(full_reqs=[Binary("semgrep")], partial_reqs=[])
     commands = [
         [
             "semgrep",

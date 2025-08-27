@@ -57,25 +57,24 @@ def status(
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
-        table.add_column("Available", justify="center", no_wrap=True)
+        table.add_column("Status", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
         for sast_name, sast_data in SASTS_ALL.items():
             if sast_data["status"] == "full":
                 table.add_row(
-                    sast_name, "✅", f"See subcommand [b]{sast_name.lower()}[/b]"
+                    sast_name, "Full ✅", f"See subcommand [b]{sast_name.lower()}[/b]"
                 )
             elif sast_data["status"] == "partial":
-                missing_binaries = sast_data["sast"].missing_commands()
                 table.add_row(
                     sast_name,
-                    "⚠️",
-                    f"See subcommand [b]{sast_name.lower()}[/b]\n(Missing binaries: {', '.join(missing_binaries)})",
+                    "Partial ⚠️",
+                    f"See subcommand [b]{sast_name.lower()}[/b]\nMissing: {sast_data['missing']}",
                 )
             else:
                 table.add_row(
                     sast_name,
-                    "❌",
-                    f"Binaries and config files are missing: [b]{', '.join(sast_data['missing'])}[/b]",
+                    "None ❌",
+                    f"Missing: [b]{sast_data['missing']}[/b]",
                 )
         print(table)
 

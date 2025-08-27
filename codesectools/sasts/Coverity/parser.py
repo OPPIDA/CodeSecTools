@@ -42,7 +42,7 @@ if types_file.is_file():
     for type in TYPES:
         TYPE_TO_CWE[type["type"]] = type["cim_checker_properties"]["cweCategory"]
 else:
-    raise MissingFile([types_file.name])
+    TYPE_TO_CWE = {}
 
 config_file = USER_COVERITY_DIR / "config.json"
 
@@ -51,7 +51,8 @@ if config_file.is_file():
     LANGUAGES = config["languages"]
     COLOR_MAPPING = config["color_mapping"]
 else:
-    raise MissingFile([config_file.name])
+    LANGUAGES = {}
+    COLOR_MAPPING = {}
 
 
 class CoverityDefect(Defect):

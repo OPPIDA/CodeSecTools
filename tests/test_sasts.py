@@ -29,19 +29,24 @@ def test_sasts() -> None | AssertionError:
     """Test the availability and help command for all SASTs."""
     for sast_name, sast_data in SASTS_ALL.items():
         logging.info(f"Checking {sast_name} commands")
-        if sast_data["status"] in ["full", "partial"]:
-            sast_cli = sast_data["cli_factory"].build_cli()
-            result = runner.invoke(sast_cli, ["--help"])
+        sast_cli = sast_data["cli_factory"].build_cli()
+        result = runner.invoke(sast_cli, ["--help"])
+        if sast_data["status"] == "full":
             assert result.exit_code == 0
-            if sast_data["status"] == "full":
-                assert all(
-                    command in result.output
-                    for command in ["analyze", "benchmark", "list", "plot"]
-                )
-            elif sast_data["status"] == "partial":
-                assert all(
-                    command in result.output for command in ["install", "list", "plot"]
-                )
+            assert all(
+                command in result.output
+                for command in ["analyze", "benchmark", "list", "plot"]
+            )
+        elif sast_data["status"] == "partial":
+            assert result.exit_code == 0
+            assert all(
+                command in result.output for command in ["install", "list", "plot"]
+            )
+        elif sast_data["status"] == "none":
+            assert result.exit_code == 0
+            assert all(command in result.output for command in ["install"])
+        else:
+            assert result.exit_code != 0
 
 
 FULL_SASTS = {k: v for k, v in SASTS_ALL.items() if v["status"] == "full"}.items()

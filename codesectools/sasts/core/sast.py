@@ -10,7 +10,9 @@ import os
 import shutil
 import tempfile
 import time
+from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Literal
 
 import git
 import humanize
@@ -20,7 +22,106 @@ from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.shared.cloc import Cloc
-from codesectools.utils import USER_OUTPUT_DIR, MissingFile, run_command
+from codesectools.utils import (
+    USER_CONFIG_DIR,
+    USER_OUTPUT_DIR,
+    MissingFile,
+    run_command,
+)
+
+
+class SASTRequirement(ABC):
+    """Represent a single requirement for a SAST tool to be functional."""
+
+    def __init__(self, name: str) -> None:
+        """Initialize a SASTRequirement instance.
+
+        Args:
+            name: The name of the requirement.
+
+        """
+        self.name = name
+
+    @abstractmethod
+    def is_fulfilled(self, **kwargs: dict) -> bool:
+        """Check if the requirement is met."""
+        pass
+
+    def __repr__(self) -> str:
+        """Return a developer-friendly string representation of the requirement."""
+        return f"{self.__class__.__name__}({self.name})"
+
+
+class Config(SASTRequirement):
+    """Represent a configuration file requirement for a SAST tool."""
+
+    def __init__(self, name: str) -> None:
+        """Initialize a Config instance.
+
+        Args:
+            name: The name of the configuration file.
+
+        """
+        super().__init__(name)
+
+    def is_fulfilled(self, sast_name: str) -> bool:
+        """Check if the configuration file exists for the given SAST tool."""
+        return (USER_CONFIG_DIR / sast_name / self.name).is_file()
+
+
+class Binary(SASTRequirement):
+    """Represent a binary executable requirement for a SAST tool."""
+
+    def __init__(self, name: str) -> None:
+        """Initialize a Binary instance.
+
+        Args:
+            name: The name of the binary.
+
+        """
+        super().__init__(name)
+
+    def is_fulfilled(self, **kwargs: dict) -> bool:
+        """Check if the binary is available in the system's PATH."""
+        return bool(shutil.which(self.name))
+
+
+class SASTRequirements:
+    """Manage the requirements for a SAST tool and determine its operational status."""
+
+    def __init__(
+        self, full_reqs: list[SASTRequirement], partial_reqs: list[SASTRequirement]
+    ) -> None:
+        """Initialize a SASTRequirements instance.
+
+        Args:
+            full_reqs: A list of requirements for full functionality.
+            partial_reqs: A list of requirements for partial functionality.
+
+        """
+        self.name = None
+        self.full_reqs = full_reqs
+        self.partial_reqs = partial_reqs
+
+    def get_status(self) -> Literal["full"] | Literal["partial"] | Literal["none"]:
+        """Determine the operational status (full, partial, none) based on fulfilled requirements."""
+        # full: can run sast analysis and result parsing
+        # partial: can run result parsing
+        # none: nothing
+        status = "none"
+        if all(req.is_fulfilled(sast_name=self.name) for req in self.partial_reqs):
+            status = "partial"
+            if all(req.is_fulfilled(sast_name=self.name) for req in self.full_reqs):
+                status = "full"
+        return status
+
+    def get_missing(self) -> list[SASTRequirement]:
+        """Get a list of all unfulfilled requirements."""
+        missing = []
+        for req in self.full_reqs + self.partial_reqs:
+            if not req.is_fulfilled(sast_name=self.name):
+                missing.append(req)
+        return missing
 
 
 class SAST:
@@ -51,6 +152,7 @@ class SAST:
     supported_languages: list[str]
     supported_dataset_names: list[str]
     supported_datasets: list[Dataset]
+    requirements: SASTRequirements
     commands: list[list[str]]
     environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
@@ -69,22 +171,9 @@ class SAST:
             DATASETS_ALL[d] for d in self.supported_dataset_names
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
-
-    @classmethod
-    def missing_commands(cls) -> list[str]:
-        """Check for missing command-line binaries required by the tool.
-
-        Returns:
-            A list of command names that are not found in the system's PATH.
-
-        """
-        missing_binaries = []
-        for command in cls.commands:
-            binary = command[0]
-            if not shutil.which(binary):
-                missing_binaries.append(binary)
-
-        return missing_binaries
+        self.requirements.name = self.name
+        self.status = self.requirements.get_status()
+        self.missing = self.requirements.get_missing()
 
     def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
         """Render a command template by replacing placeholders with values.

@@ -104,9 +104,6 @@ class SnykCodeAnalysisResult(AnalysisResult):
         Returns:
             An instance of `SnykCodeAnalysisResult`.
 
-        Raises:
-            MissingFile: If a required result file is not found.
-
         """
         # Cmdout
         cmdout = json.load((output_dir / "cstools_output.json").open())

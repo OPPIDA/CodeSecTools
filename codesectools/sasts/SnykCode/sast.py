@@ -6,9 +6,9 @@ the execution of Snyk Code scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import SAST, Binary, Config, SASTRequirements
 from codesectools.sasts.SnykCode.parser import SnykCodeAnalysisResult
-from codesectools.utils import USER_CONFIG_DIR, MissingFile
+from codesectools.utils import USER_CONFIG_DIR
 
 
 class SnykCodeSAST(SAST):
@@ -30,6 +30,9 @@ class SnykCodeSAST(SAST):
     name = "SnykCode"
     supported_languages = ["java"]
     supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
+    requirements = SASTRequirements(
+        full_reqs=[Binary("snyk"), Config("auth_token.txt")], partial_reqs=[]
+    )
     commands = [["snyk", "code", "test", "--json-file-output=snyk_results.json"]]
     output_files = [
         (Path("snyk_results.json"), False),
@@ -51,13 +54,8 @@ class SnykCodeSAST(SAST):
         Reads the Snyk authentication token from a user configuration file and
         sets it in the environment for subsequent commands.
 
-        Raises:
-            MissingFile: If the Snyk token file `auth_token.txt` is not found.
-
         """
         super().__init__()
         snyk_token = USER_CONFIG_DIR / "SnykCode" / "auth_token.txt"
         if snyk_token.is_file():
             self.environ["SNYK_TOKEN"] = snyk_token.read_text()
-        else:
-            raise MissingFile(["auth_token.txt"])
