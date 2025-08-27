@@ -3,13 +3,13 @@ description: Semgrep is a fast, open-source, static analysis tool that searches 
 type: Pattern matching
 url: https://github.com/semgrep/semgrep
 supported_version: 1.128.1
-license: LGPL-2.1
-license_type: Copyleft
-license_url: https://github.com/semgrep/semgrep/blob/develop/LICENSE
-license_extra:
-    - Free to use under the terms of its license.
-    - Sharing of analysis results is permitted under the terms of its license.
+legal:
+  license: LGPL-2.1
+  license_type: Copyleft
+  license_url: https://github.com/semgrep/semgrep/blob/develop/LICENSE
+  terms: Terms of Service
+  terms_url: https://semgrep.dev/legal/terms/
 requirements:
-    - Existing installation
-    - Internet connection only to download [semgrep-rules](https://github.com/semgrep/semgrep-rules).
+  - An existing installation of Semgrep.
+  - An internet connection is required to download [semgrep-rules](https://github.com/semgrep/semgrep-rules).
 extra: null

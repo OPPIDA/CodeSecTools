@@ -1,7 +1,11 @@
 # List of supported {{ name }}
 
-| Name  | Type | Supported version | License |
+| Name  | Type | Supported version | Legal |
 | :---: | :---: | :---: | :---: |
 {% for p in profiles -%}
-| [**{{ p.name }}**]({{ p.uri }})  | `{{ p.type }}` | `{{ p.supported_version }}` | `{{ p.license }} ({{ p.license_type }})` |
+{% if p.legal["license"] -%}
+| [**{{ p.name }}**]({{ p.uri }})  | `{{ p.type }}` | `{{ p.supported_version }}` | `{{ p.legal["license"] }} ({{ p.legal["license_type"] }})` |
+{% else -%}
+| [**{{ p.name }}**]({{ p.uri }})  | `{{ p.type }}` | `{{ p.supported_version }}` | [`{{ p.legal["terms"] }}`]({{ p.legal["terms_url"] }}) |
+{% endif -%}
 {% endfor %}

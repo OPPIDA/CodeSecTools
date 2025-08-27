@@ -1,4 +1,3 @@
-<!--include-doc-start-->
 # CodeSecTools
 
 <div align="center">
@@ -8,33 +7,49 @@
 A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
 
 ## Installation
-
-Using Python package manager:
-
-- Recommended (isolated installation):
   
-```bash
-pipx install .
-uv tool install .
-```
-
-- Not recommended (can break other packages):
-
 ```bash
 pip install .
 ```
+## Usage
 
-- Instal optional dependencies to build docs:
+- CLI command:
 
+  ```bash
+  cstools
+  ```
+
+- Python module:
+
+  ```python
+  from pathlib import Path
+  from codesectools.sasts.SemgrepCE.sast import SemgrepCESAST
+  my_sast = SemgrepCESAST()
+  my_sast.run_analysis(
+      lang="java", 
+      project_dir=Path("my_project"), 
+      output_dir=Path("/tmp/out")
+  )
+  # Results are saved in /tmp/out
+
+  print(list(Path("/tmp/out").rglob("*")))
+  # [PosixPath('/tmp/out/cstools_output.json'), PosixPath('/tmp/out/semgrep_output.json')]
+  ```
+
+  For more information, check the [API Reference](https://oppida.github.io/CodeSecTools/api/index.html)
+
+## Documentation
+
+The documentation is available [online](https://oppida.github.io/CodeSecTools/).
+
+Or, you can build it locally:
 ```bash
-pipx install .[docs]
-uv tool install .[docs]
+pip install .[docs]
+mkdocs serve
 ```
-<!--include-doc-end-->
 
-# Documentation
+## Disclaimer
 
-The documentation is available at: 
+This project provides wrappers and scripts to integrate with various third-party static analysis security testing (SAST) tools and datasets. It is important to note that this project does not include these third-party tools or datasets, unless otherwise specified. When a tool or dataset is included, its associated license file is also provided.
 
-<!--include-doc-start-->
-<!--include-doc-end-->
+Users of this project are solely responsible for reviewing, understanding, and complying with the licenses and terms of use associated with any third-party tools or datasets they choose to use through this framework. The respective licenses and terms can be found on the official websites or in the documentation of each tool or dataset.

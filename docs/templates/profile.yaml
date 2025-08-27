@@ -3,10 +3,12 @@ description:
 type: 
 url: 
 supported_version: 
-# https://en.wikipedia.org/wiki/Software_license
-license: 
-license_type: 
-license_url: 
-license_extra:
+legal:
+  # https://en.wikipedia.org/wiki/Software_license
+  license: 
+  license_type: 
+  license_url: 
+  terms:
+  terms_url:
 requirements: 
 extra: null

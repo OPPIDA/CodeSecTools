@@ -3,14 +3,12 @@ description: The OWASP Benchmark Project is a Java test suite designed to verify
 type: File
 url: https://github.com/OWASP-Benchmark/BenchmarkJava
 supported_version: Latest
-license: GPL-2.0
-license_type: Copyleft
-license_url: https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE
-license_extra:
-    - Free to use under the terms of its license.
-    - Sharing of analysis results is permitted under the terms of its license.
-requirements: 
-  - Internet connection only to download the dataset.
+legal:
+  license: GPL-2.0
+  license_type: Copyleft
+  license_url: https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE
+requirements:
+  - An internet connection is required to download the dataset.
 extra: |
   !!! info "Dataset content"
     

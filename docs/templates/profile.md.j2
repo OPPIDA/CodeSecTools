@@ -9,11 +9,18 @@ Type: `{{ type }}`
 
 Supported version: `{{ supported_version }}`
 
-!!! license "{{ license }} {% if license_url %}[:material-open-in-new:]({{ license_url }}){% endif %}"
-    - Type: `{{ license_type }}`
-    {% for extra in license_extra %}
-    - {{ extra }}
-    {% endfor %}
+!!! legal "Legal Notice"
+    {% if legal.license -%}
+    - License: `{{ legal.license }}` (`{{ legal.license_type }}`) [:material-open-in-new:]({{ legal.license_url }})
+    {%- endif %}
+
+    {% if legal.terms -%}
+    - Terms: `{{ legal.terms }}` [:material-open-in-new:]({{ legal.terms_url }})
+    {%- endif %}
+
+!!! warning "Disclaimer"
+    This project provides wrappers and scripts to integrate with `{{ name }}`, but **does not** include the tool itself.
+    Therefore, you are responsible for reviewing and complying with the product's license and terms of use.
 
 !!! requirements "Requirements"
     {% for requirement in requirements %}
