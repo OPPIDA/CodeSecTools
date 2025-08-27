@@ -123,7 +123,7 @@ class CLIFactory:
                 str,
                 typer.Argument(
                     click_type=Choice(self.sast.supported_languages),
-                    help="Source code langauge (only one at the time)",
+                    help="Source code language (only one at the time)",
                     metavar="LANG",
                 ),
             ],
@@ -273,7 +273,7 @@ class CLIFactory:
                 bool,
                 typer.Option(
                     "--pgf",
-                    help="Export figures to pgf format (for LaTex document)",
+                    help="Export figures to pgf format (for LaTeX document)",
                 ),
             ] = False,
         ) -> None:

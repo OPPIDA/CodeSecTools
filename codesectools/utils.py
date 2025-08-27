@@ -112,7 +112,7 @@ class NonZeroExit(Exception):
 
         """
         self.command = " ".join(str(c) for c in command)
-        self.command_output = self.command_output
+        self.command_output = command_output
 
     def __str__(self) -> str:
         """Return a user-friendly string representation of the exception."""

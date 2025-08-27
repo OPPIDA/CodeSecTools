@@ -19,7 +19,7 @@ extra: |
         *Included and pre-extracted from the original dataset available at [Zenodo](https://zenodo.org/records/13118970).*
 
   !!! warning "Large Original Dataset"
-      The full CVEfixes dataset is a SQLite database of approximately 50GB. To keep it manageable for SAST tools, we provide a pre-processed supported_version with minimal data for specific languages.
+      The full CVEfixes dataset is a SQLite database of approximately 50GB. To keep it manageable for SAST tools, we provide a pre-processed version with minimal data for specific languages.
 
       We extracted the following columns to create language-specific CSV files (e.g., `CVEfixes_java.csv`):
 
@@ -53,8 +53,8 @@ extra: |
 
         import requests
 
-        LANG = ""
-        LANG_EXT = []
+        LANG = "<your_langauge_name>"
+        LANG_EXT = [<your_langauge_ext>]
         TOKEN = "YOUR_GITHUB_TOKEN"
 
         def get_size(repo_url: str) -> int | None:

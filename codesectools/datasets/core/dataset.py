@@ -269,7 +269,7 @@ class FileDataset(Dataset):
                     correct_defects.append(defect)
                     correct_cwes.append(defect.cwe)
                 else:
-                    # Flase Negative (not identified and there was a vuln)
+                    # False Negative (not identified and there was a vuln)
                     incorrect_defects.append(defect)
                     incorrect_cwes.append(defect.cwe)
 

@@ -97,7 +97,7 @@ def status(
                     dataset_name,
                     dataset.__bases__[0].__name__,
                     "❌",
-                    "Dataset is automatically download when using it for the first time",
+                    "Dataset is automatically downloaded when using it for the first time",
                 )
         print(table)
 

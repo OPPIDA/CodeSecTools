@@ -18,7 +18,7 @@ extra: |
 
         - **Data retention policy** ([How Snyk handles your data - docs.snyk.io](https://docs.snyk.io/snyk-data-and-governance/how-snyk-handles-your-data#snyk-code)):
 
-            - Snyk stores *project metadata* and *analysis results* (filenames, vulnerabilities position in the code);
+            - Snyk stores *project metadata* and *analysis results* (filenames, the position of vulnerabilities in the code);
             - Snyk does not store the *source code*.
         
         - **Limited usage**:

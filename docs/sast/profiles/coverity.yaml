@@ -12,11 +12,11 @@ license_extra:
 requirements:
     - Existing installation and commercial license to use Coverity.
     - "`issueTypes.json` (available in `idir/output`) to map checkers' type to CWE id."
-    - "`config.json` (user config) for supported langauges, categories of checkers."
+    - "`config.json` (user config) for supported languages, categories of checkers."
 extra: |
     ??? config "User configuration (`config.json`)"
 
-        Categories of checkers are used for statistic purpose only, they **do not** change the behaviour of the analysis.
+        Categories of checkers are used for statistical purposes only, they **do not** change the behaviour of the analysis.
         
         Example:        
         ```json
