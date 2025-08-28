@@ -73,3 +73,8 @@ ignore = [
   "E501", # Line Too Long
   "D203", "D213" # Conflict
 ]
+
+[tool.pytest.ini_options]
+addopts = "-x --showlocals -vvv"
+log_cli = true
+log_level = "INFO"
