@@ -62,6 +62,8 @@ class BenchmarkJava(FileDataset):
 
     name = "BenchmarkJava"
     supported_languages = ["java"]
+    license = "GPL-2.0"
+    license_url = "https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE"
 
     def __init__(self, lang: None | str = None) -> None:
         """Initialize the BenchmarkJava dataset.
@@ -91,8 +93,8 @@ class BenchmarkJava(FileDataset):
         else:
             return False
 
-    def download_dataset(self: Self) -> None:
-        """Download the dataset by sparsely cloning its Git repository."""
+    def download_files(self: Self) -> None:
+        """Download the dataset files from the official Git repository."""
         repo = git.Repo.clone_from(
             "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
             self.directory,
@@ -106,6 +108,7 @@ class BenchmarkJava(FileDataset):
             *[
                 "src/main/java/org/owasp/benchmark/testcode/",
                 "expectedresults-1.2.csv",
+                "LICENSE",
             ],
         )
 

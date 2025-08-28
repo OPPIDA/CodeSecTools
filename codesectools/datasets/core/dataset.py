@@ -13,6 +13,10 @@ from typing import TYPE_CHECKING
 
 import git
 import humanize
+import typer
+from rich import print
+from rich.panel import Panel
+from rich.progress import Progress
 
 from codesectools.utils import USER_CACHE_DIR
 
@@ -38,8 +42,10 @@ class Dataset(ABC):
 
     name: str
     supported_languages: list[str]
+    license: str
+    license_url: str
 
-    def __init__(self, lang: str) -> None:
+    def __init__(self, lang: str | None = None) -> None:
         """Initialize the Dataset instance.
 
         Set up paths, validate the language, and trigger the download and
@@ -52,14 +58,12 @@ class Dataset(ABC):
         """
         self.directory = USER_CACHE_DIR / self.name
         self.lang = lang
-        self.full_name = f"{self.name}_{self.lang}"
-        assert self.full_name in self.list_dataset_full_names()
-
-        if not self.is_cached():
-            self.download_dataset()
-            (self.directory / ".complete").write_bytes(b"\x42")
-
-        self.files: list[File] = self.load_dataset()
+        if self.lang:
+            self.full_name = f"{self.name}_{self.lang}"
+            assert self.full_name in self.list_dataset_full_names()
+            self.files: list[File] = self.load_dataset()
+        else:
+            self.files = []
 
     @classmethod
     def is_cached(cls) -> bool:
@@ -72,15 +76,37 @@ class Dataset(ABC):
         is_complete = USER_CACHE_DIR / cls.name / ".complete"
         return is_complete.is_file()
 
-    @abstractmethod
-    def download_dataset(self) -> None:
-        """Download or prepare the dataset's source files.
+    def prompt_license_agreement(self) -> None:
+        """Display the dataset's license and prompt the user for agreement."""
+        panel = Panel(
+            f"""Dataset:\t[b]{self.name}[/b]
+License:\t[b]{self.license}[/b]
+License URL:\t[u]{self.license_url}[/u]
 
-        This method must be implemented by subclasses to define how the
-        dataset's source files (e.g., from Git, archives) are obtained
-        and placed in the appropriate directory.
-        """
+Please review the license at the URL above.
+By proceeding, you agree to abide by its terms.""",
+            title="[b]License Agreement[/b]",
+        )
+        print(panel)
+
+        agreed = typer.confirm("Do you accept the license terms and wish to proceed?")
+        if not agreed:
+            print("[red]License agreement declined. Download aborted.[/red]")
+            raise typer.Exit(code=1)
+
+    @abstractmethod
+    def download_files(self) -> None:
+        """Download the raw dataset files."""
         pass
+
+    def download_dataset(self) -> None:
+        """Handle the full dataset download process, including license prompt and caching."""
+        self.prompt_license_agreement()
+        with Progress() as progress:
+            progress.add_task(f"[red]Downloading {self.name}...", total=None)
+            self.download_files()
+        (self.directory / ".complete").write_bytes(b"\x42")
+        print(f"{self.name} has been downloaded at {self.directory}.")
 
     @abstractmethod
     def load_dataset(self) -> list[File]:

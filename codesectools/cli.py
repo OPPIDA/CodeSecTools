@@ -14,6 +14,7 @@ from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
+from codesectools.datasets.core.cli import cli as dataset_cli
 from codesectools.sasts import SASTS_ALL
 
 cli = typer.Typer(name="cstools", no_args_is_help=True)
@@ -68,7 +69,7 @@ def status(
                 table.add_row(
                     sast_name,
                     "Partial ⚠️",
-                    f"See subcommand [b]{sast_name.lower()}[/b]\nMissing: {sast_data['missing']}",
+                    f"See subcommand [b]{sast_name.lower()}[/b]\nMissing: [b]{sast_data['missing']}[/b]",
                 )
             else:
                 table.add_row(
@@ -97,11 +98,12 @@ def status(
                     dataset_name,
                     dataset.__bases__[0].__name__,
                     "❌",
-                    "Dataset is automatically downloaded when using it for the first time",
+                    f"[red]cstools dataset download {dataset_name}[/red]",
                 )
         print(table)
 
 
+cli.add_typer(dataset_cli)
+
 for _, sast_data in SASTS_ALL.items():
-    if sast_data["status"] != "none":
-        cli.add_typer(sast_data["cli_factory"].build_cli())
+    cli.add_typer(sast_data["cli_factory"].build_cli())

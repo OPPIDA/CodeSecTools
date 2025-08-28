@@ -55,8 +55,10 @@ class SemgrepCERules(FileDataset):
 
     name = "SemgrepCERules"
     supported_languages = ["java"]
+    license = "Semgrep Rules License v. 1.0"
+    license_url = "https://semgrep.dev/legal/rules-license/"
 
-    def __init__(self, lang: str) -> None:
+    def __init__(self, lang: str | None = None) -> None:
         """Initialize the SemgrepCERules dataset.
 
         Args:
@@ -65,8 +67,8 @@ class SemgrepCERules(FileDataset):
         """
         super().__init__(lang)
 
-    def download_dataset(self: Self) -> None:
-        """Download the dataset by sparsely cloning the semgrep-rules Git repository."""
+    def download_files(self: Self) -> None:
+        """Download the dataset files from the official Git repository."""
         repo = git.Repo.clone_from(
             "https://github.com/semgrep/semgrep-rules.git",
             self.directory,
@@ -75,9 +77,7 @@ class SemgrepCERules(FileDataset):
             filter=["tree:0"],
         )
         repo.git.sparse_checkout(
-            "set",
-            "--no-cone",
-            *self.supported_languages,
+            "set", "--no-cone", *self.supported_languages, *["LICENSE"]
         )
 
     def load_dataset(self) -> list[TestFile]:

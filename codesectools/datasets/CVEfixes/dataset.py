@@ -29,8 +29,10 @@ class CVEfixes(GitRepoDataset):
 
     name = "CVEfixes"
     supported_languages = ["java"]
+    license = "CC BY 4.0"
+    license_url = "https://creativecommons.org/licenses/by/4.0/"
 
-    def __init__(self, lang: str) -> None:
+    def __init__(self, lang: str | None = None) -> None:
         """Initialize the CVEfixes dataset.
 
         Args:
@@ -40,9 +42,12 @@ class CVEfixes(GitRepoDataset):
         self.max_repo_size = 100e6
         super().__init__(lang)
 
-    def download_dataset(self: Self) -> None:
-        """Prepare the dataset directory and copy the necessary CSV files."""
+    def download_files(self: Self) -> None:
+        """Copy the dataset files from the package data directory to the user cache."""
         self.directory.mkdir(exist_ok=True, parents=True)
+        license_file = DATA_DIR / self.name / "LICENSE"
+        (self.directory / license_file.name).write_bytes(license_file.read_bytes())
+
         for dataset_file in (DATA_DIR / self.name).glob("CVEfixes_*.csv"):
             (self.directory / dataset_file.name).write_bytes(dataset_file.read_bytes())
 
