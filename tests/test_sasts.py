@@ -1,8 +1,9 @@
-"""Test SAST tool integrations."""
+"""Test SAST integration functionalities."""
 
 import logging
 import tempfile
 from pathlib import Path
+from types import GeneratorType
 
 import pytest
 from typer.testing import CliRunner
@@ -10,6 +11,19 @@ from typer.testing import CliRunner
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
+
+
+@pytest.fixture(autouse=True, scope="module")
+def reload_sast_module_state() -> GeneratorType:
+    """Reset the state of SAST modules before running tests."""
+    for sast_data in SASTS_ALL.values():
+        sast_instance = sast_data["sast"]()
+        sast_data["cli_factory"].sast.__init__()
+        sast_data["status"] = sast_instance.status
+        sast_data["missing"] = sast_instance.missing
+
+    yield
+
 
 runner = CliRunner(env={"COLUMNS": "200"})
 
@@ -23,6 +37,15 @@ String userInput = br.readLine();
 Runtime.getRuntime().exec("ping -c 1 " + userInput);""",
     ),
 }
+
+
+def test_included() -> None:
+    """Ensure that specific, fully supported SASTs are correctly identified as 'full'."""
+    included_sasts = ["SemgrepCE", "SnykCode"]
+    for included_sast in included_sasts:
+        sast_data = SASTS_ALL[included_sast]
+        if sast_data["status"] != "full":
+            pytest.fail(f"{sast_data['missing']} are missing for {included_sast}")
 
 
 def test_sasts() -> None | AssertionError:
@@ -49,13 +72,14 @@ def test_sasts() -> None | AssertionError:
             assert result.exit_code != 0
 
 
-FULL_SASTS = {k: v for k, v in SASTS_ALL.items() if v["status"] == "full"}.items()
-SAST_RESULTS = {sast_name: [] for sast_name, _ in FULL_SASTS}
+SAST_RESULTS = {sast_name: [] for sast_name in SASTS_ALL}
 
 
 def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError:
     """Test the 'analyze' command for all available SASTs."""
-    for sast_name, sast_data in FULL_SASTS:
+    for sast_name, sast_data in SASTS_ALL.items():
+        if sast_data["status"] != "full":
+            continue
         sast_cli = sast_data["cli_factory"].build_cli()
         sast = sast_data["sast"]()
         for lang in sast.supported_languages:
@@ -83,7 +107,9 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
 def test_sasts_benchmark() -> None | AssertionError:
     """Test the 'benchmark' command for all available SASTs."""
-    for sast_name, sast_data in FULL_SASTS:
+    for sast_name, sast_data in SASTS_ALL.items():
+        if sast_data["status"] != "full":
+            continue
         sast_cli = sast_data["cli_factory"].build_cli()
         sast = sast_data["sast"]()
         for dataset_full_name in sast.supported_dataset_full_names:
@@ -121,7 +147,9 @@ def test_sasts_benchmark() -> None | AssertionError:
 
 def test_sasts_list() -> None | AssertionError:
     """Test the 'list' command for all available SASTs."""
-    for sast_name, sast_data in FULL_SASTS:
+    for sast_name, sast_data in SASTS_ALL.items():
+        if sast_data["status"] != "full":
+            continue
         sast_cli = sast_data["cli_factory"].build_cli()
         result = runner.invoke(sast_cli, ["list"])
         assert result.exit_code == 0
@@ -134,7 +162,9 @@ def test_sasts_list() -> None | AssertionError:
 
 def test_sasts_plot() -> None | AssertionError:
     """Test the 'plot' command for all available SASTs."""
-    for sast_name, sast_data in FULL_SASTS:
+    for sast_name, sast_data in SASTS_ALL.items():
+        if sast_data["status"] != "full":
+            continue
         sast = sast_data["sast"]()
         sast_cli = sast_data["cli_factory"].build_cli()
 
