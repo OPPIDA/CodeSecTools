@@ -9,7 +9,7 @@ import json
 import shutil
 from pathlib import Path
 
-import requests
+import git
 
 from codesectools.utils import USER_CACHE_DIR, MissingFile, NonZeroExit, run_command
 
@@ -51,16 +51,26 @@ class Cloc:
             self.base_command = ["cloc", ".", "--json"]
         else:
             if shutil.which("perl"):
-                cloc_pl = USER_CACHE_DIR / "cloc.pl"
-                if not cloc_pl.is_file():
-                    cloc_pl.write_bytes(
-                        requests.get(
-                            f"https://github.com/AlDanial/cloc/releases/download/v{self.version}/cloc-{self.version}.pl"
-                        ).content
+                cloc_repo = USER_CACHE_DIR / "cloc"
+                if not cloc_repo.is_dir():
+                    repo = git.Repo.clone_from(
+                        "https://github.com/AlDanial/cloc.git",
+                        cloc_repo,
+                        depth=1,
+                        sparse=True,
+                        filter=["tree:0"],
+                    )
+                    repo.git.sparse_checkout(
+                        "set",
+                        "--no-cone",
+                        *[
+                            "cloc",
+                            "LICENSE",
+                        ],
                     )
                 self.base_command = [
                     "perl",
-                    str(USER_CACHE_DIR / "cloc.pl"),
+                    str(USER_CACHE_DIR / "cloc" / "cloc"),
                     ".",
                     "--json",
                 ]
