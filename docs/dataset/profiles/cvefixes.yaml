@@ -6,7 +6,7 @@ supported_version: v1.0.8
 legal:
   license: CC BY 4.0
   license_type: Permissive
-  license_url: https://github.com/secureIT-project/CVEfixes/blob/main/LICENSE.txt
+  license_url: https://creativecommons.org/licenses/by/4.0/
 requirements:
   - None
 extra: |
