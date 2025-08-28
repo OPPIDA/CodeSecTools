@@ -35,3 +35,4 @@ extra: |
             ```bash
             mkdir -p  ~/.codesectools/config/SnykCode
             echo <your-auth-token-here> > ~/.codesectools/config/SnykCode/auth_token.txt
+            ```
