@@ -11,6 +11,7 @@ import zipfile
 from typing import Self
 
 import requests
+from rich.progress import Progress
 
 from codesectools.utils import USER_CACHE_DIR
 
@@ -81,7 +82,8 @@ class CWEsCollection:
     Downloads and loads the official CWE list from a CSV file.
 
     Attributes:
-        file (Path): The path to the cached CWE CSV file.
+        cwes_data (dict): A mapping of CWE categories to their CSV filenames.
+        directory (Path): The path to the cached CWE data directory.
         cwes (list[CWE]): A list of all loaded CWE objects.
 
     """
@@ -96,17 +98,34 @@ class CWEsCollection:
             "Hardware Design": "1194.csv",
             "Research Concepts": "1000.csv",
         }
-        for filename in self.cwes_data.values():
-            if not (USER_CACHE_DIR / filename).is_file():
-                zip_file = io.BytesIO(
-                    requests.get(
-                        f"https://cwe.mitre.org/data/csv/{filename}.zip"
-                    ).content
-                )
-                with zipfile.ZipFile(zip_file, "r") as zip_ref:
-                    zip_ref.extract(filename, USER_CACHE_DIR)
+        self.directory = USER_CACHE_DIR / "cwe"
 
-        self.cwes = self.load()
+        try:
+            self.cwes = self.load()
+        except FileNotFoundError:
+            self.download()
+            self.cwes = self.load()
+
+    def download(self) -> None:
+        """Download CWE data from the official MITRE website."""
+        with Progress() as progress:
+            task = progress.add_task("[red]Downloading CWEs...", total=100)
+            for filename in self.cwes_data.values():
+                if not (self.directory / filename).is_file():
+                    zip_file = io.BytesIO(
+                        requests.get(
+                            f"https://cwe.mitre.org/data/csv/{filename}.zip"
+                        ).content
+                    )
+                    with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                        zip_ref.extract(filename, self.directory)
+                progress.update(task, advance=25)
+
+            terms_file = self.directory / "termsofuse.html"
+            terms_file.write_bytes(
+                requests.get("https://cwe.mitre.org/about/termsofuse.html").content
+            )
+            progress.update(task, advance=25)
 
     def load(self) -> list[CWE]:
         """Load CWE data from the CSV file.
@@ -117,7 +136,7 @@ class CWEsCollection:
         """
         cwes = []
         for filename in self.cwes_data.values():
-            reader = csv.DictReader((USER_CACHE_DIR / filename).open(encoding="utf-8"))
+            reader = csv.DictReader((self.directory / filename).open(encoding="utf-8"))
             for cwe_dict in reader:
                 cwes.append(
                     CWE(
