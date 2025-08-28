@@ -31,7 +31,14 @@ class SnykCodeSAST(SAST):
     supported_languages = ["java"]
     supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
     requirements = SASTRequirements(
-        full_reqs=[Binary("snyk"), Config("auth_token.txt")], partial_reqs=[]
+        full_reqs=[
+            Binary(
+                "snyk",
+                url="https://docs.snyk.io/developer-tools/snyk-cli/install-or-update-the-snyk-cli",
+            ),
+            Config("auth_token.txt", doc=True),
+        ],
+        partial_reqs=[],
     )
     commands = [["snyk", "code", "test", "--json-file-output=snyk_results.json"]]
     output_files = [
@@ -44,9 +51,6 @@ class SnykCodeSAST(SAST):
         "note": "yellow",
         "info": "yellow",
     }
-    install_help_url = (
-        "https://docs.snyk.io/developer-tools/snyk-cli/install-or-update-the-snyk-cli"
-    )
 
     def __init__(self) -> None:
         """Initialize the SnykCodeSAST instance.

@@ -34,8 +34,20 @@ class CoveritySAST(SAST):
     supported_languages = LANGUAGES.keys()
     supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
     requirements = SASTRequirements(
-        full_reqs=[Binary("coverity"), Binary("cov-analyze")],
-        partial_reqs=[Config("issueTypes.json"), Config("config.json")],
+        full_reqs=[
+            Binary(
+                "coverity",
+                url="https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html",
+            ),
+            Binary(
+                "cov-analyze",
+                url="https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html",
+            ),
+        ],
+        partial_reqs=[
+            Config("issueTypes.json", doc=True),
+            Config("config.json", doc=True),
+        ],
     )
     commands = [
         [
@@ -60,4 +72,3 @@ class CoveritySAST(SAST):
     ]
     parser = CoverityAnalysisResult
     color_mapping = COLOR_MAPPING
-    install_help_url = "https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html"

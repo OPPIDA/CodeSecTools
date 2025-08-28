@@ -33,14 +33,26 @@ from codesectools.utils import (
 class SASTRequirement(ABC):
     """Represent a single requirement for a SAST tool to be functional."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        instruction: str | None = None,
+        url: str | None = None,
+        doc: bool = False,
+    ) -> None:
         """Initialize a SASTRequirement instance.
 
         Args:
             name: The name of the requirement.
+            instruction: A short instruction on how to fulfill the requirement.
+            url: A URL for more detailed instructions.
+            doc: A flag indicating if the instruction is available in the documentaton.
 
         """
         self.name = name
+        self.instruction = instruction
+        self.url = url
+        self.doc = doc
 
     @abstractmethod
     def is_fulfilled(self, **kwargs: dict) -> bool:
@@ -55,14 +67,23 @@ class SASTRequirement(ABC):
 class Config(SASTRequirement):
     """Represent a configuration file requirement for a SAST tool."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        instruction: str | None = None,
+        url: str | None = None,
+        doc: bool = False,
+    ) -> None:
         """Initialize a Config instance.
 
         Args:
-            name: The name of the configuration file.
+            name: The name of the requirement.
+            instruction: A short instruction on how to fulfill the requirement.
+            url: A URL for more detailed instructions.
+            doc: A flag indicating if this is a documentation-only requirement.
 
         """
-        super().__init__(name)
+        super().__init__(name, instruction, url, doc)
 
     def is_fulfilled(self, sast_name: str) -> bool:
         """Check if the configuration file exists for the given SAST tool."""
@@ -72,18 +93,54 @@ class Config(SASTRequirement):
 class Binary(SASTRequirement):
     """Represent a binary executable requirement for a SAST tool."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        instruction: str | None = None,
+        url: str | None = None,
+        doc: bool = False,
+    ) -> None:
         """Initialize a Binary instance.
 
         Args:
-            name: The name of the binary.
+            name: The name of the requirement.
+            instruction: A short instruction on how to fulfill the requirement.
+            url: A URL for more detailed instructions.
+            doc: A flag indicating if this is a documentation-only requirement.
 
         """
-        super().__init__(name)
+        super().__init__(name, instruction, url, doc)
 
     def is_fulfilled(self, **kwargs: dict) -> bool:
         """Check if the binary is available in the system's PATH."""
         return bool(shutil.which(self.name))
+
+
+class DatasetCache(SASTRequirement):
+    """Represent a dataset cache requirement for a SAST tool."""
+
+    def __init__(
+        self,
+        name: str,
+        instruction: str | None = None,
+        url: str | None = None,
+        doc: bool = False,
+    ) -> None:
+        """Initialize a DatasetCache instance.
+
+        Args:
+            name: The name of the requirement.
+            instruction: A short instruction on how to fulfill the requirement.
+            url: A URL for more detailed instructions.
+            doc: A flag indicating if this is a documentation-only requirement.
+
+        """
+        instruction = f"cstools dataset download {name}"
+        super().__init__(name, instruction, url, doc)
+
+    def is_fulfilled(self, **kwargs: dict) -> bool:
+        """Check if the dataset is cached locally."""
+        return DATASETS_ALL[self.name].is_cached()
 
 
 class SASTRequirements:
@@ -134,15 +191,15 @@ class SAST:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
         supported_dataset_names (list[str]): Names of compatible datasets.
+        supported_datasets (list[Dataset]): A list of supported dataset classes.
+        requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): Command-line templates to be executed.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
         color_mapping (dict): A mapping of categories to colors for plotting.
-        install_help_url (str | None): An optional URL for installation help.
-        supported_datasets (list): (Instance attribute) A list of supported
-            dataset classes.
+        install_help (str | None): An optional string with installation help.
         output_dir (Path): (Instance attribute) The base directory for storing
             analysis results.
 
@@ -158,7 +215,7 @@ class SAST:
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
     color_mapping: dict
-    install_help_url: str | None = None
+    install_help: str | None = None
 
     def __init__(self) -> None:
         """Initialize the SAST instance.

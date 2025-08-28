@@ -12,6 +12,7 @@ from typing import Self
 import typer
 from click import Choice
 from rich import print
+from rich.panel import Panel
 from rich.table import Table
 from typing_extensions import Annotated
 
@@ -46,7 +47,7 @@ class CLIFactory:
         self.sast = sast
         self.help_messages = {
             "main": f"""{sast.name}""",
-            "install": f"Display instruction to install {sast.name}.",
+            "install": "List instruction to install missing requirements.",
             "analyze": f"""Analyze a project using {sast.name}.""",
             "benchmark": f"""Benchmark a dataset using {sast.name}.""",
             "list": """List existing analysis results.""",
@@ -73,8 +74,10 @@ class CLIFactory:
             self.add_install(help=self.help_messages["install"])
             self.add_list(help=self.help_messages["list"])
             self.add_plot(help=self.help_messages["plot"])
-        else:
+        elif self.sast.status == "none":
             self.add_install(help=self.help_messages["install"])
+        else:
+            raise Exception(f"Invalid status {self.sast.status} for {self.sast.name}")
 
     def add_main(self: Self, help: str = "") -> None:
         """Add the main callback command to the CLI.
@@ -103,9 +106,25 @@ class CLIFactory:
 
         @self.cli.command(help=help)
         def install() -> None:
-            """Display installation instructions for the SAST tool."""
-            if url := self.sast.install_help_url:
-                typer.launch(url)
+            install_help = ""
+            sast_reqs = self.sast.requirements
+            missing_reqs = sast_reqs.get_missing()
+            for req in sast_reqs.full_reqs + sast_reqs.partial_reqs:
+                install_help += (
+                    f"{'❌' if req in missing_reqs else '✅'} [b]{req}[/b]\n"
+                )
+                if req.instruction:
+                    install_help += f"- Instruction: [red]{req.instruction}[/red]\n"
+                if req.url:
+                    install_help += f"- URL: [u]{req.url}[/u]\n"
+                install_help += "\n"
+            install_help.strip("\n")
+            panel = Panel(
+                install_help,
+                title=f"{self.sast.name} requirements",
+                expand=False,
+            )
+            print(panel)
 
     def add_analyze(self: Self, help: str = "") -> None:
         """Add the 'analyze' command to the CLI.
