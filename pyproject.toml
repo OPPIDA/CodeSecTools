@@ -1,6 +1,6 @@
 [project]
 name = "CodeSecTools"
-version = "0.1.0"
+version = "0.2.0"
 description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -20,6 +20,11 @@ dependencies = [
     "typer>=0.16.1",
     "xmltodict>=0.14.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/OPPIDA/CodeSecTools"
+Documentation = "https://oppida.github.io/CodeSecTools/"
+Repository = "https://github.com/OPPIDA/CodeSecTools"
 
 [project.optional-dependencies]
 dev = [
