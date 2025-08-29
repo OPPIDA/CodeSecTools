@@ -40,8 +40,8 @@ Runtime.getRuntime().exec("ping -c 1 " + userInput);""",
 
 
 def test_included() -> None:
-    """Ensure that specific, fully supported SASTs are correctly identified as 'full'."""
-    included_sasts = ["SemgrepCE", "SnykCode"]
+    """Ensure that specific SASTs are fully available for testing."""
+    included_sasts = ["SemgrepCE"]
     for included_sast in included_sasts:
         sast_data = SASTS_ALL[included_sast]
         if sast_data["status"] != "full":

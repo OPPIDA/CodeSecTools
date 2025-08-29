@@ -15,15 +15,16 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # =========================== Test stage ===========================
 FROM python:3.12-bookworm AS test
 
-RUN apt update && \
-    apt install curl git cloc -y --no-install-recommends && \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=apt-lib,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,id=debconf,target=/var/cache/debconf,sharing=locked \
+    apt update -qq && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt install git cloc -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# SASTs
+# Free SASTs only
 RUN pip install --no-cache semgrep
-RUN curl https://static.snyk.io/cli/latest/snyk-linux -o snyk && \
-    chmod +x ./snyk && \
-    mv ./snyk /usr/local/bin/
 
 COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
