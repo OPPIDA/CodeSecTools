@@ -7,6 +7,7 @@ performing benchmarks against datasets.
 
 import json
 import os
+import random
 import shutil
 import tempfile
 import time
@@ -330,7 +331,7 @@ class SAST:
         Args:
             dataset: The `FileDataset` instance to analyze.
             overwrite: If True, overwrite existing results for this dataset.
-            testing: If True, run analysis on a single file for testing purposes.
+            testing: If True, run analysis on a sample of two random files for testing purposes.
 
         """
         result_path = self.output_dir / dataset.full_name
@@ -348,10 +349,14 @@ class SAST:
         temp_path = Path(temp_dir.name)
 
         # Copy files into the temporary directory
-        for file in dataset.files:
+        if testing:
+            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+            files = random.choices(dataset.files, k=2)
+        else:
+            files = dataset.files
+
+        for file in files:
             file.save(temp_path)
-            if testing:
-                break
 
         # Run analysis
         self.run_analysis(dataset.lang, temp_path, result_path)
@@ -370,7 +375,7 @@ class SAST:
         Args:
             dataset: The `GitRepoDataset` instance to analyze.
             overwrite: If True, re-analyze repositories with existing results.
-            testing: If True, run analysis on a single repository for testing purposes.
+            testing: If True, run analysis on a sample of two small random repositories for testing purposes.
 
         """
         base_result_path = self.output_dir / dataset.full_name
@@ -379,7 +384,14 @@ class SAST:
             f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
         )
 
-        for repo in dataset.repos:
+        if testing:
+            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+            small_repos = [repo for repo in dataset.repos if repo.size < 1e6]
+            repos = random.choices(small_repos, k=2)
+        else:
+            repos = dataset.repos
+
+        for repo in repos:
             print("=================================")
             print(repo)
 
@@ -407,9 +419,6 @@ class SAST:
 
             # Clear temporary directory
             temp_dir.cleanup()
-
-            if testing:
-                break
 
     @property
     def supported_dataset_full_names(self) -> list[str]:
