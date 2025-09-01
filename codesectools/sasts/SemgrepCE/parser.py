@@ -35,18 +35,15 @@ class SemgrepCEFinding(Defect):
                 from Semgrep Community Edition's JSON output.
 
         """
-        cwe = CWEs.from_string(defect_data["extra"]["metadata"]["cwe"][0])
-
         super().__init__(
             file=Path(defect_data["path"]).name,
             checker=defect_data["check_id"].split(".")[-1],
-            category=defect_data["extra"]["metadata"]["category"],
-            cwe=cwe,
+            category=defect_data["extra"]["metadata"]["impact"],
+            cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),
             data=defect_data,
         )
 
         # Extra
-        self.severity = self.data["extra"]["severity"]
         self.lines = self.data["extra"]["lines"]
 
 
@@ -68,7 +65,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
         Args:
             output_dir: The directory where the results are stored.
             result_data: Parsed data from the main Semgrep Community Edition JSON output.
-            cmdout: Parsed data from the command output log.
+            cmdout: A dictionary with metadata from the command execution.
 
         """
         super().__init__(

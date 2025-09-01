@@ -50,10 +50,7 @@ class SemgrepCESAST(SAST):
     ]
     parser = SemgrepCEAnalysisResult
     color_mapping = {
-        "security": "RED",
-        "correctness": "ORANGE",
-        "best-practice": "YELLOW",
-        "performance": "GREEN",
-        "maintainability": "CYAN",
-        "portability": "GRAY",
+        "HIGH": "RED",
+        "MEDIUM": "ORANGE",
+        "LOW": "YELLOW",
     }
