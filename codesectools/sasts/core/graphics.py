@@ -17,6 +17,7 @@ from rich import print
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
+from codesectools.shared.cwe import CWE
 
 ## Matplotlib config
 matplotlib.rcParams.update(
@@ -110,7 +111,7 @@ class Graphics:
 
 ## Single project
 class ProjectGraphics(Graphics):
-    """Generates graphics for a single project analysis result.
+    """Generate graphics for a single project analysis result.
 
     Attributes:
         result (AnalysisResult): The loaded analysis result data.
@@ -234,7 +235,7 @@ class ProjectGraphics(Graphics):
 
 ## Datasets
 class FileDatasetGraphics(ProjectGraphics):
-    """Generates graphics for a file-based dataset benchmark result.
+    """Generate graphics for a file-based dataset benchmark result.
 
     Attributes:
         dataset (FileDataset): The dataset instance used for the benchmark.
@@ -264,72 +265,91 @@ class FileDatasetGraphics(ProjectGraphics):
         """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        cwe_counter = {}
+        cwe_counter: dict[CWE, dict[str, int]] = {}
+
+        def init_cwe_counter(cwe: CWE) -> None:
+            if cwe not in cwe_counter:
+                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0, "actual": 0}
+
         for cwe in b.cwes_list:
-            if cwe_counter.get(cwe, None):
-                cwe_counter[cwe]["actual"] += 1
-            else:
-                cwe_counter[cwe] = {"good": 0, "wrong": 0, "actual": 1}
+            init_cwe_counter(cwe)
+            cwe_counter[cwe]["actual"] += 1
 
-        for cwe in b.correct_cwes:
-            if cwe_counter.get(cwe, None):
-                cwe_counter[cwe]["good"] += 1
-            else:
-                cwe_counter[cwe] = {"good": 1, "wrong": 0, "actual": 0}
+        for cwe in b.tp_cwes:
+            init_cwe_counter(cwe)
+            cwe_counter[cwe]["tp"] += 1
 
-        for cwe in b.incorrect_cwes:
-            if cwe_counter.get(cwe, None):
-                cwe_counter[cwe]["wrong"] += 1
-            else:
-                cwe_counter[cwe] = {"good": 0, "wrong": 1, "actual": 0}
+        for cwe in b.fp_cwes:
+            init_cwe_counter(cwe)
+            cwe_counter[cwe]["fp"] += 1
 
-        X, Y1, Y2, Y3 = [], [], [], []
+        for cwe in b.fn_cwes:
+            init_cwe_counter(cwe)
+            cwe_counter[cwe]["fn"] += 1
+
+        X, Y1, Y2, Y3, Y4 = [], [], [], [], []
+        # Sort by TP, then FN, then FP, then ground truth
         sorted_cwes = sorted(
-            list(cwe_counter.items()), key=lambda i: i[1]["actual"], reverse=True
+            list(cwe_counter.items()),
+            key=lambda i: (
+                i[1]["tp"],
+                i[1]["fn"],
+                i[1]["fp"],
+                i[1]["actual"],
+            ),
+            reverse=True,
         )
-        sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
-        sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
+
         for cwe, v in sorted_cwes[: self.limit]:
             X.append(f"{cwe.name} (ID: {cwe.id})")
             Y1.append(v["actual"])
-            Y2.append(v["good"])
-            Y3.append(v["wrong"])
+            Y2.append(v["tp"])
+            Y3.append(v["fp"])
+            Y4.append(v["fn"])
 
         ax.set_xticks(range(len(X)), X, rotation=45, ha="right")
         ax.set_xticklabels(X)
         ax.set_yscale("log")
-        width = 0.25
+        width = 0.2
         bars1 = ax.bar(
-            [i - width for i in range(len(X))],
+            [i - 1.5 * width for i in range(len(X))],
             Y1,
             width=width,
-            label="Unique good prediction (one per test code)",
+            label="Ground Truth",
             color="blue",
         )
         bars2 = ax.bar(
-            [i for i in range(len(X))],
+            [i - 0.5 * width for i in range(len(X))],
             Y2,
             width=width,
-            label="Good prediction (multiple per test code)",
+            label="True Positives",
             color="green",
         )
         bars3 = ax.bar(
-            [i + width for i in range(len(X))],
+            [i + 0.5 * width for i in range(len(X))],
             Y3,
             width=width,
-            label="Wrong prediction (multiple per test code)",
+            label="False Positives",
+            color="orange",
+        )
+        bars4 = ax.bar(
+            [i + 1.5 * width for i in range(len(X))],
+            Y4,
+            width=width,
+            label="False Negatives",
             color="red",
         )
         ax.bar_label(bars1, padding=0)
         ax.bar_label(bars2, padding=0)
         ax.bar_label(bars3, padding=0)
+        ax.bar_label(bars4, padding=0)
         plt.legend()
         fig.suptitle("TOP predicted CWEs")
         return fig
 
 
 class GitRepoDatasetGraphics(Graphics):
-    """Generates graphics for a Git repository-based dataset benchmark result.
+    """Generate graphics for a Git repository-based dataset benchmark result.
 
     Attributes:
         dataset (GitRepoDataset): The dataset instance used for the benchmark.
@@ -384,8 +404,8 @@ class GitRepoDatasetGraphics(Graphics):
         """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        set_names = ["correct_defects", "partial_defects", "incorrect_defects"]
-        X, Y = ["Correct (file and cwe id)", "Partial (file only)", "False"], [0, 0, 0]
+        set_names = ["tp_defects", "fp_defects"]
+        X, Y = ["True Positives", "False Positives"], [0, 0]
         COLORS_COUNT = [
             {v: 0 for k, v in self.color_mapping.items()} for _ in range(len(set_names))
         ]
@@ -440,68 +460,91 @@ class GitRepoDatasetGraphics(Graphics):
         """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        cwe_counter = {}
+        cwe_counter: dict[CWE, dict[str, int]] = {}
+
+        def init_cwe_counter(cwe: CWE) -> None:
+            if cwe not in cwe_counter:
+                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0, "actual": 0}
+
         for result in b.validated_repos:
+            # Ground truth
             for cwe in result["cwes_list"]:
-                if cwe_counter.get(cwe, None):
-                    cwe_counter[cwe]["actual"] += 1
-                else:
-                    cwe_counter[cwe] = {"good": 0, "wrong": 0, "actual": 1}
+                init_cwe_counter(cwe)
+                cwe_counter[cwe]["actual"] += 1
 
-            for cwe in result["correct_cwes"]:
-                if cwe_counter.get(cwe, None):
-                    cwe_counter[cwe]["good"] += 1
-                else:
-                    cwe_counter[cwe] = {"good": 1, "wrong": 0, "actual": 0}
+            # True Positives
+            for cwe in result["tp_cwes"]:
+                init_cwe_counter(cwe)
+                cwe_counter[cwe]["tp"] += 1
 
-            for cwe in result["incorrect_cwes"]:
-                if cwe_counter.get(cwe, None):
-                    cwe_counter[cwe]["wrong"] += 1
-                else:
-                    cwe_counter[cwe] = {"good": 0, "wrong": 1, "actual": 0}
+            # False Positives
+            for cwe in result["fp_cwes"]:
+                init_cwe_counter(cwe)
+                cwe_counter[cwe]["fp"] += 1
 
-        X, Y1, Y2, Y3 = [], [], [], []
+            # False Negatives
+            for cwe in result["fn_defects"]:
+                init_cwe_counter(cwe)
+                cwe_counter[cwe]["fn"] += 1
+
+        X, Y1, Y2, Y3, Y4 = [], [], [], [], []
+        # Sort by TP, then FN, then FP, then ground truth
         sorted_cwes = sorted(
-            list(cwe_counter.items()), key=lambda i: i[1]["actual"], reverse=True
+            list(cwe_counter.items()),
+            key=lambda i: (
+                i[1]["tp"],
+                i[1]["fn"],
+                i[1]["fp"],
+                i[1]["actual"],
+            ),
+            reverse=True,
         )
-        sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["wrong"], reverse=True)
-        sorted_cwes = sorted(sorted_cwes, key=lambda i: i[1]["good"], reverse=True)
+
         for cwe, v in sorted_cwes[: self.limit]:
             X.append(f"{cwe.name} (ID: {cwe.id})")
             Y1.append(v["actual"])
-            Y2.append(v["good"])
-            Y3.append(v["wrong"])
+            Y2.append(v["tp"])
+            Y3.append(v["fp"])
+            Y4.append(v["fn"])
 
         ax.set_xticks(range(len(X)), X, rotation=45, ha="right")
         ax.set_xticklabels(X)
         ax.set_yscale("log")
-        width = 0.25
+        width = 0.2
         bars1 = ax.bar(
-            [i - width for i in range(len(X))],
+            [i - 1.5 * width for i in range(len(X))],
             Y1,
             width=width,
-            label="Unique good prediction (one per CVE)",
+            label="Ground Truth",
             color="blue",
         )
         bars2 = ax.bar(
-            [i for i in range(len(X))],
+            [i - 0.5 * width for i in range(len(X))],
             Y2,
             width=width,
-            label="Good prediction (multiple per CVE)",
+            label="True Positives",
             color="green",
         )
         bars3 = ax.bar(
-            [i + width for i in range(len(X))],
+            [i + 0.5 * width for i in range(len(X))],
             Y3,
             width=width,
-            label="Wrong prediction (multiple per CVE)",
+            label="False Positives",
+            color="orange",
+        )
+        bars4 = ax.bar(
+            [i + 1.5 * width for i in range(len(X))],
+            Y4,
+            width=width,
+            label="False Negatives",
             color="red",
         )
         ax.bar_label(bars1, padding=0)
         ax.bar_label(bars2, padding=0)
         ax.bar_label(bars3, padding=0)
+        ax.bar_label(bars4, padding=0)
         plt.legend()
-        fig.suptitle("TOP predicted CWEs")
+        fig.suptitle(f"TOP predicted CWEs on {self.dataset.name}")
         return fig
 
     def plot_defects_per_loc(self) -> Figure:
@@ -513,7 +556,7 @@ class GitRepoDatasetGraphics(Graphics):
         """
         b = self.benchmark_data
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        set_names = ["correct_defects", "partial_defects", "incorrect_defects"]
+        set_names = ["tp_defects", "fp_defects"]
         X, Y = [], []
         for result in b.validated_repos:
             defect_number = sum(len(result[name]) for name in set_names)
