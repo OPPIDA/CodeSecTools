@@ -7,11 +7,10 @@ necessary components (SAST class, AnalysisResult class, and Typer CLI applicatio
 and adds them to the `SASTS_ALL` dictionary.
 
 Attributes:
-    SASTS_ALL (dict): A dictionary mapping SAST tool names to their status and
-        components. Each value is a dictionary containing the tool's 'status'
-        ('full', 'partial', or 'none'). If the status is 'full' or 'partial',
-        it also includes the SAST class, the analysis result class, and the
-        CLI factory. If 'none', it includes a list of 'missing' dependencies.
+    SASTS_ALL (dict): A dictionary mapping SAST tool names to their associated data.
+        Each value is a dictionary containing the tool's 'status', a list of
+        'missing' requirements, its 'properties', the 'sast' class, the
+        'analysis_result' class, and the 'cli_factory'.
 
 """
 
@@ -19,7 +18,7 @@ import importlib
 
 import typer
 
-from codesectools.sasts.core.sast import SAST, AnalysisResult
+from codesectools.sasts.core.sast.sast import SAST, AnalysisResult
 from codesectools.utils import SASTS_DIR
 
 SASTS_ALL = {}
@@ -44,6 +43,7 @@ for child in SASTS_DIR.iterdir():
             SASTS_ALL[sast_name] = {
                 "status": sast_instance.status,
                 "missing": sast_instance.missing,
+                "properties": sast_instance.properties,
                 "sast": sast,
                 "analysis_result": analysis_result,
                 "cli_factory": cli_factory,

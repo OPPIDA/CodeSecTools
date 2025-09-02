@@ -23,7 +23,7 @@ from codesectools.sasts.core.graphics import (
     GitRepoDatasetGraphics,
     ProjectGraphics,
 )
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast.sast import SAST
 
 
 class CLIFactory:
@@ -63,7 +63,7 @@ class CLIFactory:
         return self.cli
 
     def _add_minimal(self: Self) -> None:
-        """Add the minimal set of standard commands to the CLI."""
+        """Add the minimal set of standard commands based on the SAST tool's status."""
         self.add_main(help=self.help_messages["main"])
         if self.sast.status == "full":
             self.add_analyze(help=self.help_messages["analyze"])

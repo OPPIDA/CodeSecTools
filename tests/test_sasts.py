@@ -14,8 +14,8 @@ from codesectools.sasts import SASTS_ALL
 
 
 @pytest.fixture(autouse=True, scope="module")
-def reload_sast_module_state() -> GeneratorType:
-    """Reset the state of SAST modules before running tests."""
+def update_sast_module_state() -> GeneratorType:
+    """Update the state of SAST modules between tests."""
     for sast_data in SASTS_ALL.values():
         sast_instance = sast_data["sast"]()
         sast_data["cli_factory"].sast.__init__()
@@ -40,12 +40,12 @@ Runtime.getRuntime().exec("ping -c 1 " + userInput);""",
 
 
 def test_included() -> None:
-    """Ensure that specific SASTs are fully available for testing."""
-    included_sasts = ["SemgrepCE"]
-    for included_sast in included_sasts:
-        sast_data = SASTS_ALL[included_sast]
-        if sast_data["status"] != "full":
-            pytest.fail(f"{sast_data['missing']} are missing for {included_sast}")
+    """Ensure that all free and offline SASTs are available for testing."""
+    for sast_name, sast_data in SASTS_ALL.items():
+        sast_properties = sast_data["properties"]
+        if sast_properties.free and sast_properties.offline:
+            if sast_data["status"] != "full":
+                pytest.fail(f"{sast_data['missing']} are missing for {sast_name}")
 
 
 def test_sasts() -> None | AssertionError:
