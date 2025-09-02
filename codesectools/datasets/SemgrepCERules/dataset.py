@@ -17,7 +17,7 @@ from codesectools.shared.cwe import CWE, CWEs
 class TestFile(File):
     """Represents a single test file derived from a Semgrep rule's test case.
 
-    Inherits from the base `File` class. The `is_real` attribute is always
+    Inherits from the base `File` class. The `has_vuln` attribute is always
     True for this dataset as test cases represent true positives.
     """
 
@@ -26,7 +26,7 @@ class TestFile(File):
         filename: str,
         content: str | bytes,
         cwes: list[CWE],
-        is_real: bool = True,
+        has_vuln: bool = True,
     ) -> None:
         """Initialize a TestFile instance.
 
@@ -34,11 +34,11 @@ class TestFile(File):
             filename: The name of the file.
             content: The content of the file, as a string or bytes.
             cwes: A list of CWEs associated with the file.
-            is_real: A boolean indicating if the vulnerability is real.
+            has_vuln: A boolean indicating if the vulnerability is real.
                      Defaults to True.
 
         """
-        super().__init__(filename=filename, content=content, cwes=cwes, is_real=True)
+        super().__init__(filename=filename, content=content, cwes=cwes, has_vuln=True)
 
 
 class SemgrepCERules(FileDataset):

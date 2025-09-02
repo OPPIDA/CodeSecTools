@@ -16,7 +16,7 @@ from matplotlib.figure import Figure
 from rich import print
 
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast.sast import SAST
 from codesectools.shared.cwe import CWE
 
 ## Matplotlib config
@@ -257,7 +257,7 @@ class FileDatasetGraphics(ProjectGraphics):
         self.plot_functions.extend([self.plot_top_cwes])
 
     def plot_top_cwes(self) -> Figure:
-        """Generate a plot showing the top predicted CWEs vs. ground truth.
+        """Generate a plot showing the top predicted CWEs.
 
         Returns:
             A Matplotlib Figure object containing the plot.
@@ -269,11 +269,7 @@ class FileDatasetGraphics(ProjectGraphics):
 
         def init_cwe_counter(cwe: CWE) -> None:
             if cwe not in cwe_counter:
-                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0, "actual": 0}
-
-        for cwe in b.cwes_list:
-            init_cwe_counter(cwe)
-            cwe_counter[cwe]["actual"] += 1
+                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0}
 
         for cwe in b.tp_cwes:
             init_cwe_counter(cwe)
@@ -287,54 +283,45 @@ class FileDatasetGraphics(ProjectGraphics):
             init_cwe_counter(cwe)
             cwe_counter[cwe]["fn"] += 1
 
-        X, Y1, Y2, Y3, Y4 = [], [], [], [], []
-        # Sort by TP, then FN, then FP, then ground truth
+        X, Y1, Y2, Y3 = [], [], [], []
+        # Sort by TP, then FN, then FP
         sorted_cwes = sorted(
             list(cwe_counter.items()),
             key=lambda i: (
                 i[1]["tp"],
                 i[1]["fn"],
                 i[1]["fp"],
-                i[1]["actual"],
             ),
             reverse=True,
         )
 
         for cwe, v in sorted_cwes[: self.limit]:
             X.append(f"{cwe.name} (ID: {cwe.id})")
-            Y1.append(v["actual"])
-            Y2.append(v["tp"])
-            Y3.append(v["fp"])
-            Y4.append(v["fn"])
+            Y1.append(v["tp"])
+            Y2.append(v["fp"])
+            Y3.append(v["fn"])
 
         ax.set_xticks(range(len(X)), X, rotation=45, ha="right")
         ax.set_xticklabels(X)
         ax.set_yscale("log")
-        width = 0.2
+        width = 0.25
         bars1 = ax.bar(
-            [i - 1.5 * width for i in range(len(X))],
+            [i - width for i in range(len(X))],
             Y1,
-            width=width,
-            label="Ground Truth",
-            color="blue",
-        )
-        bars2 = ax.bar(
-            [i - 0.5 * width for i in range(len(X))],
-            Y2,
             width=width,
             label="True Positives",
             color="green",
         )
-        bars3 = ax.bar(
-            [i + 0.5 * width for i in range(len(X))],
-            Y3,
+        bars2 = ax.bar(
+            [i for i in range(len(X))],
+            Y2,
             width=width,
             label="False Positives",
             color="orange",
         )
-        bars4 = ax.bar(
-            [i + 1.5 * width for i in range(len(X))],
-            Y4,
+        bars3 = ax.bar(
+            [i + width for i in range(len(X))],
+            Y3,
             width=width,
             label="False Negatives",
             color="red",
@@ -342,7 +329,6 @@ class FileDatasetGraphics(ProjectGraphics):
         ax.bar_label(bars1, padding=0)
         ax.bar_label(bars2, padding=0)
         ax.bar_label(bars3, padding=0)
-        ax.bar_label(bars4, padding=0)
         plt.legend()
         fig.suptitle("TOP predicted CWEs")
         return fig
@@ -452,7 +438,7 @@ class GitRepoDatasetGraphics(Graphics):
         return fig
 
     def plot_top_cwes(self) -> Figure:
-        """Generate a plot showing the top predicted CWEs vs. ground truth.
+        """Generate a plot showing the top predicted CWEs.
 
         Returns:
             A Matplotlib Figure object containing the plot.
@@ -464,14 +450,9 @@ class GitRepoDatasetGraphics(Graphics):
 
         def init_cwe_counter(cwe: CWE) -> None:
             if cwe not in cwe_counter:
-                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0, "actual": 0}
+                cwe_counter[cwe] = {"tp": 0, "fp": 0, "fn": 0}
 
         for result in b.validated_repos:
-            # Ground truth
-            for cwe in result["cwes_list"]:
-                init_cwe_counter(cwe)
-                cwe_counter[cwe]["actual"] += 1
-
             # True Positives
             for cwe in result["tp_cwes"]:
                 init_cwe_counter(cwe)
@@ -483,58 +464,49 @@ class GitRepoDatasetGraphics(Graphics):
                 cwe_counter[cwe]["fp"] += 1
 
             # False Negatives
-            for cwe in result["fn_defects"]:
+            for cwe in result["fn_cwes"]:
                 init_cwe_counter(cwe)
                 cwe_counter[cwe]["fn"] += 1
 
-        X, Y1, Y2, Y3, Y4 = [], [], [], [], []
-        # Sort by TP, then FN, then FP, then ground truth
+        X, Y1, Y2, Y3 = [], [], [], []
+        # Sort by TP, then FN, then FP
         sorted_cwes = sorted(
             list(cwe_counter.items()),
             key=lambda i: (
                 i[1]["tp"],
                 i[1]["fn"],
                 i[1]["fp"],
-                i[1]["actual"],
             ),
             reverse=True,
         )
 
         for cwe, v in sorted_cwes[: self.limit]:
             X.append(f"{cwe.name} (ID: {cwe.id})")
-            Y1.append(v["actual"])
-            Y2.append(v["tp"])
-            Y3.append(v["fp"])
-            Y4.append(v["fn"])
+            Y1.append(v["tp"])
+            Y2.append(v["fp"])
+            Y3.append(v["fn"])
 
         ax.set_xticks(range(len(X)), X, rotation=45, ha="right")
         ax.set_xticklabels(X)
         ax.set_yscale("log")
-        width = 0.2
+        width = 0.25
         bars1 = ax.bar(
-            [i - 1.5 * width for i in range(len(X))],
+            [i - width for i in range(len(X))],
             Y1,
-            width=width,
-            label="Ground Truth",
-            color="blue",
-        )
-        bars2 = ax.bar(
-            [i - 0.5 * width for i in range(len(X))],
-            Y2,
             width=width,
             label="True Positives",
             color="green",
         )
-        bars3 = ax.bar(
-            [i + 0.5 * width for i in range(len(X))],
-            Y3,
+        bars2 = ax.bar(
+            [i for i in range(len(X))],
+            Y2,
             width=width,
             label="False Positives",
             color="orange",
         )
-        bars4 = ax.bar(
-            [i + 1.5 * width for i in range(len(X))],
-            Y4,
+        bars3 = ax.bar(
+            [i + width for i in range(len(X))],
+            Y3,
             width=width,
             label="False Negatives",
             color="red",
@@ -542,7 +514,6 @@ class GitRepoDatasetGraphics(Graphics):
         ax.bar_label(bars1, padding=0)
         ax.bar_label(bars2, padding=0)
         ax.bar_label(bars3, padding=0)
-        ax.bar_label(bars4, padding=0)
         plt.legend()
         fig.suptitle(f"TOP predicted CWEs on {self.dataset.name}")
         return fig

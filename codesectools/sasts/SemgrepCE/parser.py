@@ -19,10 +19,9 @@ class SemgrepCEFinding(Defect):
     """Represents a single finding reported by Semgrep Community Edition.
 
     Parses defect data from the Semgrep JSON output to extract file, checker,
-    category, CWE, severity, and line information.
+    category, CWE, and line information.
 
     Attributes:
-        severity (str): The severity level of the finding (e.g., "ERROR").
         lines (str): The line or lines of code where the finding occurred.
 
     """
@@ -38,7 +37,7 @@ class SemgrepCEFinding(Defect):
         super().__init__(
             file=Path(defect_data["path"]).name,
             checker=defect_data["check_id"].split(".")[-1],
-            category=defect_data["extra"]["metadata"]["impact"],
+            category=defect_data["extra"]["metadata"].get("impact", "NONE"),
             cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),
             data=defect_data,
         )

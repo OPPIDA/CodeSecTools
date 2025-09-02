@@ -31,7 +31,7 @@ class TestCode(File):
         content: str | bytes,
         cwes: list[CWE],
         vuln_type: str,
-        is_real: bool,
+        has_vuln: bool,
     ) -> None:
         """Initialize a TestCode instance.
 
@@ -40,10 +40,12 @@ class TestCode(File):
             content: The content of the file, as a string or bytes.
             cwes: A list of CWEs associated with the file.
             vuln_type: The type of vulnerability.
-            is_real: A boolean indicating if the vulnerability is real or a false positive test case.
+            has_vuln: A boolean indicating if the vulnerability is real or a false positive test case.
 
         """
-        super().__init__(filename=filename, content=content, cwes=cwes, is_real=is_real)
+        super().__init__(
+            filename=filename, content=content, cwes=cwes, has_vuln=has_vuln
+        )
 
         self.vuln_type = vuln_type
 
@@ -141,7 +143,7 @@ class BenchmarkJava(FileDataset):
             content = (testcode_dir / filename).read_text()
             cwes = [CWEs.from_id(int(row[3]))]
             vuln_type = row[1]
-            is_real = True if row[2] == "true" else False
-            files.append(TestCode(filename, content, cwes, vuln_type, is_real))
+            has_vuln = True if row[2] == "true" else False
+            files.append(TestCode(filename, content, cwes, vuln_type, has_vuln))
 
         return files

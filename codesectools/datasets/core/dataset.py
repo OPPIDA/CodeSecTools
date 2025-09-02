@@ -158,13 +158,13 @@ class File(DatasetUnit):
         filename (str): The name of the file.
         content (bytes): The byte content of the file.
         cwes (list[CWE]): A list of CWEs associated with the file.
-        is_real (bool): True if the vulnerability is real, False if it's
+        has_vuln (bool): True if the vulnerability is real, False if it's
             intended to be a false positive test case.
 
     """
 
     def __init__(
-        self, filename: str, content: str | bytes, cwes: list[CWE], is_real: bool
+        self, filename: str, content: str | bytes, cwes: list[CWE], has_vuln: bool
     ) -> None:
         """Initialize a File instance.
 
@@ -173,14 +173,14 @@ class File(DatasetUnit):
             content: The content of the file, as a string or bytes. It will be
                 converted to bytes if provided as a string.
             cwes: A list of CWEs associated with the file.
-            is_real: True if the vulnerability is real, False if it's
+            has_vuln: True if the vulnerability is real, False if it's
                 intended to be a false positive test case.
 
         """
         self.filename = filename
         self.content = content
         self.cwes = cwes
-        self.is_real = is_real
+        self.has_vuln = has_vuln
 
         if isinstance(content, str):
             self.content = content.encode()
@@ -259,75 +259,60 @@ class FileDataset(Dataset):
             A `FileDatasetData` object containing the validation metrics.
 
         """
-        # 1. Prepare ground truth data from vulnerable files (`is_real=True`)
-        ground_truth_vulns: dict[str, set[CWE]] = {}
-        for file in self.files:
-            if file.is_real:
-                ground_truth_vulns[file.filename] = set(file.cwes)
+        # 1. Prepare ground truth from all files in the dataset
+        ground_truth: dict[str, tuple[bool, set[CWE]]] = {
+            file.filename: (file.has_vuln, set(file.cwes)) for file in self.files
+        }
 
         # 2. Process reported defects to get unique (file, cwe) pairs
-        unique_reported_vulns: dict[str, set[CWE]] = {}
-        # Keep one original Defect object for each unique finding to retain metadata
-        original_defects_map: dict[tuple[str, CWE], Defect] = {}
-
+        # and keep one original Defect object for each to retain metadata.
+        unique_reported_defects: dict[tuple[str, CWE], Defect] = {}
         for defect in analysis_result.defects:
-            # Ignore defects without a valid CWE
             if not defect.cwe or defect.cwe.id == -1:
                 continue
 
             file_cwe_pair = (defect.file, defect.cwe)
+            if file_cwe_pair not in unique_reported_defects:
+                unique_reported_defects[file_cwe_pair] = defect
 
-            # If we haven't seen this specific vulnerability (file + cwe) before...
-            if file_cwe_pair not in original_defects_map:
-                original_defects_map[file_cwe_pair] = defect
+        # 3. Classify unique reported vulnerabilities as TP or FP
+        tp_defects_map: dict[tuple[str, CWE], Defect] = {}
+        fp_defects_map: dict[tuple[str, CWE], Defect] = {}
 
-                if defect.file not in unique_reported_vulns:
-                    unique_reported_vulns[defect.file] = set()
-                unique_reported_vulns[defect.file].add(defect.cwe)
+        for (filename, cwe), defect in unique_reported_defects.items():
+            has_vuln, expected_cwes = ground_truth.get(filename, (False, set()))
 
-        # 3. Classify unique reported vulnerabilities
-        tp_defects_set: set[tuple[str, CWE]] = set()
-        fp_defects_set: set[tuple[str, CWE]] = set()
-
-        for filename, reported_cwes in unique_reported_vulns.items():
-            expected_cwes = ground_truth_vulns.get(filename, set())
-
-            # True Positives are reported CWEs that match the ground truth for that file.
-            tp_for_file = reported_cwes.intersection(expected_cwes)
-            for cwe in tp_for_file:
-                tp_defects_set.add((filename, cwe))
-
-            # False Positives are reported CWEs that do not match the ground truth.
-            # This includes findings in non-vulnerable files or with incorrect CWEs.
-            fp_for_file = reported_cwes.difference(expected_cwes)
-            for cwe in fp_for_file:
-                fp_defects_set.add((filename, cwe))
+            if has_vuln and cwe in expected_cwes:
+                # Correctly identified a vulnerability
+                tp_defects_map[(filename, cwe)] = defect
+            else:
+                # Reported a vuln in a non-vulnerable file, with wrong CWE,
+                # or in a file not part of the dataset.
+                fp_defects_map[(filename, cwe)] = defect
 
         # 4. Determine False Negatives by finding what was missed from the ground truth.
         fn_defects_set: set[tuple[str, CWE]] = set()
-        for filename, expected_cwes in ground_truth_vulns.items():
-            reported_cwes = unique_reported_vulns.get(filename, set())
-            missed_cwes = expected_cwes.difference(reported_cwes)
-            for cwe in missed_cwes:
-                fn_defects_set.add((filename, cwe))
+        for filename, (has_vuln, expected_cwes) in ground_truth.items():
+            if has_vuln:
+                for expected_cwe in expected_cwes:
+                    if (filename, expected_cwe) not in tp_defects_map:
+                        fn_defects_set.add((filename, expected_cwe))
 
-        # 5. Convert sets back to lists of objects for downstream use
-        tp_defects = [original_defects_map[pair] for pair in tp_defects_set]
-        fp_defects = [original_defects_map[pair] for pair in fp_defects_set]
+        # 5. Convert maps and sets to lists of objects for downstream use
+        tp_defects = list(tp_defects_map.values())
+        fp_defects = list(fp_defects_map.values())
         fn_defects = list(fn_defects_set)
 
         # 6. Prepare data for the result object
         file_number = len(self.files)
-        defect_number = len(
-            analysis_result.defects
-        )  # Total defects reported by the tool
-        cwes_list = [cwe for file in self.files if file.is_real for cwe in file.cwes]
+        defect_number = len(analysis_result.defects)
+        cwes_list = [cwe for file in self.files if file.has_vuln for cwe in file.cwes]
 
-        tp_cwes = [cwe for _, cwe in tp_defects_set]
-        fp_cwes = [cwe for _, cwe in fp_defects_set]
+        tp_cwes = [cwe for _, cwe in tp_defects_map.keys()]
+        fp_cwes = [cwe for _, cwe in fp_defects_map.keys()]
         fn_cwes = [cwe for _, cwe in fn_defects_set]
 
-        unique_correct_number = len({filename for filename, _ in tp_defects_set})
+        unique_correct_number = len({filename for filename, _ in tp_defects_map.keys()})
 
         return FileDatasetData(
             dataset=self,
@@ -421,6 +406,7 @@ class GitRepo(DatasetUnit):
         cwes (list[CWE]): A list of CWEs associated with the repository.
         files (list[str]): A list of filenames known to be vulnerable in
             this commit.
+        has_vuln (bool): True if there is really a vuln in the gitrepo.
 
     """
 
@@ -432,6 +418,7 @@ class GitRepo(DatasetUnit):
         size: int,
         cwes: list[CWE],
         files: list[str],
+        has_vuln: bool,
     ) -> None:
         """Initialize a GitRepo instance.
 
@@ -442,6 +429,7 @@ class GitRepo(DatasetUnit):
             size: The size of the repository in bytes.
             cwes: A list of CWEs associated with the repository.
             files: A list of vulnerable files in the specified commit.
+            has_vuln: True if there is really a vuln in the gitrepo.
 
         """
         self.name = name
@@ -450,6 +438,7 @@ class GitRepo(DatasetUnit):
         self.size = size
         self.cwes = cwes
         self.files = files
+        self.has_vuln = has_vuln
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the GitRepo.
@@ -524,7 +513,8 @@ class GitRepoDataset(Dataset):
 
         Compare the defects found by a SAST tool for each repository with the
         known vulnerabilities (CWEs and file locations) in the dataset to
-        categorize them as true positives and false positives.
+        categorize them as true positives, false positives, and false negatives.
+        Each unique (file, CWE) pair is counted once per repository.
 
         Args:
             analysis_results: A list of analysis results, one for each repository.
@@ -540,32 +530,51 @@ class GitRepoDataset(Dataset):
         for analysis_result in analysis_results:
             repo = self.repos[self.repos.index(analysis_result.name)]
 
-            # De-duplicate defects from the tool per repo to count unique findings
-            unique_defects = {
-                (d.file, d.cwe): d
-                for d in analysis_result.defects
-                if d.cwe and d.cwe.id != -1
-            }
+            # 1. Process reported defects to get unique (file, cwe) pairs
+            # and keep one original Defect object for each to retain metadata.
+            unique_reported_defects: dict[tuple[str, CWE], Defect] = {}
+            for defect in analysis_result.defects:
+                if not defect.cwe or defect.cwe.id == -1:
+                    continue
 
-            tp_defects = []
-            fp_defects = []
+                file_cwe_pair = (defect.file, defect.cwe)
+                if file_cwe_pair not in unique_reported_defects:
+                    unique_reported_defects[file_cwe_pair] = defect
 
-            for (filename, cwe), defect in unique_defects.items():
-                # True Positive: vulnerable file and correct CWE
-                if filename in repo.files and cwe in repo.cwes:
-                    tp_defects.append(defect)
-                # False Positive: vulnerable file but wrong CWE, or not a vulnerable file
-                else:
-                    fp_defects.append(defect)
+            # 2. Classify unique reported defects as TP or FP.
+            tp_defects_map: dict[tuple[str, CWE], Defect] = {}
+            fp_defects_map: dict[tuple[str, CWE], Defect] = {}
 
-            # Extract CWEs for each category
-            tp_cwes = [d.cwe for d in tp_defects]
-            fp_cwes = [d.cwe for d in fp_defects]
+            if repo.has_vuln:
+                for (filename, cwe), defect in unique_reported_defects.items():
+                    # A reported defect is a TP if it's in a known vulnerable file
+                    # with a known CWE for that repo.
+                    if filename in repo.files and cwe in repo.cwes:
+                        tp_defects_map[(filename, cwe)] = defect
+                    else:
+                        fp_defects_map[(filename, cwe)] = defect
+            else:  # repo.has_vuln is False
+                # This repo is not supposed to have vulnerabilities. All findings are FPs.
+                fp_defects_map = unique_reported_defects
 
-            # Determine False Negatives: ground truth CWEs that were not found correctly
-            ground_truth_cwes = set(repo.cwes)
-            found_tp_cwes = set(tp_cwes)
-            fn_defects = list(ground_truth_cwes - found_tp_cwes)
+            # 3. Determine False Negatives by finding what was missed from the ground truth.
+            fn_defects_set: set[tuple[str, CWE]] = set()
+            if repo.has_vuln:
+                # Ground truth is all combinations of vulnerable files and expected CWEs for this repo.
+                for vulnerable_file in repo.files:
+                    for expected_cwe in repo.cwes:
+                        if (vulnerable_file, expected_cwe) not in tp_defects_map:
+                            fn_defects_set.add((vulnerable_file, expected_cwe))
+
+            # 4. Convert maps and sets to lists for the result dictionary.
+            tp_defects = list(tp_defects_map.values())
+            fp_defects = list(fp_defects_map.values())
+            fn_defects = list(fn_defects_set)
+
+            # Extract CWEs for each category for plotting and stats.
+            tp_cwes = [cwe for _, cwe in tp_defects_map.keys()]
+            fp_cwes = [cwe for _, cwe in fp_defects_map.keys()]
+            fn_cwes = [cwe for _, cwe in fn_defects_set]
 
             result = {
                 "tp_defects": tp_defects,
@@ -574,6 +583,7 @@ class GitRepoDataset(Dataset):
                 "cwes_list": repo.cwes,
                 "tp_cwes": tp_cwes,
                 "fp_cwes": fp_cwes,
+                "fn_cwes": fn_cwes,
                 "time": analysis_result.time,
                 "loc": analysis_result.loc,
             }
