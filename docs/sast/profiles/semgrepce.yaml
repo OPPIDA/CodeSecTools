@@ -12,4 +12,8 @@ legal:
 requirements:
   - An existing installation of Semgrep.
   - An internet connection is required to download [semgrep-rules](https://github.com/semgrep/semgrep-rules).
-extra: null
+extra: |
+    !!! warning "Key Considerations"
+        While the Semgrep Community Edition analysis tool (engine) is free, the rules it used may not be completely free.
+        
+        The analysis tool is using Semgrep Community Edition Rules which are licenced under [Semgrep Rules License v. 1.0](https://semgrep.dev/legal/rules-license) which only allows for *only for your own internal business purposes*.
