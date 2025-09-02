@@ -20,6 +20,7 @@ nav:
     - api/index.md 
     - SASTs: api/sast.md 
     - Datasets: api/dataset.md
+    - Shared: api/shared.md
 
 theme:
   name: material
