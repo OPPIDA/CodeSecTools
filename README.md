@@ -6,6 +6,14 @@
 
 A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
 
+## Overview
+
+**CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SASTs, datasets, and codebases), providing standardized interfaces to help them interact easily.
+
+<div align="center">
+  <img src="docs/assets/overview.svg" alt="Logo" style="width: auto; height: auto;" />
+</div>
+
 ## Installation
   
 ```bash
