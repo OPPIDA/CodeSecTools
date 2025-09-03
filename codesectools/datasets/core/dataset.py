@@ -102,10 +102,10 @@ By proceeding, you agree to abide by its terms.""",
         """Handle the full dataset download process, including license prompt and caching."""
         self.prompt_license_agreement()
         with Progress() as progress:
-            progress.add_task(f"[red]Downloading {self.name}...", total=None)
+            progress.add_task(f"Downloading [b]{self.name}[/b]...", total=None)
             self.download_files()
         (self.directory / ".complete").write_bytes(b"\x42")
-        print(f"{self.name} has been downloaded at {self.directory}.")
+        print(f"[b]{self.name}[/b] has been downloaded at {self.directory}.")
 
     @abstractmethod
     def load_dataset(self) -> list[File]:
@@ -152,7 +152,7 @@ class BenchmarkData:
 
 
 class File(DatasetUnit):
-    """Represents a single file in a dataset.
+    """Represent a single file in a dataset.
 
     Attributes:
         filename (str): The name of the file.
@@ -396,7 +396,7 @@ class FileDatasetData(BenchmarkData):
 
 
 class GitRepo(DatasetUnit):
-    """Represents a single Git repository in a dataset.
+    """Represent a single Git repository in a dataset.
 
     Attributes:
         name (str): A unique name for the repository, often a CVE ID.

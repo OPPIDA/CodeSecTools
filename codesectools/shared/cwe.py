@@ -109,7 +109,9 @@ class CWEsCollection:
     def download(self) -> None:
         """Download CWE data from the official MITRE website."""
         with Progress() as progress:
-            task = progress.add_task("[red]Downloading CWEs...", total=100)
+            task = progress.add_task(
+                "[red]Downloading CWEs from [b]cwe.mitre.org[/b]...", total=100
+            )
             for filename in self.cwes_data.values():
                 if not (self.directory / filename).is_file():
                     zip_file = io.BytesIO(
