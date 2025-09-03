@@ -35,7 +35,7 @@ class CoveritySAST(SAST):
 
     name = "Coverity"
     supported_languages = LANGUAGES.keys()
-    supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
+    supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=True, buildless=True)
     requirements = SASTRequirements(
         full_reqs=[

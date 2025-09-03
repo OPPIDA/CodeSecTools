@@ -14,7 +14,7 @@ from codesectools.utils import USER_CONFIG_DIR
 
 
 class SnykCodeSAST(SAST):
-    """SAST integration for Snyk Code.
+    """Provide the SAST integration for Snyk Code.
 
     Attributes:
         name (str): The name of the SAST tool.
@@ -32,7 +32,7 @@ class SnykCodeSAST(SAST):
 
     name = "SnykCode"
     supported_languages = ["java"]
-    supported_dataset_names = ["SemgrepCERules", "BenchmarkJava", "CVEfixes"]
+    supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=False, buildless=True)
     requirements = SASTRequirements(
         full_reqs=[
