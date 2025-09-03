@@ -6,11 +6,10 @@ the execution of Semgrep Community Edition scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.datasets.SemgrepCERules.dataset import SemgrepCERules
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import (
     Binary,
-    DatasetCache,
+    GitRepo,
     SASTRequirements,
 )
 from codesectools.sasts.core.sast.sast import SAST
@@ -43,13 +42,18 @@ class SemgrepCESAST(SAST):
         full_reqs=[
             Binary("semgrep", url="https://semgrep.dev/docs/getting-started/quickstart")
         ],
-        partial_reqs=[DatasetCache("SemgrepCERules")],
+        partial_reqs=[
+            GitRepo(
+                name="semgrep-rules",
+                repo_url="https://github.com/semgrep/semgrep-rules.git",
+            )
+        ],
     )
     commands = [
         [
             "semgrep",
             "scan",
-            f"--config={str(USER_CACHE_DIR / SemgrepCERules.name / '{lang}')}",
+            f"--config={str(USER_CACHE_DIR / 'semgrep-rules' / '{lang}')}",
             "--metrics=off",
             "--json-output=semgrep_output.json",
         ]

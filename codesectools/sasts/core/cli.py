@@ -27,7 +27,7 @@ from codesectools.sasts.core.sast.sast import SAST
 
 
 class CLIFactory:
-    """A factory to generate a standard set of CLI commands for a SAST tool.
+    """Provide a factory to generate a standard set of CLI commands for a SAST tool.
 
     Attributes:
         cli (typer.Typer): The `typer` application to which commands will be added.
@@ -109,7 +109,7 @@ class CLIFactory:
             install_help = ""
             sast_reqs = self.sast.requirements
             missing_reqs = sast_reqs.get_missing()
-            for req in sast_reqs.full_reqs + sast_reqs.partial_reqs:
+            for req in sast_reqs.full + sast_reqs.partial:
                 install_help += (
                     f"{'❌' if req in missing_reqs else '✅'} [b]{req}[/b]\n"
                 )
