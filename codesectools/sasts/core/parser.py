@@ -14,7 +14,7 @@ from codesectools.shared.cwe import CWE
 
 
 class Defect:
-    """Represents a single defect or finding reported by a SAST tool.
+    """Represent a single defect or finding reported by a SAST tool.
 
     Attributes:
         file (str): The name of the file where the defect was found.
@@ -137,7 +137,7 @@ class AnalysisResult(ABC):
         pass
 
     @classmethod
-    def load_from_output_dirs(cls, output_dirs: str) -> list[Self]:
+    def load_from_output_dirs(cls, output_dirs: list[str]) -> list[Self]:
         """Load and parse analysis results from multiple directories.
 
         Args:

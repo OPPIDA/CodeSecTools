@@ -357,7 +357,7 @@ class GitRepoDatasetGraphics(Graphics):
         analyzed_repo = {repo.name for repo in dataset.repos} & set(
             dir.name for dir in self.output_dir.iterdir()
         )
-        repo_paths = (self.output_dir / repo_name for repo_name in analyzed_repo)
+        repo_paths = [self.output_dir / repo_name for repo_name in analyzed_repo]
         self.results = sast.parser.load_from_output_dirs(repo_paths)
         self.benchmark_data = self.dataset.validate(self.results)
         self.plot_functions.extend(
