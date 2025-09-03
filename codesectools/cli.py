@@ -9,13 +9,15 @@ import os
 from typing import Optional
 
 import typer
+from click import Choice
 from rich import print
 from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
-from codesectools.datasets.core.cli import cli as dataset_cli
+from codesectools.datasets.core.dataset import Dataset
 from codesectools.sasts import SASTS_ALL
+from codesectools.sasts.core.sast.requirements import DownloadableRequirement
 
 cli = typer.Typer(name="cstools", no_args_is_help=True)
 
@@ -63,19 +65,21 @@ def status(
         for sast_name, sast_data in SASTS_ALL.items():
             if sast_data["status"] == "full":
                 table.add_row(
-                    sast_name, "Full ✅", f"See subcommand [b]{sast_name.lower()}[/b]"
+                    sast_name,
+                    "Full ✅",
+                    "[b]Analysis[/b] and [b]result parsing[/b] are available",
                 )
             elif sast_data["status"] == "partial":
                 table.add_row(
                     sast_name,
                     "Partial ⚠️",
-                    f"See subcommand [b]{sast_name.lower()}[/b]\nMissing: [b]{sast_data['missing']}[/b]",
+                    f"Only [b]result parsing[/b] is available\nMissing: [red]{sast_data['missing']}[/red]",
                 )
             else:
                 table.add_row(
                     sast_name,
                     "None ❌",
-                    f"Missing: [b]{sast_data['missing']}[/b]",
+                    f"[b]Nothing[/b] is available\nMissing: [red]{sast_data['missing']}[/red]",
                 )
         print(table)
 
@@ -98,12 +102,62 @@ def status(
                     dataset_name,
                     dataset.__bases__[0].__name__,
                     "❌",
-                    f"[red]cstools dataset download {dataset_name}[/red]",
+                    f"Download with: [i red]cstools download {dataset_name}[/i red]",
                 )
         print(table)
 
 
-cli.add_typer(dataset_cli)
+def get_downloadable() -> dict[str, DownloadableRequirement | Dataset]:
+    """Identify and collect all missing downloadable resources.
+
+    Collects unfulfilled `DownloadableRequirement` instances from all SASTs
+    and un-cached `Dataset` instances.
+
+    Returns:
+        A dictionary mapping the resource name to its downloadable object.
+
+    """
+    downloadable = {}
+
+    for _, sast_data in SASTS_ALL.items():
+        sast = sast_data["sast"]
+        for req in sast.requirements.all:
+            if isinstance(req, DownloadableRequirement):
+                if not req.is_fulfilled():
+                    downloadable[req.name] = req
+
+    for dataset_name, dataset in DATASETS_ALL.items():
+        dataset_instance = dataset()
+        if not dataset.is_cached():
+            downloadable[dataset_name] = dataset_instance
+
+    return downloadable
+
+
+if DOWNLOADABLE := get_downloadable():
+
+    @cli.command()
+    def download(
+        name: Annotated[
+            str,
+            typer.Argument(
+                click_type=Choice(["all"] + list(DOWNLOADABLE)),
+                metavar="NAME",
+            ),
+        ],
+    ) -> None:
+        """Download missing resources."""
+        if name == "all":
+            targets = DOWNLOADABLE.values()
+        else:
+            targets = [DOWNLOADABLE[name]]
+
+        for downloadable in targets:
+            if isinstance(downloadable, DownloadableRequirement):
+                downloadable.download()
+            else:
+                downloadable.download_dataset()
+
 
 for _, sast_data in SASTS_ALL.items():
     cli.add_typer(sast_data["cli_factory"].build_cli())
