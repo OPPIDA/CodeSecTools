@@ -136,6 +136,8 @@ class GitRepo(DownloadableRequirement):
         self,
         name: str,
         repo_url: str,
+        license: str,
+        license_url: str,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -145,6 +147,8 @@ class GitRepo(DownloadableRequirement):
         Args:
             name: The name of the requirement.
             repo_url: The URL of the Git repository to clone.
+            license: The license of the repository.
+            license_url: A URL for the repository's license.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
             doc: A flag indicating if the instruction is available in the documentaton.
@@ -152,6 +156,8 @@ class GitRepo(DownloadableRequirement):
         """
         super().__init__(name, instruction, url, doc)
         self.repo_url = repo_url
+        self.license = license
+        self.license_url = license_url
         self.directory = USER_CACHE_DIR / self.name
 
     def is_fulfilled(self, **kwargs: dict) -> bool:
@@ -161,8 +167,10 @@ class GitRepo(DownloadableRequirement):
     def download(self, **kwargs: dict) -> None:
         """Prompt for license agreement and clone the Git repository."""
         panel = Panel(
-            f"""Git repository:\t[b]{self.name}[/b]
-Repository URL:\t[u]{self.repo_url}[/u]
+            f"""Repository:\t[b]{self.name}[/b]
+Repository URL:\t[u]{self.repo_url.rstrip(".git")}[/u]
+License:\t[b]{self.license}[/b]
+License URL:\t[u]{self.license_url}[/u]
 
 Please review the license of the repository at the URL above.
 By proceeding, you agree to abide by its terms.""",

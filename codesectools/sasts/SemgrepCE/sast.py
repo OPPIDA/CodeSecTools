@@ -46,6 +46,8 @@ class SemgrepCESAST(SAST):
             GitRepo(
                 name="semgrep-rules",
                 repo_url="https://github.com/semgrep/semgrep-rules.git",
+                license="Semgrep Rules License v. 1.0",
+                license_url="https://semgrep.dev/legal/rules-license/",
             )
         ],
     )

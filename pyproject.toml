@@ -1,6 +1,6 @@
 [project]
 name = "CodeSecTools"
-version = "0.6.3"
+version = "0.6.4"
 description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
