@@ -20,11 +20,13 @@ RUN apt update -qq && \
     apt install \
         git \
         cloc \
+        curl \
     -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
 # Free SASTs only
 RUN pip install --no-cache semgrep
+RUN curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | BINDIR=/usr/bin sh
 
 COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
