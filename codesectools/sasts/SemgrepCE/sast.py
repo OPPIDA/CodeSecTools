@@ -6,13 +6,13 @@ the execution of Semgrep Community Edition scans using the core SAST framework.
 
 from pathlib import Path
 
+from codesectools.sasts.core.sast import SAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import (
     Binary,
     GitRepo,
     SASTRequirements,
 )
-from codesectools.sasts.core.sast.sast import SAST
 from codesectools.sasts.SemgrepCE.parser import SemgrepCEAnalysisResult
 from codesectools.utils import USER_CACHE_DIR
 

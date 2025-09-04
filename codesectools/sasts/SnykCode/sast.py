@@ -6,9 +6,9 @@ the execution of Snyk Code scans using the core SAST framework.
 
 from pathlib import Path
 
+from codesectools.sasts.core.sast import SAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import Binary, Config, SASTRequirements
-from codesectools.sasts.core.sast.sast import SAST
 from codesectools.sasts.SnykCode.parser import SnykCodeAnalysisResult
 from codesectools.utils import USER_CONFIG_DIR
 

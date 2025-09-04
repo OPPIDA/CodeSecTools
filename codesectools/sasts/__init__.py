@@ -18,7 +18,7 @@ import importlib
 
 import typer
 
-from codesectools.sasts.core.sast.sast import SAST, AnalysisResult
+from codesectools.sasts.core.sast import SAST, AnalysisResult
 from codesectools.utils import SASTS_DIR
 
 SASTS_ALL = {}

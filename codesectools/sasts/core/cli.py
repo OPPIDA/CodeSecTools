@@ -23,7 +23,7 @@ from codesectools.sasts.core.graphics import (
     GitRepoDatasetGraphics,
     ProjectGraphics,
 )
-from codesectools.sasts.core.sast.sast import SAST
+from codesectools.sasts.core.sast import SAST
 
 
 class CLIFactory:
