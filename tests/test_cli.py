@@ -5,7 +5,7 @@ import logging
 from typer.testing import CliRunner
 
 from codesectools.cli import cli, get_downloadable
-from codesectools.datasets import DATASETS_ALL
+from codesectools.sasts.core.sast.requirements import DownloadableRequirement
 
 runner = CliRunner(env={"COLUMNS": "200"})
 
@@ -32,17 +32,17 @@ def test_status() -> None | AssertionError:
 
 def test_download() -> None | AssertionError:
     """Test the download of missing resources."""
-    logging.info("Downloading all missing resources")
-    result = runner.invoke(
-        cli, ["download", "all"], input="y\n" * len(get_downloadable())
-    )
+    downloadable = get_downloadable()
+    logging.info("Downloading all missing resources.")
+    result = runner.invoke(cli, ["download", "all"], input="y\n" * len(downloadable))
     assert result.exit_code == 0
 
-    for dataset_name, dataset in DATASETS_ALL.items():
-        assert dataset.is_cached()
-        for lang in dataset.supported_languages:
-            logging.info(f"Testing dataset {dataset_name} for {lang}")
-            dataset(lang=lang)
+    for name, instance in downloadable.items():
+        logging.info(f"Check if {name} is cached.")
+        if isinstance(instance, DownloadableRequirement):
+            assert instance.is_fulfilled()
+        else:
+            assert instance.is_cached()
 
     result = runner.invoke(cli, ["status", "--datasets"])
     assert "❌" not in result.output
