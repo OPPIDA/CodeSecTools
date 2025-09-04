@@ -8,7 +8,7 @@ legal:
   license_type: Copyleft
   license_url: https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE
 requirements:
-  - An internet connection is required to download the dataset.
+  - An internet connection is required **only** to download the dataset.
 extra: |
   !!! info "Dataset content"
     

@@ -11,7 +11,7 @@ legal:
   terms_url: https://semgrep.dev/legal/terms/
 requirements:
   - An existing installation of Semgrep.
-  - An internet connection is required to download [semgrep-rules](https://github.com/semgrep/semgrep-rules).
+  - An internet connection is required **only** to download [semgrep-rules](https://github.com/semgrep/semgrep-rules).
 extra: |
     !!! warning "Key Considerations"
         While the Semgrep Community Edition analysis tool (engine) is free, the rules it used may not be completely free.
