@@ -41,7 +41,7 @@ pip install .
   # Results are saved in /tmp/out
 
   print(list(Path("/tmp/out").rglob("*")))
-  # [PosixPath('/tmp/out/cstools_output.json'), PosixPath('/tmp/out/semgrep_output.json')]
+  # [PosixPath('/tmp/out/cstools_output.json'), PosixPath('/tmp/out/semgrepce_output.json')]
   ```
 
   For more information, check the [API Reference](https://oppida.github.io/CodeSecTools/api/index.html)

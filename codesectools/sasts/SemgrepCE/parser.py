@@ -91,7 +91,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
     def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse Semgrep Community Edition analysis results from a directory.
 
-        Reads `semgrep_output.json` and `cstools_output.json` to construct a complete
+        Reads `semgrepce_output.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:
@@ -108,10 +108,10 @@ class SemgrepCEAnalysisResult(AnalysisResult):
         cmdout = json.load((output_dir / "cstools_output.json").open())
 
         # Analysis outputs
-        analysis_output_path = output_dir / "semgrep_output.json"
+        analysis_output_path = output_dir / "semgrepce_output.json"
         if analysis_output_path.is_file():
             analysis_output = json.load(analysis_output_path.open("r"))
         else:
-            raise MissingFile(["output.json"])
+            raise MissingFile(["semgrepce_output.json"])
 
         return cls(output_dir, analysis_output, cmdout)

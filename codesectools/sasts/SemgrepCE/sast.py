@@ -57,11 +57,11 @@ class SemgrepCESAST(SAST):
             "scan",
             f"--config={str(USER_CACHE_DIR / 'semgrep-rules' / '{lang}')}",
             "--metrics=off",
-            "--json-output=semgrep_output.json",
+            "--json-output=semgrepce_output.json",
         ]
     ]
     output_files = [
-        (Path("semgrep_output.json"), True),
+        (Path("semgrepce_output.json"), True),
     ]
     parser = SemgrepCEAnalysisResult
     color_mapping = {
