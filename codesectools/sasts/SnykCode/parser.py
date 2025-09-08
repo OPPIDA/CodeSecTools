@@ -20,6 +20,8 @@ class SnykCodeIssue(Defect):
     category, and CWE information.
     """
 
+    sast = "SnykCode"
+
     def __init__(
         self, file: str, checker: str, category: str, cwe: CWE, data: dict
     ) -> None:

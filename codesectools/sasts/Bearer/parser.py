@@ -17,6 +17,8 @@ from codesectools.utils import MissingFile
 class BearerFinding(Defect):
     """Represent a single defect found by Bearer."""
 
+    sast = "Bearer"
+
     def __init__(self, defect_data: dict, severity: str) -> None:
         """Initialize a BearerFinding instance.
 

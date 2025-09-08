@@ -67,6 +67,8 @@ class CoverityDefect(Defect):
 
     """
 
+    sast = "Coverity"
+
     def __init__(self, defect_data: dict) -> None:
         """Initialize a CoverityDefect instance from raw defect data.
 

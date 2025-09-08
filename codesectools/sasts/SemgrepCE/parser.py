@@ -26,6 +26,8 @@ class SemgrepCEFinding(Defect):
 
     """
 
+    sast = "SemgrepCE"
+
     def __init__(self, defect_data: dict) -> None:
         """Initialize a SemgrepCEFinding instance from raw defect data.
 
