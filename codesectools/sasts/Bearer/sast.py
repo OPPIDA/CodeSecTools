@@ -69,8 +69,8 @@ class BearerSAST(SAST):
     parser = BearerAnalysisResult
     color_mapping = {
         "critical": "red",
-        "high": "orangered",
+        "high": "red",
         "medium": "orange",
-        "low": "gold",
+        "low": "yellow",
         "warning": "yellow",
     }
