@@ -17,6 +17,7 @@ from typing_extensions import Annotated
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset
 from codesectools.sasts import SASTS_ALL
+from codesectools.sasts.all.cli import cli as all_sast_cli
 from codesectools.sasts.core.sast.requirements import DownloadableRequirement
 
 cli = typer.Typer(name="cstools", no_args_is_help=True)
@@ -56,7 +57,7 @@ def status(
         bool, typer.Option("--datasets", help="Show datasets only")
     ] = False,
 ) -> None:
-    """Display the availability status of SASTs and the cache status of datasets."""
+    """Display the availability of SASTs and datasets."""
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
@@ -158,6 +159,8 @@ if DOWNLOADABLE := get_downloadable():
             else:
                 downloadable.download_dataset()
 
+
+cli.add_typer(all_sast_cli)
 
 for _, sast_data in SASTS_ALL.items():
     cli.add_typer(sast_data["cli_factory"].build_cli())
