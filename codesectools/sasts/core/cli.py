@@ -163,11 +163,11 @@ class CLIFactory:
             """
             output_dir = self.sast.output_dir / Path.cwd().name
             if output_dir.is_dir():
-                print(f"Found existing analysis result at {output_dir}")
                 if overwrite:
                     shutil.rmtree(output_dir)
                     self.sast.run_analysis(lang, Path.cwd(), output_dir)
                 else:
+                    print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
                 self.sast.run_analysis(lang, Path.cwd(), output_dir)
