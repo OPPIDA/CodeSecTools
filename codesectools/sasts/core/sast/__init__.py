@@ -14,8 +14,8 @@ import time
 from pathlib import Path
 
 import git
-import humanize
 from rich import print
+from rich.progress import Progress
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
@@ -41,16 +41,21 @@ class SAST:
         supported_languages (list[str]): A list of supported programming languages.
         supported_dataset_names (list[str]): Names of compatible datasets.
         supported_datasets (list[Dataset]): A list of supported dataset classes.
+        properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): Command-line templates to be executed.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of categories to colors for plotting.
+        color_mapping (dict): A mapping of result categories to colors for plotting.
         install_help (str | None): An optional string with installation help.
         output_dir (Path): (Instance attribute) The base directory for storing
             analysis results.
+        status (str): (Instance attribute) The operational status ('full', 'partial',
+            or 'none') determined by fulfilled requirements.
+        missing (list): (Instance attribute) A list of unfulfilled
+            requirements for the tool.
 
     """
 
@@ -183,35 +188,41 @@ class SAST:
             testing: If True, run analysis on a sample of two random files for testing purposes.
 
         """
-        result_path = self.output_dir / dataset.full_name
-        result_path.mkdir(exist_ok=True, parents=True)
+        with Progress() as progress:
+            progress.add_task(
+                f"[b][{self.name}][/b] analyzing project: [i]{dataset.full_name}[/i]",
+                total=None,
+            )
 
-        if result_path.is_dir():
-            if os.listdir(result_path) and not overwrite:
-                print(
-                    "Results already exist, please use --overwrite to delete old results"
-                )
-                return
+            result_path = self.output_dir / dataset.full_name
+            result_path.mkdir(exist_ok=True, parents=True)
 
-        # Create temporary directory for the project
-        temp_dir = tempfile.TemporaryDirectory()
-        temp_path = Path(temp_dir.name)
+            if result_path.is_dir():
+                if os.listdir(result_path) and not overwrite:
+                    print(
+                        "Results already exist, please use --overwrite to delete old results"
+                    )
+                    return
 
-        # Copy files into the temporary directory
-        if testing:
-            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-            files = random.sample(dataset.files, k=2)
-        else:
-            files = dataset.files
+            # Create temporary directory for the project
+            temp_dir = tempfile.TemporaryDirectory()
+            temp_path = Path(temp_dir.name)
 
-        for file in files:
-            file.save(temp_path)
+            # Copy files into the temporary directory
+            if testing:
+                random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+                files = random.sample(dataset.files, k=2)
+            else:
+                files = dataset.files
 
-        # Run analysis
-        self.run_analysis(dataset.lang, temp_path, result_path)
+            for file in files:
+                file.save(temp_path)
 
-        # Clear temporary directory
-        temp_dir.cleanup()
+            # Run analysis
+            self.run_analysis(dataset.lang, temp_path, result_path)
+
+            # Clear temporary directory
+            temp_dir.cleanup()
 
     def analyze_repos(
         self, dataset: GitRepoDataset, overwrite: bool = False, testing: bool = False
@@ -227,47 +238,46 @@ class SAST:
             testing: If True, run analysis on a sample of two small random repositories for testing purposes.
 
         """
-        base_result_path = self.output_dir / dataset.full_name
-        base_result_path.mkdir(exist_ok=True, parents=True)
-        print(
-            f"Max repo size for analysis: {humanize.naturalsize(dataset.max_repo_size)}"
-        )
+        with Progress() as progress:
+            progress.add_task(
+                f"[b][{self.name}][/b] analyzing dataset: [i]{dataset.full_name}[/i]",
+                total=None,
+            )
 
-        if testing:
-            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-            small_repos = [repo for repo in dataset.repos if repo.size < 1e6]
-            repos = random.sample(small_repos, k=2)
-        else:
-            repos = dataset.repos
+            base_result_path = self.output_dir / dataset.full_name
+            base_result_path.mkdir(exist_ok=True, parents=True)
 
-        for repo in repos:
-            print("=================================")
-            print(repo)
+            if testing:
+                random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+                small_repos = [repo for repo in dataset.repos if repo.size < 1e6]
+                repos = random.sample(small_repos, k=2)
+            else:
+                repos = dataset.repos
 
-            result_path = base_result_path / repo.name
-            if result_path.is_dir():
-                if list(result_path.iterdir()) and not overwrite:
-                    print(
-                        "Results already exist, please use --overwrite to analyze again"
-                    )
+            for repo in repos:
+                result_path = base_result_path / repo.name
+                if result_path.is_dir():
+                    if list(result_path.iterdir()) and not overwrite:
+                        print(
+                            "Results already exist, please use --overwrite to analyze again"
+                        )
+                        return
 
-            # Create temporary directory for the project
-            temp_dir = tempfile.TemporaryDirectory()
-            repo_path = Path(temp_dir.name)
+                # Create temporary directory for the project
+                temp_dir = tempfile.TemporaryDirectory()
+                repo_path = Path(temp_dir.name)
 
-            # Clone and checkout to the vulnerable commit
-            try:
-                repo.save(repo_path)
-            except git.GitCommandError as e:
-                print(e)
-                print("Skipping")
-                continue
+                # Clone and checkout to the vulnerable commit
+                try:
+                    repo.save(repo_path)
+                except git.GitCommandError:
+                    continue
 
-            # Run analysis
-            self.run_analysis(dataset.lang, repo_path, result_path)
+                # Run analysis
+                self.run_analysis(dataset.lang, repo_path, result_path)
 
-            # Clear temporary directory
-            temp_dir.cleanup()
+                # Clear temporary directory
+                temp_dir.cleanup()
 
     @property
     def supported_dataset_full_names(self) -> list[str]:
