@@ -205,7 +205,8 @@ class ProjectGraphics(Graphics):
         # Plot by categories
         X_categories, Y_categories = [], []
         sorted_categories = sorted(
-            list(by_categories.items()), key=lambda e: e[1]["count"], reverse=True
+            list(by_categories.items()),
+            key=lambda e: list(self.sast.color_mapping.keys()).index(e[0]),
         )
         for k, v in sorted_categories[: self.limit]:
             X_categories.append(k)
@@ -214,7 +215,7 @@ class ProjectGraphics(Graphics):
         ax3.bar(
             X_categories,
             Y_categories,
-            color=[self.color_mapping[self.checker_to_category(c)] for c in X_checkers],
+            color=[self.color_mapping[c] for c in X_categories],
         )
         ax3.set_xticks(X_categories, X_categories, rotation=45, ha="right")
         ax3.set_title(f"Stats by categories (limit to {self.limit})")
