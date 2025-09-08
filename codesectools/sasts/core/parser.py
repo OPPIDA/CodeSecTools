@@ -25,6 +25,8 @@ class Defect:
 
     """
 
+    sast: str
+
     def __init__(
         self, file: str, checker: str, category: str, cwe: CWE, data: tuple[Any]
     ) -> None:
@@ -178,10 +180,10 @@ class AnalysisResult(ABC):
         stats = {}
         for defect in self.defects:
             if defect.checker not in stats.keys():
-                stats[defect.checker] = {"count": 1, "files": {defect.file}}
+                stats[defect.checker] = {"count": 1, "files": [defect.file]}
             else:
-                stats[defect.checker]["files"].add(defect.file)
-                stats[defect.checker]["count"] = len(stats[defect.checker]["files"])
+                stats[defect.checker]["files"].append(defect.file)
+                stats[defect.checker]["count"] += 1
 
         return stats
 
@@ -223,10 +225,10 @@ class AnalysisResult(ABC):
         stats = {}
         for defect in self.defects:
             if defect.file not in stats.keys():
-                stats[defect.file] = {"count": 1, "checkers": {defect.checker}}
+                stats[defect.file] = {"count": 1, "checkers": [defect.checker]}
             else:
-                stats[defect.file]["checkers"].add(defect.checker)
-                stats[defect.file]["count"] = len(stats[defect.file]["checkers"])
+                stats[defect.file]["checkers"].append(defect.checker)
+                stats[defect.file]["count"] += 1
 
         return stats
 
@@ -241,9 +243,9 @@ class AnalysisResult(ABC):
         stats = {}
         for defect in self.defects:
             if defect.cwe not in stats.keys():
-                stats[defect.cwe] = {"count": 1, "files": {defect.file}}
+                stats[defect.cwe] = {"count": 1, "files": [defect.file]}
             else:
-                stats[defect.cwe]["files"].add(defect.file)
-                stats[defect.cwe]["count"] = len(stats[defect.cwe]["files"])
+                stats[defect.cwe]["files"].append(defect.file)
+                stats[defect.cwe]["count"] += 1
 
         return stats
