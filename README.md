@@ -25,6 +25,10 @@ A framework for code security that provides abstractions for static analysis too
 ```bash
 git clone git@github.com:OPPIDA/CodeSecTools.git
 cd CodeSecTools
+# Recommended
+uv tool install .
+pipx install .
+# Not recommended
 pip install .
 ```
 ## Usage
