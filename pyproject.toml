@@ -36,13 +36,16 @@ docs = [
     "mkdocs>=1.6.1",
     "mkdocs-click>=0.9.0",
     "mkdocs-gen-files>=0.5.0",
+    "mkdocs-github-admonitions-plugin>=0.1.1",
     "mkdocs-include-markdown-plugin>=7.1.6",
     "mkdocs-literate-nav>=0.6.2",
     "mkdocs-material[imaging]>=9.6.16",
+    "mkdocs-mermaid2-plugin>=1.2.2",
     "mkdocs-open-in-new-tab>=1.0.8",
     "mkdocstrings[python]>=0.30.0",
     "pyyaml>=6.0.2",
     "ruff>=0.12.8",
+    "termynal>=0.13.1",
 ]
 test = [
     "pytest>=8.4.1",
