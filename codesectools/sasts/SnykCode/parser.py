@@ -70,14 +70,16 @@ class SnykCodeAnalysisResult(AnalysisResult):
         for run in result_data["runs"]:
             for result in run["results"]:
                 rule_index = result["ruleIndex"]
-                lang, checker = result["ruleId"].split("/")
+                lang, *_, checker = result["ruleId"].split("/")
                 if lang != self.lang:
                     continue
 
                 defect = SnykCodeIssue(
-                    file=result["locations"][0]["physicalLocation"]["artifactLocation"][
-                        "uri"
-                    ],
+                    file=Path(
+                        result["locations"][0]["physicalLocation"]["artifactLocation"][
+                            "uri"
+                        ]
+                    ).name,
                     checker=checker,
                     category=run["tool"]["driver"]["rules"][rule_index][
                         "defaultConfiguration"
