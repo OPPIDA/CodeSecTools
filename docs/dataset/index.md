@@ -18,6 +18,12 @@ classDiagram
     class Dataset {
         +name: str
         +supported_languages: list~str~
+        +license: str
+        +license_url: str
+        +directory: Path
+        +files: list~File~
+        +is_cached()*
+        +download_files()*
         +download_dataset()
         +load_dataset()* list~DatasetUnit~
     }
@@ -31,6 +37,7 @@ classDiagram
     }
     class File {
         +filename: str
+        +content: bytes
         +cwes: list~CWE~
         +has_vuln: bool
     }
@@ -38,7 +45,9 @@ classDiagram
         +name: str
         +url: str
         +commit: str
+        +size: int
         +cwes: list~CWE~
+        +files: list~str~
         +has_vuln: bool
     }
     Dataset --> FileDataset : extends

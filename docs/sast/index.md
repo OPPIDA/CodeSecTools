@@ -22,20 +22,37 @@ The framework provides a set of core abstract classes to standardize SAST integr
 classDiagram
     class SAST {
         +name: str
-        +parser: Type~AnalysisResult~
+        +supported_languages: list~str~
+        +supported_dataset_names: list~str~
+        +supported_datasets: list~Dataset~
+        +properties: SASTProperties
+        +requirements: SASTRequirements
+        +commands: list~list~str~~
+        +environ: dict~str, str~
+        +output_files: list~tuple~Path, bool~~
+        +parser: type~AnalysisResult~
         +run_analysis(lang, project_dir, output_dir)
-        +analyze_files(file_dataset)
-        +analyze_repos(git_repo_dataset)
+        +save_results(project_dir, output_dir, extra)
+        +analyze_files(dataset, overwrite, testing)
+        +analyze_repos(dataset, overwrite, testing)
+        +list_results(project, dataset, limit)
     }
 
     class AnalysisResult {
         +name: str
         +lang: str
+        +files: list~str~
         +defects: list~Defect~
-        +load_from_output_dir(output_dir)* Self
+        +load_from_output_dir(output_dir)*
+        +load_from_output_dirs(output_dirs)
+        +stats_by_checkers()
+        +stats_by_categories()
+        +stats_by_files()
+        +stats_by_cwes()
     }
 
     class Defect {
+        +sast: str
         +file: str
         +checker: str
         +category: str
