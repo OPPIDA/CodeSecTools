@@ -42,7 +42,9 @@ class AllSASTAnalysisResult:
                     self.category_mapping[(sast_name, category_name)] = "LOW"
 
         for defect in self.defects:
-            defect.category = self.category_mapping[(defect.sast, defect.category)]
+            defect.category = self.category_mapping.get(
+                (defect.sast, defect.category), "NONE"
+            )
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the aggregated result."""
