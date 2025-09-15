@@ -78,10 +78,12 @@ class CoverityDefect(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["file"]).name,
+            file=Path(defect_data["file"]),
             checker=defect_data["checker"],
             category=None,
             cwe=CWEs.from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
+            message="",  # TODO
+            location=(defect_data["line"], defect_data["line"]),
             data=defect_data,
         )
 
@@ -141,6 +143,7 @@ class CoverityAnalysisResult(AnalysisResult):
         """
         super().__init__(
             name=output_dir.name,
+            source_path=Path(cmdout["project_dir"]),
             lang=cmdout["lang"],
             files=None,
             defects=defects,

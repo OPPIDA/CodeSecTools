@@ -28,10 +28,12 @@ class BearerFinding(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["filename"]).name,
+            file=Path(defect_data["filename"]),
             checker=defect_data["id"],
             category=severity,
             cwe=CWEs.from_id(int(defect_data["cwe_ids"][0])),
+            message=defect_data["description"].split("\n")[2],
+            location=(defect_data["line_number"], defect_data["line_number"]),
             data=defect_data,
         )
 
@@ -50,6 +52,7 @@ class BearerAnalysisResult(AnalysisResult):
         """
         super().__init__(
             name=output_dir.name,
+            source_path=Path(cmdout["project_dir"]),
             lang=cmdout["lang"],
             files=[],
             defects=[],

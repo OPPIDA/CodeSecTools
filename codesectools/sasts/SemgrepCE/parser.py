@@ -37,10 +37,12 @@ class SemgrepCEFinding(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["path"]).name,
+            file=Path(defect_data["path"]),
             checker=defect_data["check_id"].split(".")[-1],
             category=defect_data["extra"]["metadata"].get("impact", "NONE"),
             cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),
+            message=defect_data["extra"]["message"],
+            location=(defect_data["start"]["line"], defect_data["end"]["line"]),
             data=defect_data,
         )
 
@@ -71,6 +73,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
         """
         super().__init__(
             name=output_dir.name,
+            source_path=Path(cmdout["project_dir"]),
             lang=cmdout["lang"],
             files=result_data["paths"]["scanned"],
             defects=[],
@@ -93,7 +96,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
     def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse Semgrep Community Edition analysis results from a directory.
 
-        Reads `semgrepce_output.json` and `cstools_output.json` to construct a complete
+        Read `semgrepce_output.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:

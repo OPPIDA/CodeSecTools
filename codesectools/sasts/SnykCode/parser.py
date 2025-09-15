@@ -23,7 +23,14 @@ class SnykCodeIssue(Defect):
     sast = "SnykCode"
 
     def __init__(
-        self, file: str, checker: str, category: str, cwe: CWE, data: dict
+        self,
+        file: Path,
+        checker: str,
+        category: str,
+        cwe: CWE,
+        message: str,
+        location: tuple[int, int] | None,
+        data: dict,
     ) -> None:
         """Initialize a SnykCodeIssue instance.
 
@@ -32,10 +39,12 @@ class SnykCodeIssue(Defect):
             checker: The name of the rule/checker.
             category: The category of the checker.
             cwe: The CWE associated with the defect.
+            message: The description of the defect.
+            location: A tuple with start and end line numbers of the defect, or None.
             data: Raw data from the SAST tool for this defect.
 
         """
-        super().__init__(file, checker, category, cwe, data)
+        super().__init__(file, checker, category, cwe, message, location, data)
 
 
 class SnykCodeAnalysisResult(AnalysisResult):
@@ -51,11 +60,12 @@ class SnykCodeAnalysisResult(AnalysisResult):
         Args:
             output_dir: The directory where the results are stored.
             result_data: Parsed data from the main Snyk Code JSON output.
-            cmdout: Parsed data from the command output log.
+            cmdout: A dictionary with metadata from the command execution.
 
         """
         super().__init__(
             name=output_dir.name,
+            source_path=Path(cmdout["project_dir"]),
             lang=cmdout["lang"],
             files=[],
             defects=[],
@@ -79,7 +89,7 @@ class SnykCodeAnalysisResult(AnalysisResult):
                         result["locations"][0]["physicalLocation"]["artifactLocation"][
                             "uri"
                         ]
-                    ).name,
+                    ),
                     checker=checker,
                     category=run["tool"]["driver"]["rules"][rule_index][
                         "defaultConfiguration"
@@ -88,6 +98,15 @@ class SnykCodeAnalysisResult(AnalysisResult):
                         run["tool"]["driver"]["rules"][rule_index]["properties"]["cwe"][
                             0
                         ]
+                    ),
+                    message=result["message"]["text"],
+                    location=(
+                        result["locations"][0]["physicalLocation"]["region"].get(
+                            "startLine", None
+                        ),
+                        result["locations"][0]["physicalLocation"]["region"].get(
+                            "endLine", None
+                        ),
                     ),
                     data=result,
                 )
@@ -99,7 +118,7 @@ class SnykCodeAnalysisResult(AnalysisResult):
     def load_from_output_dir(cls, output_dir: Path) -> Self:
         """Load and parse Snyk Code analysis results from a directory.
 
-        Reads `snyk_results.json` and `cstools_output.json` to construct a complete
+        Read `snyk_results.json` and `cstools_output.json` to construct a complete
         analysis result object.
 
         Args:
