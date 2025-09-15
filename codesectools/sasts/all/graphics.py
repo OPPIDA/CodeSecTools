@@ -2,6 +2,7 @@
 
 import shutil
 import tempfile
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ class Graphics:
         """Initialize the Graphics object."""
         self.project_name = project_name
         self.all_sast = AllSAST()
+        self.output_dir = self.all_sast.output_dir / project_name
         self.color_mapping = {}
         cmap = plt.get_cmap("Set2")
         for i, sast in enumerate(self.all_sast.sasts):
@@ -49,15 +51,42 @@ class Graphics:
         else:
             print("pdflatex not found, pgf will not be generated")
 
-    def show(self) -> None:
-        """Generate and display all registered plots."""
+    def export(self, overwrite: bool, pgf: bool, show: bool) -> None:
+        """Generate, save, and optionally display all registered plots.
+
+        Args:
+            overwrite: If True, overwrite existing figure files.
+            pgf: If True and LaTeX is available, export figures in PGF format.
+            show: If True, open the generated figures using the default viewer.
+
+        """
         for plot_function in self.plot_functions:
             fig = plot_function()
+            fig_name = plot_function.__name__.replace("plot_", "")
             fig.set_size_inches(12, 7)
 
-            with tempfile.NamedTemporaryFile(delete=True) as temp:
-                fig.savefig(f"{temp.name}.png", bbox_inches="tight")
-                typer.launch(f"{temp.name}.png", wait=False)
+            if show:
+                with tempfile.NamedTemporaryFile(delete=True) as temp:
+                    fig.savefig(f"{temp.name}.png", bbox_inches="tight")
+                    typer.launch(f"{temp.name}.png", wait=False)
+
+            figure_dir = self.output_dir / "_figures"
+            figure_dir.mkdir(exist_ok=True, parents=True)
+            figure_path = figure_dir / f"{fig_name}.png"
+            if figure_path.is_file() and not overwrite:
+                if not typer.confirm(
+                    f"Found existing figure at {figure_path}, would you like to overwrite?"
+                ):
+                    print(f"Figure {fig_name} not saved")
+                    continue
+
+            fig.savefig(figure_path, bbox_inches="tight")
+            print(f"Figure {fig_name} saved at {figure_path}")
+
+            if pgf and self.has_latex:
+                figure_path_pgf = figure_dir / f"{fig_name}.pgf"
+                fig.savefig(figure_path_pgf, bbox_inches="tight")
+                print(f"Figure {fig_name} exported to pgf")
 
 
 ## Single project
@@ -75,7 +104,7 @@ class ProjectGraphics(Graphics):
     def plot_overview(self) -> Figure:
         """Generate an overview plot with stats by files, SASTs, and categories."""
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
-        by_files = self.result.stats_by_files()
+        by_files = {Path(k).name: v for k, v in self.result.stats_by_files().items()}
         by_sasts = self.result.stats_by_sasts()
         by_categories = self.result.stats_by_categories()
 
@@ -125,10 +154,9 @@ class ProjectGraphics(Graphics):
         ax2.set_title("Stats by SASTs")
 
         # Plot by categories
-        X_categories = []
-        for category, v in by_categories.items():
-            X_categories.append(category)
-            sast_counts = v["sast_counts"]
+        X_categories = ["HIGH", "MEDIUM", "LOW"]
+        for category in X_categories:
+            sast_counts = by_categories[category]["sast_counts"]
 
             bars = []
             current_height = 0
@@ -169,7 +197,7 @@ class ProjectGraphics(Graphics):
 
         X_cwes, cwe_data = [], []
         for cwe, data in sorted_cwes[: self.limit]:
-            X_cwes.append(f"{cwe.name}\n(CWE-{cwe.id})")
+            X_cwes.append(f"{cwe.name}")
             cwe_data.append(data)
 
         sast_names = sorted([sast.name for sast in self.all_sast.sasts])
@@ -198,7 +226,7 @@ class ProjectGraphics(Graphics):
     def plot_top_scores(self) -> Figure:
         """Generate a stacked bar plot for files with the highest scores."""
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        by_scores = self.result.stats_by_scores()
+        by_scores = {Path(k).name: v for k, v in self.result.stats_by_scores().items()}
 
         for file, data in by_scores.items():
             by_scores[file]["total_score"] = sum(data["score"].values())
@@ -214,7 +242,7 @@ class ProjectGraphics(Graphics):
             X_files.append(file)
             score_data.append(data["score"])
 
-        score_keys = sorted(score_data[0].keys())
+        score_keys = score_data[0].keys()
         score_colors = plt.get_cmap("Set2", len(score_keys))
         bottoms = [0] * len(X_files)
 

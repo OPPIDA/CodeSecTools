@@ -271,7 +271,7 @@ class FileDataset(Dataset):
             if not defect.cwe or defect.cwe.id == -1:
                 continue
 
-            file_cwe_pair = (defect.file, defect.cwe)
+            file_cwe_pair = (defect.file_path, defect.cwe)
             if file_cwe_pair not in unique_reported_defects:
                 unique_reported_defects[file_cwe_pair] = defect
 
@@ -537,7 +537,7 @@ class GitRepoDataset(Dataset):
                 if not defect.cwe or defect.cwe.id == -1:
                     continue
 
-                file_cwe_pair = (defect.file, defect.cwe)
+                file_cwe_pair = (defect.file_path, defect.cwe)
                 if file_cwe_pair not in unique_reported_defects:
                     unique_reported_defects[file_cwe_pair] = defect
 

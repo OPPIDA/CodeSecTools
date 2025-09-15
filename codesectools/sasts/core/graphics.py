@@ -7,6 +7,7 @@ benchmark performance.
 
 import shutil
 import tempfile
+from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -152,7 +153,7 @@ class ProjectGraphics(Graphics):
         project_name = self.result.name
 
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
-        by_files = self.result.stats_by_files()
+        by_files = {Path(k).name: v for k, v in self.result.stats_by_files().items()}
         by_checkers = self.result.stats_by_checkers()
         by_categories = self.result.stats_by_categories()
 
