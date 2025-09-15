@@ -1,6 +1,6 @@
 [project]
 name = "CodeSecTools"
-version = "0.8.2"
+version = "0.8.3"
 description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -49,6 +49,7 @@ docs = [
 ]
 test = [
     "pytest>=8.4.1",
+    "pytest-order>=1.3.0",
 ]
 
 [project.scripts]

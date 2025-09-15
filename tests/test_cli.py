@@ -2,6 +2,7 @@
 
 import logging
 
+import pytest
 from typer.testing import CliRunner
 
 from codesectools.cli import cli, get_downloadable
@@ -30,6 +31,7 @@ def test_status() -> None | AssertionError:
     assert result.exit_code == 0
 
 
+@pytest.mark.order(0)
 def test_download() -> None | AssertionError:
     """Test the download of missing resources."""
     downloadable = get_downloadable()
