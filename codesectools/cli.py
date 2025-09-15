@@ -9,6 +9,7 @@ import os
 from typing import Optional
 
 import typer
+import typer.core
 from click import Choice
 from rich import print
 from rich.table import Table
@@ -17,7 +18,7 @@ from typing_extensions import Annotated
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import Dataset
 from codesectools.sasts import SASTS_ALL
-from codesectools.sasts.all.cli import cli as all_sast_cli
+from codesectools.sasts.all.cli import build_cli as build_all_sast_cli
 from codesectools.sasts.core.sast.requirements import DownloadableRequirement
 
 cli = typer.Typer(name="cstools", no_args_is_help=True)
@@ -33,7 +34,12 @@ def version_callback(value: bool) -> None:
 @cli.callback()
 def main(
     debug: Annotated[
-        bool, typer.Option("-d", "--debug", help="Show debugging messages")
+        bool,
+        typer.Option(
+            "-d",
+            "--debug",
+            help="Show debugging messages and disable pretty exceptions.",
+        ),
     ] = False,
     version: Annotated[
         Optional[bool],
@@ -48,6 +54,7 @@ def main(
     """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
     if debug:
         os.environ["DEBUG"] = "1"
+        os.environ["_TYPER_STANDARD_TRACEBACK"] = "1"
 
 
 @cli.command()
@@ -160,7 +167,7 @@ if DOWNLOADABLE := get_downloadable():
                 downloadable.download_dataset()
 
 
-cli.add_typer(all_sast_cli)
+cli.add_typer(build_all_sast_cli())
 
 for _, sast_data in SASTS_ALL.items():
     cli.add_typer(sast_data["cli_factory"].build_cli())
