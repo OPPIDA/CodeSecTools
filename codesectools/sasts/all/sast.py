@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from codesectools.datasets import DATASETS_ALL
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.parser import AllSASTAnalysisResult
+from codesectools.utils import USER_OUTPUT_DIR
 
 if TYPE_CHECKING:
     from codesectools.sasts.core.sast import SAST
@@ -18,6 +19,7 @@ class AllSAST:
 
     def __init__(self) -> None:
         """Initialize the AllSAST instance."""
+        self.output_dir = USER_OUTPUT_DIR / self.name
         self.sasts: list[SAST] = []
         for _, sast_data in SASTS_ALL.items():
             if sast_data["status"] == "full":

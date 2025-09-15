@@ -132,6 +132,7 @@ class SAST:
             "logs": command_output,
             "duration": end - start,
             "loc": loc,
+            "project_dir": str(project_dir.resolve()),
         }
         self.save_results(project_dir, output_dir, extra)
 

@@ -15,6 +15,7 @@ class AllSASTAnalysisResult:
     def __init__(self, name: str, analysis_results: dict[str, AnalysisResult]) -> None:
         """Initialize an AllSASTAnalysisResult instance."""
         self.name = name
+        self.source_path = None
         self.analysis_results = analysis_results
         self.lang = None
         self.sasts = []
@@ -22,10 +23,12 @@ class AllSASTAnalysisResult:
         self.defects = []
 
         for sast_name, analysis_result in self.analysis_results.items():
-            if not self.lang:
+            if not self.lang and not self.source_path:
                 self.lang = analysis_result.lang
+                self.source_path = analysis_result.source_path
             else:
                 assert analysis_result.lang == self.lang
+                assert analysis_result.source_path == self.source_path
             self.sasts.append(sast_name)
             self.files |= set(analysis_result.files)
             self.defects += analysis_result.defects
@@ -43,7 +46,7 @@ class AllSASTAnalysisResult:
 
         for defect in self.defects:
             defect.category = self.category_mapping.get(
-                (defect.sast, defect.category), "NONE"
+                (defect.sast, defect.category), "LOW"
             )
 
     def __repr__(self) -> str:
@@ -73,11 +76,11 @@ class AllSASTAnalysisResult:
         """Calculate statistics on defects, grouped by file."""
         stats = {}
         for defect in self.defects:
-            if defect.file not in stats.keys():
-                stats[defect.file] = {"count": 1, "sasts": [defect.sast]}
+            if defect.file_path not in stats.keys():
+                stats[defect.file_path] = {"count": 1, "sasts": [defect.sast]}
             else:
-                stats[defect.file]["sasts"].append(defect.sast)
-                stats[defect.file]["count"] += 1
+                stats[defect.file_path]["sasts"].append(defect.sast)
+                stats[defect.file_path]["count"] += 1
 
         return stats
 
@@ -114,13 +117,13 @@ class AllSASTAnalysisResult:
             if defect.cwe not in stats:
                 stats[defect.cwe] = {
                     "count": 1,
-                    "files": [defect.file],
+                    "files": [defect.file_path],
                     "sast_counts": {defect.sast: 1},
                 }
             else:
                 stats[defect.cwe]["count"] += 1
-                if defect.file not in stats[defect.cwe]["files"]:
-                    stats[defect.cwe]["files"].append(defect.file)
+                if defect.file_path not in stats[defect.cwe]["files"]:
+                    stats[defect.cwe]["files"].append(defect.file_path)
                 stats[defect.cwe]["sast_counts"][defect.sast] = (
                     stats[defect.cwe]["sast_counts"].get(defect.sast, 0) + 1
                 )
@@ -130,27 +133,95 @@ class AllSASTAnalysisResult:
         """Calculate a risk score for each file based on defect data."""
         defect_files = {}
         for defect in self.defects:
-            if defect.file not in defect_files:
-                defect_files[defect.file] = []
-            defect_files[defect.file].append(defect)
+            if defect.file_path not in defect_files:
+                defect_files[defect.file_path] = []
+            defect_files[defect.file_path].append(defect)
 
         stats = {}
         for defect_file, defects in defect_files.items():
-            base_score = len(defects)
             defects_cwes = {d.cwe for d in defects if d.cwe.id != -1}
 
-            all_sasts_cwes = 0
-            if self.sasts:
-                for cwe in defects_cwes:
-                    cwes_sasts = {d.sast for d in defects if d.cwe == cwe}
-                    if set(self.sasts) == cwes_sasts:
-                        all_sasts_cwes += len([d for d in defects if d.cwe == cwe])
+            cwes_found_by_all_sasts = 0
+            for cwe in defects_cwes:
+                cwes_sasts = {d.sast for d in defects if d.cwe == cwe}
+                if set(self.sasts) == cwes_sasts:
+                    cwes_found_by_all_sasts += 1
+
+            defect_locations = {}
+            for defect in defects:
+                if location := defect.location:
+                    start, end = location
+                    for line in range(start, end + 1):
+                        if not defect_locations.get(line):
+                            defect_locations[line] = []
+                        defect_locations[line].append(defect)
+
+            defects_same_location = 0
+            defects_same_location_same_cwe = 0
+            for _, defects_ in defect_locations.items():
+                if set(defect.sast for defect in defects_) == set(self.sasts):
+                    defects_same_location += 1
+                    defects_by_cwe = {}
+                    for defect in defects_:
+                        if not defects_by_cwe.get(defect.cwe):
+                            defects_by_cwe[defect.cwe] = []
+                        defects_by_cwe[defect.cwe].append(defect)
+
+                    for _, defects_ in defects_by_cwe.items():
+                        if set(defect.sast for defect in defects_) == set(self.sasts):
+                            defects_same_location_same_cwe += 1
 
             stats[defect_file] = {
                 "score": {
-                    "base_score": base_score,
+                    "defect_number": len(defects),
                     "unique_cwes_number": len(defects_cwes),
-                    "all_sasts_cwes": base_score * all_sasts_cwes,
+                    "cwes_found_by_all_sasts": cwes_found_by_all_sasts,
+                    "defects_same_location": defects_same_location,
+                    "defects_same_location_same_cwe": defects_same_location_same_cwe,
                 }
             }
+
         return stats
+
+    def prepare_report_data(self) -> dict:
+        """Prepare data needed to generate a report."""
+        report = {"score": {}, "defects": {}}
+        scores = self.stats_by_scores()
+
+        report["score"] = {k: 0 for k, _ in list(scores.values())[0]["score"].items()}
+
+        defect_files = {}
+        for defect in self.defects:
+            if defect.file_path not in defect_files:
+                defect_files[defect.file_path] = []
+            defect_files[defect.file_path].append(defect)
+
+        for defect_file, defects in defect_files.items():
+            for k, v in scores[defect_file]["score"].items():
+                report["score"][k] += v
+
+            locations = []
+            for defect in defects:
+                start, end = defect.location
+                if start and end:
+                    locations.append(
+                        (defect.sast, defect.cwe, defect.message, (start, end))
+                    )
+
+            report["defects"][defect_file] = {
+                "score": scores[defect_file]["score"],
+                "source_path": str(self.source_path / defect.file),
+                "locations": locations,
+                "raw": defects,
+            }
+
+        report["defects"] = {
+            k: v
+            for k, v in sorted(
+                report["defects"].items(),
+                key=lambda item: (sum(v for v in item[1]["score"].values())),
+                reverse=True,
+            )
+        }
+
+        return report
