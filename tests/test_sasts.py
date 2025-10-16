@@ -60,7 +60,7 @@ def test_compile() -> None | AssertionError:
 
 
 def test_included() -> None:
-    """Ensure that all free and offline SASTs are available for testing."""
+    """Ensure that all free and offline SAST tools are available for testing."""
     for sast_name, sast_data in SASTS_ALL.items():
         sast_properties = sast_data["properties"]
         if sast_properties.free and sast_properties.offline:
@@ -69,7 +69,7 @@ def test_included() -> None:
 
 
 def test_sasts() -> None | AssertionError:
-    """Test the availability and help command for all SASTs."""
+    """Test the availability and help command for all SAST tools."""
     for sast_name, sast_data in SASTS_ALL.items():
         logging.info(f"Checking {sast_name} commands")
         sast_cli = sast_data["cli_factory"].build_cli()
@@ -96,7 +96,7 @@ SAST_RESULTS = {sast_name: [] for sast_name in SASTS_ALL}
 
 
 def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError:
-    """Test the 'analyze' command for all available SASTs."""
+    """Test the 'analyze' command for all available SAST tools."""
     for sast_name, sast_data in SASTS_ALL.items():
         if sast_data["status"] != "full":
             continue
@@ -131,7 +131,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
 
 def test_sasts_benchmark() -> None | AssertionError:
-    """Test the 'benchmark' command for all available SASTs."""
+    """Test the 'benchmark' command for all available SAST tools."""
     for sast_name, sast_data in SASTS_ALL.items():
         if sast_data["status"] != "full":
             continue
@@ -171,7 +171,7 @@ def test_sasts_benchmark() -> None | AssertionError:
 
 
 def test_sasts_list() -> None | AssertionError:
-    """Test the 'list' command for all available SASTs."""
+    """Test the 'list' command for all available SAST tools."""
     for sast_name, sast_data in SASTS_ALL.items():
         if sast_data["status"] != "full":
             continue
@@ -186,7 +186,7 @@ def test_sasts_list() -> None | AssertionError:
 
 
 def test_sasts_plot() -> None | AssertionError:
-    """Test the 'plot' command for all available SASTs."""
+    """Test the 'plot' command for all available SAST tools."""
     for sast_name, sast_data in SASTS_ALL.items():
         if sast_data["status"] != "full":
             continue

@@ -1,4 +1,4 @@
-"""Defines the command-line interface for running all available SASTs."""
+"""Defines the command-line interface for running all available SAST tools."""
 
 import io
 import shutil
@@ -24,18 +24,18 @@ from codesectools.sasts.core.sast import PrebuiltSAST
 
 
 def build_cli() -> typer.Typer:
-    """Build the Typer CLI for running all SASTs."""
+    """Build the Typer CLI for running all SAST tools."""
     cli = typer.Typer(name="allsast", no_args_is_help=True)
     all_sast = AllSAST()
 
     @cli.callback()
     def main() -> None:
-        """Run all available SASTs together."""
+        """Run all available SAST tools together."""
         pass
 
-    @cli.command(help="List used SASTs.")
+    @cli.command(help="List used SAST tools.")
     def info() -> None:
-        """Display the status of all SASTs and their inclusion in AllSAST."""
+        """Display the status of all SAST tools and their inclusion in AllSAST."""
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
         table.add_column("Status", justify="center", no_wrap=True)
@@ -61,7 +61,7 @@ def build_cli() -> typer.Typer:
                 )
         print(table)
 
-    @cli.command(help="Analyze a project using all availbale SASTs.")
+    @cli.command(help="Analyze a project using all availbale SAST tools.")
     def analyze(
         lang: Annotated[
             str,
@@ -88,7 +88,7 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Run analysis on the current project with all available SASTs."""
+        """Run analysis on the current project with all available SAST tools."""
         for sast in all_sast.sasts:
             if isinstance(sast, PrebuiltSAST) and artifact_dir is None:
                 print(f"{sast.name} required pre-built artifacts for analysis")
@@ -112,7 +112,7 @@ def build_cli() -> typer.Typer:
                     lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
                 )
 
-    @cli.command(help="Benchmark a dataset using all SASTs.")
+    @cli.command(help="Benchmark a dataset using all SAST tools.")
     def benchmark(
         dataset: Annotated[
             str,
@@ -136,7 +136,7 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Run a benchmark on a dataset using all available SASTs."""
+        """Run a benchmark on a dataset using all available SAST tools."""
         dataset_name, lang = dataset.split("_")
         for sast in all_sast.sasts:
             dataset = DATASETS_ALL[dataset_name](lang)

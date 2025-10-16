@@ -6,8 +6,8 @@
 
 SAST tools use various techniques, including:
 
-- `Pattern Matching`: It searches for code patterns that match known vulnerabilities.
-- `Data Flow Analysis`: It tracks data from sources to sinks to identify potential security flaws.
+- `Pattern Matching`: Finds known-vulnerable code patterns. This technique does not require compilation.
+- `Data Flow Analysis`:: Tracks data from sources to sinks to find security flaws. It is more accurate on compiled code but also works on source code.
 
 The analysis process also depends on the programming language:
 
@@ -80,7 +80,7 @@ A SAST tool must meet the following requirements to be integrated:
 
 It is important to note that **CodeSecTools provides only the integration scripts, not the SAST tools themselves**.
 
-Proprietary and private SASTs can also be integrated. However, you must ensure that you provide all required licensing information.
+Proprietary and private SAST tools can also be integrated. However, you must ensure that you provide all required licensing information.
 
 When integrating a proprietary tool, **DO NOT commit any proprietary or private data** (such as license keys, binaries, or confidential source code) to the CodeSecTools repository, as this could violate licensing agreements.
 

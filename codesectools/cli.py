@@ -64,7 +64,7 @@ def status(
         bool, typer.Option("--datasets", help="Show datasets only")
     ] = False,
 ) -> None:
-    """Display the availability of SASTs and datasets."""
+    """Display the availability of SAST tools and datasets."""
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
@@ -122,7 +122,7 @@ def status(
 def get_downloadable() -> dict[str, DownloadableRequirement | Dataset]:
     """Identify and collect all missing downloadable resources.
 
-    Collects unfulfilled `DownloadableRequirement` instances from all SASTs
+    Collects unfulfilled `DownloadableRequirement` instances from all SAST tools
     and un-cached `Dataset` instances.
 
     Returns:

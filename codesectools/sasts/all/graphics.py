@@ -102,7 +102,7 @@ class ProjectGraphics(Graphics):
         )
 
     def plot_overview(self) -> Figure:
-        """Generate an overview plot with stats by files, SASTs, and categories."""
+        """Generate an overview plot with stats by files, SAST tools, and categories."""
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
         by_files = {Path(k).name: v for k, v in self.result.stats_by_files().items()}
         by_sasts = self.result.stats_by_sasts()
@@ -151,7 +151,7 @@ class ProjectGraphics(Graphics):
             color=[self.color_mapping[s] for s in X_sasts],
         )
         ax2.set_xticks(X_sasts, X_sasts, rotation=45, ha="right")
-        ax2.set_title("Stats by SASTs")
+        ax2.set_title("Stats by SAST tools")
 
         # Plot by categories
         X_categories = ["HIGH", "MEDIUM", "LOW"]
@@ -218,7 +218,7 @@ class ProjectGraphics(Graphics):
         ax.set_xticks(range(len(X_cwes)), X_cwes, rotation=45, ha="right")
         ax.set_title(f"Top {self.limit} CWEs by Defect Count")
         ax.set_ylabel("Number of Defects")
-        ax.legend(title="SASTs")
+        ax.legend(title="SAST tools")
         fig.suptitle(f"CWE Statistics for project {self.project_name}", fontsize=16)
 
         return fig

@@ -32,7 +32,7 @@ runner = CliRunner(env={"COLUMNS": "200"})
 
 
 def test_included() -> None:
-    """Ensure that all free and offline SASTs are available for testing."""
+    """Ensure that all free and offline SAST tools are available for testing."""
     for sast_name, sast_data in SASTS_ALL.items():
         sast_properties = sast_data["properties"]
         if sast_properties.free and sast_properties.offline:
