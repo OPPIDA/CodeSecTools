@@ -24,7 +24,7 @@ RUN apt update -qq && \
     -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# === Free SASTs only ===
+# === Free SAST tools only ===
 # Semgrep Community Edition
 RUN pip install --no-cache semgrep
 # Bearer

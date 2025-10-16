@@ -8,7 +8,7 @@ The script finds all YAML files in `docs/sast/profiles/` and
 renders a Jinja2 template to create a detailed profile page, and writes the
 resulting Markdown to the corresponding `supported` subdirectory (e.g.,
 `docs/sast/supported/`). It also generates `index.md` summary pages for both
-SASTs and datasets.
+SAST tools and datasets.
 """
 
 from pathlib import Path
@@ -39,7 +39,7 @@ for sast in SASTS_DIR.glob("*.yaml"):
 with open(Path("sast", "supported", "index.md"), "w") as md_file:
     md_file.write(
         profiles_template.render(
-            name="SASTs", profiles=sorted(sast_profiles, key=lambda p: p["name"])
+            name="SAST tools", profiles=sorted(sast_profiles, key=lambda p: p["name"])
         )
     )
 

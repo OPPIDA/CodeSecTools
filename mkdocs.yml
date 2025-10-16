@@ -7,7 +7,7 @@ nav:
   - Home: index.md
   - SAST: 
     - sast/index.md
-    - Supported SASTs:
+    - Supported SAST Tools:
       - sast/supported/index.md
       - sast/supported/*.j2.md
   - Dataset: 
@@ -18,7 +18,7 @@ nav:
   - CLI: cli.md
   - API Reference:
     - api/index.md 
-    - SASTs: api/sast.md 
+    - SAST Tools: api/sast.md 
     - Datasets: api/dataset.md
     - Shared: api/shared.md
 

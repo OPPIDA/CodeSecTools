@@ -61,7 +61,7 @@ class AllSASTAnalysisResult:
 
     @classmethod
     def load_from_output_dir(cls, project_name: str) -> Self:
-        """Load and parse analysis results from all SASTs for a given project."""
+        """Load and parse analysis results from all SAST tools for a given project."""
         analysis_results = {}
         for sast_name, sast_data in SASTS_ALL.items():
             sast_instance: SAST = sast_data["sast"]()

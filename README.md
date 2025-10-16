@@ -8,7 +8,7 @@ A framework for code security that provides abstractions for static analysis too
 
 ## Overview
 
-**CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SASTs, datasets, and codebases), providing standardized interfaces to help them interact easily.
+**CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
 
 <div align="center">
   <img src="docs/assets/overview.svg" alt="CoseSecTools Overview" style="width: auto; height: auto;" />
@@ -54,8 +54,8 @@ $ cstools
 │ --help                          Show this message and exit.         │
 ╰─────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ──────────────────────────────────────────────────────────╮
-│ status      Display the availability of SASTs and datasets.         │
-│ allsast     Run all available SASTs together.                       │
+│ status      Display the availability of SAST tools and datasets.         │
+│ allsast     Run all available SAST tools together.                       │
 │ bearer      Bearer SAST                                             │
 │ coverity    Coverity Static Analysis                                │
 │ semgrepce   Semgrep Community Edition Engine                        │
