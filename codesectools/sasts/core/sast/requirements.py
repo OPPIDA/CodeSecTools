@@ -2,8 +2,10 @@
 
 import shutil
 from abc import ABC, abstractmethod
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal
 
+import requests
 import typer
 from git import Repo
 from rich import print
@@ -38,7 +40,7 @@ class SASTRequirement(ABC):
         self.doc = doc
 
     @abstractmethod
-    def is_fulfilled(self, **kwargs: dict) -> bool:
+    def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the requirement is met."""
         pass
 
@@ -72,7 +74,7 @@ class DownloadableRequirement(SASTRequirement):
         super().__init__(name, instruction, url, doc)
 
     @abstractmethod
-    def download(self, **kwargs: dict) -> None:
+    def download(self, **kwargs: Any) -> None:
         """Download the requirement."""
         pass
 
@@ -93,12 +95,12 @@ class Config(SASTRequirement):
             name: The name of the requirement.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if this is a documentation-only requirement.
+            doc: A flag indicating if the instruction is available in the documentaton.
 
         """
         super().__init__(name, instruction, url, doc)
 
-    def is_fulfilled(self, sast_name: str) -> bool:
+    def is_fulfilled(self, sast_name: str, **kwargs: Any) -> bool:
         """Check if the configuration file exists for the given SAST tool."""
         return (USER_CONFIG_DIR / sast_name / self.name).is_file()
 
@@ -119,12 +121,12 @@ class Binary(SASTRequirement):
             name: The name of the requirement.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if this is a documentation-only requirement.
+            doc: A flag indicating if the instruction is available in the documentaton.
 
         """
         super().__init__(name, instruction, url, doc)
 
-    def is_fulfilled(self, **kwargs: dict) -> bool:
+    def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the binary is available in the system's PATH."""
         return bool(shutil.which(self.name))
 
@@ -160,11 +162,11 @@ class GitRepo(DownloadableRequirement):
         self.license_url = license_url
         self.directory = USER_CACHE_DIR / self.name
 
-    def is_fulfilled(self, **kwargs: dict) -> bool:
+    def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the Git repository has been cloned."""
         return (self.directory / ".complete").is_file()
 
-    def download(self, **kwargs: dict) -> None:
+    def download(self, **kwargs: Any) -> None:
         """Prompt for license agreement and clone the Git repository."""
         panel = Panel(
             f"""Repository:\t[b]{self.name}[/b]
@@ -192,6 +194,70 @@ By proceeding, you agree to abide by its terms.""",
             )
         (self.directory / ".complete").write_bytes(b"\x42")
         print(f"[b]{self.name}[/b] has been downloaded at {self.directory}.")
+
+
+class File(DownloadableRequirement):
+    """Represent a file requirement that can be downloaded."""
+
+    def __init__(
+        self,
+        name: str,
+        parent_dir: Path,
+        file_url: str,
+        license: str,
+        license_url: str,
+        instruction: str | None = None,
+        url: str | None = None,
+        doc: bool = False,
+    ) -> None:
+        """Initialize a File requirement instance.
+
+        Args:
+            name: The name of the requirement.
+            parent_dir: The directory where the file should be saved.
+            file_url: The URL to download the file from.
+            license: The license of the file.
+            license_url: A URL for the file's license.
+            instruction: A short instruction on how to download the requirement.
+            url: A URL for more detailed instructions.
+            doc: A flag indicating if the instruction is available in the documentaton.
+
+        """
+        super().__init__(name, instruction, url, doc)
+        self.parent_dir = parent_dir
+        self.file_url = file_url
+        self.license = license
+        self.license_url = license_url
+
+    def is_fulfilled(self, **kwargs: Any) -> bool:
+        """Check if the file has been downloaded."""
+        return bool(list(self.parent_dir.glob(self.name)))
+
+    def download(self, **kwargs: Any) -> None:
+        """Prompt for license agreement and download the file."""
+        panel = Panel(
+            f"""File:\t\t[b]{self.name}[/b]
+Download URL:\t[u]{self.file_url}[/u]
+License:\t[b]{self.license}[/b]
+License URL:\t[u]{self.license_url}[/u]
+
+Please review the license of the repository at the URL above.
+By proceeding, you agree to abide by its terms.""",
+            title="[b]License Agreement[/b]",
+        )
+        print(panel)
+
+        agreed = typer.confirm("Do you accept the license terms and wish to proceed?")
+        if not agreed:
+            print("[red]License agreement declined. Download aborted.[/red]")
+            raise typer.Exit(code=1)
+
+        with Progress() as progress:
+            progress.add_task(f"Downloading file [b]{self.name}[/b]...", total=None)
+            response = requests.get(self.file_url)
+            (self.parent_dir / self.name).write_bytes(response.content)
+
+        print(f"[b]{self.name}[/b] has been downloaded at {self.parent_dir}.")
 
 
 class SASTRequirements:
