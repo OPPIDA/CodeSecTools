@@ -18,16 +18,23 @@ FROM python:3.12-slim-bookworm AS test
 RUN apt update -qq && \
     DEBIAN_FRONTEND=noninteractive \
     apt install \
-        git \
+        curl git \
         cloc \
-        curl \
+        openjdk-17-jdk-headless maven \
     -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Free SASTs only
+# === Free SASTs only ===
+# Semgrep Community Edition
 RUN pip install --no-cache semgrep
+# Bearer
 RUN curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | BINDIR=/usr/bin sh
+# SpotBugs
+RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.7/spotbugs-4.9.7.tgz | tar -xzvf - && \
+    mv spotbugs-* /tmp/spotbugs
+ENV PATH="/tmp/spotbugs/bin:$PATH"
 
+# === Run tests ===
 COPY --from=builder --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 
