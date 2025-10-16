@@ -7,6 +7,7 @@ standardized error reporting.
 
 import os
 import subprocess
+from collections.abc import Sequence
 from importlib.resources import files
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def DEBUG() -> bool:
 
 # Subprocess wrapper
 def run_command(
-    command: list[str], cwd: Path, env: dict[str, str] | None = None
+    command: Sequence[str], cwd: Path, env: dict[str, str] | None = None
 ) -> tuple[int | None, str]:
     """Execute a command in a subprocess and capture its output.
 
@@ -73,6 +74,7 @@ def run_command(
             if DEBUG():
                 click.echo(line, nl=False)
 
+    process.wait()
     retcode = process.poll()
 
     return (retcode, stdout)
