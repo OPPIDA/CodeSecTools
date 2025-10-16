@@ -11,14 +11,22 @@ import random
 import shutil
 import tempfile
 import time
+from abc import ABC
 from pathlib import Path
+from typing import Any
 
 import git
 from rich import print
+from rich.panel import Panel
 from rich.progress import Progress
 
 from codesectools.datasets import DATASETS_ALL
-from codesectools.datasets.core.dataset import Dataset, FileDataset, GitRepoDataset
+from codesectools.datasets.core.dataset import (
+    Dataset,
+    FileDataset,
+    GitRepoDataset,
+    PrebuiltFileDataset,
+)
 from codesectools.sasts.core.parser import AnalysisResult
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import SASTRequirements
@@ -26,11 +34,12 @@ from codesectools.shared.cloc import Cloc
 from codesectools.utils import (
     USER_OUTPUT_DIR,
     MissingFile,
+    NonZeroExit,
     run_command,
 )
 
 
-class SAST:
+class SAST(ABC):
     """Abstract base class for a SAST tool integration.
 
     Subclasses of this abstract class must define various class attributes to
@@ -105,7 +114,9 @@ class SAST:
                     _command[i] = arg.replace(pattern, value)
         return _command
 
-    def run_analysis(self, lang: str, project_dir: Path, output_dir: Path) -> None:
+    def run_analysis(
+        self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
+    ) -> None:
         """Run the SAST analysis on a given project directory.
 
         Execute the tool's commands, time the analysis, calculate LoC,
@@ -115,26 +126,47 @@ class SAST:
             lang: The programming language of the project.
             project_dir: The path to the project's source code.
             output_dir: The path to save the analysis results.
+            **kwargs: Additional tool-specific arguments.
 
         """
-        command_output = ""
-        start = time.time()
-        for command in self.commands:
-            rendered_command = self.render_command(command, {"{lang}": lang})
-            retcode, out = run_command(rendered_command, project_dir, self.environ)
-            command_output += out
-        end = time.time()
+        render_variables = {"{lang}": lang}
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            to_replace = "{" + k + "}"
+            if isinstance(v, str):
+                render_variables[to_replace] = v
+            elif isinstance(v, Path):
+                render_variables[to_replace] = str(v.resolve())
+            else:
+                raise NotImplementedError(k, v)
 
-        loc = Cloc(project_dir, lang).get_loc()
+        with Progress() as progress:
+            progress.add_task(
+                f"[b][{self.name}][/b] analyzing: [i]{project_dir.name}[/i]",
+                total=None,
+            )
 
-        extra = {
-            "lang": lang,
-            "logs": command_output,
-            "duration": end - start,
-            "loc": loc,
-            "project_dir": str(project_dir.resolve()),
-        }
-        self.save_results(project_dir, output_dir, extra)
+            command_output = ""
+            start = time.time()
+            for command in self.commands:
+                rendered_command = self.render_command(command, render_variables)
+                retcode, out = run_command(rendered_command, project_dir, self.environ)
+                command_output += out
+                if retcode != 0:
+                    raise NonZeroExit(rendered_command, command_output)
+            end = time.time()
+
+            loc = Cloc(project_dir, lang).get_loc()
+
+            extra = {
+                "lang": lang,
+                "logs": command_output,
+                "duration": end - start,
+                "loc": loc,
+                "project_dir": str(project_dir.resolve()),
+            }
+            self.save_results(project_dir, output_dir, extra)
 
     def save_results(self, project_dir: Path, output_dir: Path, extra: dict) -> None:
         """Save the results of a SAST analysis.
@@ -189,41 +221,35 @@ class SAST:
             testing: If True, run analysis on a sample of two random files for testing purposes.
 
         """
-        with Progress() as progress:
-            progress.add_task(
-                f"[b][{self.name}][/b] analyzing project: [i]{dataset.full_name}[/i]",
-                total=None,
-            )
+        result_path = self.output_dir / dataset.full_name
+        result_path.mkdir(exist_ok=True, parents=True)
 
-            result_path = self.output_dir / dataset.full_name
-            result_path.mkdir(exist_ok=True, parents=True)
+        if result_path.is_dir():
+            if os.listdir(result_path) and not overwrite:
+                print(
+                    "Results already exist, please use --overwrite to delete old results"
+                )
+                return
 
-            if result_path.is_dir():
-                if os.listdir(result_path) and not overwrite:
-                    print(
-                        "Results already exist, please use --overwrite to delete old results"
-                    )
-                    return
+        # Create temporary directory for the project
+        temp_dir = tempfile.TemporaryDirectory()
+        temp_path = Path(temp_dir.name)
 
-            # Create temporary directory for the project
-            temp_dir = tempfile.TemporaryDirectory()
-            temp_path = Path(temp_dir.name)
+        # Copy files into the temporary directory
+        if testing:
+            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+            files = random.sample(dataset.files, k=2)
+        else:
+            files = dataset.files
 
-            # Copy files into the temporary directory
-            if testing:
-                random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-                files = random.sample(dataset.files, k=2)
-            else:
-                files = dataset.files
+        for file in files:
+            file.save(temp_path)
 
-            for file in files:
-                file.save(temp_path)
+        # Run analysis
+        self.run_analysis(dataset.lang, temp_path, result_path)
 
-            # Run analysis
-            self.run_analysis(dataset.lang, temp_path, result_path)
-
-            # Clear temporary directory
-            temp_dir.cleanup()
+        # Clear temporary directory
+        temp_dir.cleanup()
 
     def analyze_repos(
         self, dataset: GitRepoDataset, overwrite: bool = False, testing: bool = False
@@ -239,46 +265,38 @@ class SAST:
             testing: If True, run analysis on a sample of two small random repositories for testing purposes.
 
         """
-        with Progress() as progress:
-            progress.add_task(
-                f"[b][{self.name}][/b] analyzing dataset: [i]{dataset.full_name}[/i]",
-                total=None,
-            )
+        base_result_path = self.output_dir / dataset.full_name
+        base_result_path.mkdir(exist_ok=True, parents=True)
 
-            base_result_path = self.output_dir / dataset.full_name
-            base_result_path.mkdir(exist_ok=True, parents=True)
+        if testing:
+            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+            small_repos = [repo for repo in dataset.repos if repo.size < 1e6]
+            repos = random.sample(small_repos, k=2)
+        else:
+            repos = dataset.repos
 
-            if testing:
-                random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-                small_repos = [repo for repo in dataset.repos if repo.size < 1e6]
-                repos = random.sample(small_repos, k=2)
-            else:
-                repos = dataset.repos
+        for repo in repos:
+            result_path = base_result_path / repo.name
+            if result_path.is_dir():
+                if list(result_path.iterdir()) and not overwrite:
+                    print(f"Results already exist for {repo.name}, skipping...")
+                    print("Please use --overwrite to analyze again")
 
-            for repo in repos:
-                result_path = base_result_path / repo.name
-                if result_path.is_dir():
-                    if list(result_path.iterdir()) and not overwrite:
-                        print(
-                            "Results already exist, please use --overwrite to analyze again"
-                        )
-                        return
+            # Create temporary directory for the project
+            temp_dir = tempfile.TemporaryDirectory()
+            repo_path = Path(temp_dir.name)
 
-                # Create temporary directory for the project
-                temp_dir = tempfile.TemporaryDirectory()
-                repo_path = Path(temp_dir.name)
+            # Clone and checkout to the vulnerable commit
+            try:
+                repo.save(repo_path)
+            except git.GitCommandError:
+                continue
 
-                # Clone and checkout to the vulnerable commit
-                try:
-                    repo.save(repo_path)
-                except git.GitCommandError:
-                    continue
+            # Run analysis
+            self.run_analysis(dataset.lang, repo_path, result_path)
 
-                # Run analysis
-                self.run_analysis(dataset.lang, repo_path, result_path)
-
-                # Clear temporary directory
-                temp_dir.cleanup()
+            # Clear temporary directory
+            temp_dir.cleanup()
 
     @property
     def supported_dataset_full_names(self) -> list[str]:
@@ -333,3 +351,76 @@ class SAST:
 
         output_dirs = sorted(output_dirs)
         return output_dirs
+
+
+class BuildlessSAST(SAST):
+    """Represent a SAST tool that analyzes source code directly without a build step."""
+
+    pass
+
+
+class PrebuiltSAST(SAST):
+    """Represent a SAST tool that requires a pre-built project."""
+
+    def analyze_files(
+        self,
+        dataset: PrebuiltFileDataset,
+        overwrite: bool = False,
+        testing: bool = False,
+    ) -> None:
+        """Analyze a pre-built file-based dataset.
+
+        Check if the dataset has been built. If not, provide build instructions.
+        Otherwise, run the analysis on the pre-built files.
+
+        Args:
+            dataset: The `PrebuiltFileDataset` instance to analyze.
+            overwrite: If True, overwrite existing results for this dataset.
+            testing: If True, run analysis on a sample of two random files for testing.
+
+        """
+        if not dataset.is_built():
+            prebuilt_dir, prebuilt_glob = dataset.prebuilt_expected
+            panel = Panel(
+                f"""
+Please build [b]{dataset.name}[/b] before running the benchmark
+Build command: \t\t[b]{dataset.build_command}[/b]
+Full command: \t\t[b](cd {dataset.directory} && {dataset.build_command})[/b]
+Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}[/b]""",
+                title=f"[b]{self.name} - PrebuiltSAST[/b]",
+            )
+            print(panel)
+            return
+
+        # Adapted from base class
+        result_path = self.output_dir / dataset.full_name
+        result_path.mkdir(exist_ok=True, parents=True)
+
+        if result_path.is_dir():
+            if os.listdir(result_path) and not overwrite:
+                print(
+                    "Results already exist, please use --overwrite to delete old results"
+                )
+                return
+
+        # Create temporary directory for the project
+        temp_dir = tempfile.TemporaryDirectory()
+        temp_path = Path(temp_dir.name)
+
+        # Copy files into the temporary directory
+        if testing:
+            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
+            prebuilt_files = random.sample(dataset.list_prebuilt_files(), k=2)
+        else:
+            prebuilt_files = dataset.list_prebuilt_files()
+
+        for prebuilt_file in prebuilt_files:
+            shutil.copy2(prebuilt_file, temp_path / prebuilt_file.name)
+
+        # Run analysis
+        self.run_analysis(
+            dataset.lang, dataset.directory, result_path, artifact_dir=temp_path
+        )
+
+        # Clear temporary directory
+        temp_dir.cleanup()

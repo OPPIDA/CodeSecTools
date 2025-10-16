@@ -83,6 +83,9 @@ ignore = [
   "D203", "D213" # Conflict
 ]
 
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
 [tool.pytest.ini_options]
 addopts = "-x --showlocals -vvv"
 log_cli = true

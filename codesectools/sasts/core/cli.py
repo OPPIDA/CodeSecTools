@@ -7,7 +7,7 @@ SAST integration.
 
 import shutil
 from pathlib import Path
-from typing import Self
+from typing import Optional, Self
 
 import typer
 from click import Choice
@@ -23,7 +23,7 @@ from codesectools.sasts.core.graphics import (
     GitRepoDatasetGraphics,
     ProjectGraphics,
 )
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import SAST, PrebuiltSAST
 
 
 class CLIFactory:
@@ -106,6 +106,7 @@ class CLIFactory:
 
         @self.cli.command(help=help)
         def install() -> None:
+            """Display installation instructions for missing requirements."""
             install_help = ""
             sast_reqs = self.sast.requirements
             missing_reqs = sast_reqs.get_missing()
@@ -135,6 +136,19 @@ class CLIFactory:
             help: The help string for the command.
 
         """
+        # PrebuiltSAST additional options
+        if isinstance(self.sast, PrebuiltSAST):
+            artifact_dir_default = typer.Option(
+                help="Pre-built artifacts directory",
+                metavar="ARTIFACT_DIR",
+            )
+        else:
+            artifact_dir_default = typer.Option(
+                default=None,
+                hidden=True,
+                help="Pre-built artifacts directory (for PrebuiltSAST only)",
+                metavar="ARTIFACT_DIR",
+            )
 
         @self.cli.command(help=help)
         def analyze(
@@ -146,6 +160,9 @@ class CLIFactory:
                     metavar="LANG",
                 ),
             ],
+            # Additional REQUIRED options
+            artifact_dir: Optional[Path] = artifact_dir_default,
+            # Common NOT REQUIRED option
             overwrite: Annotated[
                 bool,
                 typer.Option(
@@ -158,6 +175,7 @@ class CLIFactory:
 
             Args:
                 lang: The source code language to analyze.
+                artifact_dir: The directory containing pre-built artifacts, required for PrebuiltSAST tools.
                 overwrite: If True, overwrite any existing analysis results for the project.
 
             """
@@ -165,12 +183,16 @@ class CLIFactory:
             if output_dir.is_dir():
                 if overwrite:
                     shutil.rmtree(output_dir)
-                    self.sast.run_analysis(lang, Path.cwd(), output_dir)
+                    self.sast.run_analysis(
+                        lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                    )
                 else:
                     print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
-                self.sast.run_analysis(lang, Path.cwd(), output_dir)
+                self.sast.run_analysis(
+                    lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                )
 
     def add_benchmark(self, help: str = "") -> None:
         """Add the 'benchmark' command to the CLI.

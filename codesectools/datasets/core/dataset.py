@@ -9,6 +9,7 @@ and data classes to hold benchmark results.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import git
@@ -21,7 +22,6 @@ from rich.progress import Progress
 from codesectools.utils import USER_CACHE_DIR
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from typing import Self
 
     from codesectools.sasts.core.parser import AnalysisResult, Defect
@@ -130,6 +130,31 @@ By proceeding, you agree to abide by its terms.""",
 
         """
         return sorted([f"{cls.name}_{lang}" for lang in cls.supported_languages])
+
+
+class PrebuiltDatasetMixin:
+    """Provide functionality for datasets that require a build step."""
+
+    build_command: str
+    prebuilt_expected: tuple[Path, str]
+
+    def is_built(self) -> bool:
+        """Check if the dataset has been built."""
+        if not self.build_command:
+            return False
+        prebuilt_dir, prebuilt_glob = self.prebuilt_expected
+        prebuilt_path = USER_CACHE_DIR / self.name / prebuilt_dir
+        if not prebuilt_path.is_dir():
+            return False
+        if not self.list_prebuilt_files():
+            return False
+        return True
+
+    def list_prebuilt_files(self) -> list[Path]:
+        """List the pre-built artefact files."""
+        prebuilt_dir, prebuilt_glob = self.prebuilt_expected
+        prebuilt_path = USER_CACHE_DIR / self.name / prebuilt_dir
+        return list(prebuilt_path.glob(prebuilt_glob))
 
 
 class DatasetUnit:
@@ -271,7 +296,7 @@ class FileDataset(Dataset):
             if not defect.cwe or defect.cwe.id == -1:
                 continue
 
-            file_cwe_pair = (defect.file_path, defect.cwe)
+            file_cwe_pair = (Path(defect.file).name, defect.cwe)  # TODO: USE FULL PATH
             if file_cwe_pair not in unique_reported_defects:
                 unique_reported_defects[file_cwe_pair] = defect
 
@@ -327,6 +352,12 @@ class FileDataset(Dataset):
             defect_number=defect_number,
             unique_correct_number=unique_correct_number,
         )
+
+
+class PrebuiltFileDataset(PrebuiltDatasetMixin, FileDataset):
+    """Represent a file-based dataset that requires a build step."""
+
+    pass
 
 
 class FileDatasetData(BenchmarkData):
