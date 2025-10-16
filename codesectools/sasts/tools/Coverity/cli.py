@@ -5,7 +5,7 @@ This script sets up the `typer` command group for Coverity and uses the
 """
 
 from codesectools.sasts.core.cli import CLIFactory
-from codesectools.sasts.Coverity.sast import CoveritySAST
+from codesectools.sasts.tools.Coverity.sast import CoveritySAST
 
 CoverityCLIFactory = CLIFactory(
     CoveritySAST(), custom_messages={"main": "Coverity Static Analysis"}

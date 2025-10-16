@@ -6,15 +6,15 @@ the execution of Snyk Code scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import Binary, Config, SASTRequirements
-from codesectools.sasts.SnykCode.parser import SnykCodeAnalysisResult
+from codesectools.sasts.tools.SnykCode.parser import SnykCodeAnalysisResult
 from codesectools.utils import USER_CONFIG_DIR
 
 
-class SnykCodeSAST(SAST):
-    """Provide the SAST integration for Snyk Code.
+class SnykCodeSAST(BuildlessSAST):
+    """SAST integration for Snyk Code.
 
     Attributes:
         name (str): The name of the SAST tool.
@@ -33,7 +33,7 @@ class SnykCodeSAST(SAST):
     name = "SnykCode"
     supported_languages = ["java"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
-    properties = SASTProperties(free=False, offline=False, buildless=True)
+    properties = SASTProperties(free=False, offline=False)
     requirements = SASTRequirements(
         full_reqs=[
             Binary(

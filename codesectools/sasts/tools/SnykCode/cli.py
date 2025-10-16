@@ -5,6 +5,6 @@ This script sets up the `typer` command group for Snyk Code and uses the
 """
 
 from codesectools.sasts.core.cli import CLIFactory
-from codesectools.sasts.SnykCode.sast import SnykCodeSAST
+from codesectools.sasts.tools.SnykCode.sast import SnykCodeSAST
 
 SnykCodeCLIFactory = CLIFactory(SnykCodeSAST(), custom_messages={"main": "Snyk Code"})

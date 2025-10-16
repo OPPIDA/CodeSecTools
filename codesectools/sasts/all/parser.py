@@ -149,8 +149,8 @@ class AllSASTAnalysisResult:
 
             defect_locations = {}
             for defect in defects:
-                if location := defect.location:
-                    start, end = location
+                if any(defect.location):
+                    start, end = defect.location
                     for line in range(start, end + 1):
                         if not defect_locations.get(line):
                             defect_locations[line] = []
@@ -202,11 +202,12 @@ class AllSASTAnalysisResult:
 
             locations = []
             for defect in defects:
-                start, end = defect.location
-                if start and end:
-                    locations.append(
-                        (defect.sast, defect.cwe, defect.message, (start, end))
-                    )
+                if any(defect.location):
+                    start, end = defect.location
+                    if start and end:
+                        locations.append(
+                            (defect.sast, defect.cwe, defect.message, (start, end))
+                        )
 
             report["defects"][defect_file] = {
                 "score": scores[defect_file]["score"],

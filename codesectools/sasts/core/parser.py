@@ -17,11 +17,15 @@ class Defect:
     """Represent a single defect or finding reported by a SAST tool.
 
     Attributes:
-        file (str): The name of the file where the defect was found.
+        sast (str): The name of the SAST tool that reported the defect.
+        file (Path): The path to the file where the defect was found.
+        file_path (str): The string representation of the file path.
         checker (str): The name of the checker or rule that reported the defect.
         category (str): The category of the checker (e.g., security, performance).
         cwe (CWE): The CWE associated with the defect.
-        data (tuple[Any]): A tuple containing the raw data for the defect.
+        message (str): The description of the defect.
+        location (tuple[int, int] | None): A tuple with the start and end line numbers of the defect.
+        data (tuple[Any]): Raw data from the SAST tool for this defect.
 
     """
 
@@ -58,6 +62,12 @@ class Defect:
         self.location = location
         self.data = data
 
+        start, end = self.location
+        if start and not end:
+            self.location = (start, start)
+        elif not start and end:
+            self.location = (end, end)
+
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the Defect.
 
@@ -78,12 +88,13 @@ class AnalysisResult(ABC):
 
     Attributes:
         name (str): The name of the analyzed project or dataset.
+        source_path (Path): The path to the analyzed source code.
         lang (str): The primary programming language analyzed.
         files (list[str]): A list of files that were analyzed.
         defects (list[Defect]): A list of `Defect` objects found.
         time (float): The duration of the analysis in seconds.
         loc (int): The number of lines of code analyzed.
-        data (tuple[Any]): A tuple containing raw data from the analysis.
+        data (tuple[Any]): Raw data from the SAST tool's output.
 
     """
 

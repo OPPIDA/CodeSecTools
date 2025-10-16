@@ -68,24 +68,28 @@ def status(
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
+        table.add_column("Type", justify="center", no_wrap=True)
         table.add_column("Status", justify="center", no_wrap=True)
         table.add_column("Note", justify="center")
         for sast_name, sast_data in SASTS_ALL.items():
             if sast_data["status"] == "full":
                 table.add_row(
                     sast_name,
+                    sast_data["sast"].__bases__[0].__name__,
                     "Full ✅",
                     "[b]Analysis[/b] and [b]result parsing[/b] are available",
                 )
             elif sast_data["status"] == "partial":
                 table.add_row(
                     sast_name,
+                    sast_data["sast"].__bases__[0].__name__,
                     "Partial ⚠️",
                     f"Only [b]result parsing[/b] is available\nMissing: [red]{sast_data['missing']}[/red]",
                 )
             else:
                 table.add_row(
                     sast_name,
+                    sast_data["sast"].__bases__[0].__name__,
                     "None ❌",
                     f"[b]Nothing[/b] is available\nMissing: [red]{sast_data['missing']}[/red]",
                 )
@@ -143,18 +147,24 @@ def get_downloadable() -> dict[str, DownloadableRequirement | Dataset]:
 
 
 if DOWNLOADABLE := get_downloadable():
+    download_hidden = False
+    download_arg_type = str
+    download_arg_value = typer.Argument(
+        click_type=Choice(["all"] + list(DOWNLOADABLE)),
+        metavar="NAME",
+    )
+else:
+    download_hidden = True
+    download_arg_type = Optional[str]
+    download_arg_value = None
 
-    @cli.command()
-    def download(
-        name: Annotated[
-            str,
-            typer.Argument(
-                click_type=Choice(["all"] + list(DOWNLOADABLE)),
-                metavar="NAME",
-            ),
-        ],
-    ) -> None:
-        """Download missing resources."""
+
+@cli.command(hidden=download_hidden)
+def download(name: download_arg_type = download_arg_value) -> None:
+    """Download any missing resources that are available for download."""
+    if name is None:
+        print("All downloadable resources have been retrieved.")
+    else:
         if name == "all":
             targets = DOWNLOADABLE.values()
         else:

@@ -9,8 +9,14 @@ import pytest
 from typer.testing import CliRunner
 
 from codesectools.datasets import DATASETS_ALL
-from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
+from codesectools.datasets.core.dataset import (
+    Dataset,
+    FileDataset,
+    GitRepoDataset,
+    PrebuiltDatasetMixin,
+)
 from codesectools.sasts import SASTS_ALL
+from codesectools.utils import run_command
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -27,16 +33,30 @@ def update_sast_module_state() -> GeneratorType:
 
 runner = CliRunner(env={"COLUMNS": "200"})
 
-TEST_CODES = {
-    "java": (
-        "test.java",
-        """import java.io.BufferedReader;
-import java.io.InputStreamReader;
-BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-String userInput = br.readLine();
-Runtime.getRuntime().exec("ping -c 1 " + userInput);""",
-    ),
-}
+TEST_CODES_DIR = Path("tests/testcodes").resolve()
+TEST_CODES = {"java": {"build_command": "javac {filename}"}}
+
+
+@pytest.mark.order(0)
+def test_compile() -> None | AssertionError:
+    """Compile test code and pre-built datasets before running tests."""
+    for _, dataset_obj in DATASETS_ALL.items():
+        dataset: Dataset = dataset_obj()
+        if isinstance(dataset, PrebuiltDatasetMixin):
+            logging.info(f"Compiling dataset: {dataset.name}")
+            retcode, stdout = run_command(
+                dataset.build_command.split(" "), cwd=dataset.directory
+            )
+            assert retcode == 0
+
+    for lang, data in TEST_CODES.items():
+        for file in (TEST_CODES_DIR / lang).iterdir():
+            command = data["build_command"].replace("{filename}", file.name)
+            logging.info(f"Compiling testcode: {file.name}")
+            retcode, stdout = run_command(
+                command.split(" "), cwd=(TEST_CODES_DIR / lang)
+            )
+            assert retcode == 0
 
 
 def test_included() -> None:
@@ -84,11 +104,14 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
         sast = sast_data["sast"]()
         for lang in sast.supported_languages:
             logging.info(f"Testing {sast_name} analyze command on {lang} code")
-            with tempfile.TemporaryDirectory() as temp_dir:
+            with tempfile.TemporaryDirectory(delete=False) as temp_dir:
                 monkeypatch.chdir(temp_dir)
-                file_name, file_content = TEST_CODES[lang]
-                Path(temp_dir, file_name).write_text(file_content)
-                result = runner.invoke(sast_cli, ["analyze", lang])
+                for file in Path(TEST_CODES_DIR, lang).iterdir():
+                    Path(temp_dir, file.name).write_bytes(file.read_bytes())
+
+                result = runner.invoke(
+                    sast_cli, ["analyze", lang, "--artifact-dir", "."]
+                )
                 assert result.exit_code == 0
                 assert "--overwrite" not in result.output
 
@@ -100,7 +123,9 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
                 SAST_RESULTS[sast_name].append(Path(temp_dir).name)
 
-                result = runner.invoke(sast_cli, ["analyze", lang])
+                result = runner.invoke(
+                    sast_cli, ["analyze", lang, "--artifact-dir", "."]
+                )
                 assert result.exit_code == 0
                 assert "--overwrite" in result.output
 

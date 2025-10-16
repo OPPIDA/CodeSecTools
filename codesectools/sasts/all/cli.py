@@ -20,6 +20,7 @@ from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.graphics import ProjectGraphics
 from codesectools.sasts.all.sast import AllSAST
+from codesectools.sasts.core.sast import PrebuiltSAST
 
 
 def build_cli() -> typer.Typer:
@@ -70,6 +71,15 @@ def build_cli() -> typer.Typer:
                 metavar="LANG",
             ),
         ],
+        # Additional options
+        artifact_dir: Annotated[
+            Path | None,
+            typer.Option(
+                help="Pre-built artifacts directory (for PrebuiltSAST only)",
+                metavar="ARTIFACT_DIR",
+            ),
+        ] = None,
+        # Common NOT REQUIRED option
         overwrite: Annotated[
             bool,
             typer.Option(
@@ -80,16 +90,27 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run analysis on the current project with all available SASTs."""
         for sast in all_sast.sasts:
+            if isinstance(sast, PrebuiltSAST) and artifact_dir is None:
+                print(f"{sast.name} required pre-built artifacts for analysis")
+                print(
+                    "Please provide the directory with artifacts (with --artifact-dir) to include this tool"
+                )
+                continue
+
             output_dir = sast.output_dir / Path.cwd().name
             if output_dir.is_dir():
                 if overwrite:
                     shutil.rmtree(output_dir)
-                    sast.run_analysis(lang, Path.cwd(), output_dir)
+                    sast.run_analysis(
+                        lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                    )
                 else:
                     print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
-                sast.run_analysis(lang, Path.cwd(), output_dir)
+                sast.run_analysis(
+                    lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                )
 
     @cli.command(help="Benchmark a dataset using all SASTs.")
     def benchmark(

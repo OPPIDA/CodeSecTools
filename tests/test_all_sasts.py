@@ -1,6 +1,7 @@
 """Test the 'allsast' command integration."""
 
 import logging
+from pathlib import Path
 from types import GeneratorType
 
 import git
@@ -10,6 +11,7 @@ from typer.testing import CliRunner
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.cli import build_cli
 from codesectools.sasts.all.sast import AllSAST
+from codesectools.utils import run_command
 
 all_sast = AllSAST()
 
@@ -41,9 +43,17 @@ def test_included() -> None:
 def test_analyze(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test the 'allsast analyze' command."""
     logging.info("Testing All SAST analyze command on Java code")  # Support Java only
-    git.Repo.clone_from("https://github.com/appsecco/dvja.git", "/tmp/dvja")
-    monkeypatch.chdir("/tmp/dvja")
-    result = runner.invoke(build_cli(), ["analyze", "java"])
+    git.Repo.clone_from("https://github.com/ScaleSec/vulnado.git", "/tmp/vulnado")
+    monkeypatch.chdir("/tmp/vulnado")
+
+    retcode, stdout = run_command(
+        "./mvnw clean compile".split(" "), cwd=Path("/tmp/vulnado")
+    )
+    assert retcode == 0
+
+    result = runner.invoke(
+        build_cli(), ["analyze", "java", "--artifact-dir", "target/classes"]
+    )
     assert result.exit_code == 0
 
 
@@ -52,21 +62,21 @@ def test_list() -> None:
     logging.info("Testing All SAST list command on Java code")
     result = runner.invoke(build_cli(), ["list"])
     assert result.exit_code == 0
-    assert "dvja" in result.output
+    assert "vulnado" in result.output
 
 
 def test_plot() -> None:
     """Test the 'allsast plot' command."""
     logging.info("Testing All SAST plot command on Java code")
-    result = runner.invoke(build_cli(), ["plot", "dvja"])
+    result = runner.invoke(build_cli(), ["plot", "vulnado"])
     assert result.exit_code == 0
-    assert (all_sast.output_dir / "dvja" / "_figures").is_dir()
+    assert (all_sast.output_dir / "vulnado" / "_figures").is_dir()
 
 
 def test_report() -> None:
     """Test the 'allsast report' command."""
     logging.info("Testing All SAST report command on Java code")
-    result = runner.invoke(build_cli(), ["report", "dvja"])
+    result = runner.invoke(build_cli(), ["report", "vulnado"])
     assert result.exit_code == 0
-    assert (all_sast.output_dir / "dvja" / "report").is_dir()
-    assert list((all_sast.output_dir / "dvja" / "report").glob("*.html"))
+    assert (all_sast.output_dir / "vulnado" / "report").is_dir()
+    assert list((all_sast.output_dir / "vulnado" / "report").glob("*.html"))
