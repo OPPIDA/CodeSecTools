@@ -6,17 +6,17 @@ the execution of Coverity scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import Binary, Config, SASTRequirements
-from codesectools.sasts.Coverity.parser import (
+from codesectools.sasts.tools.Coverity.parser import (
     COLOR_MAPPING,
     LANGUAGES,
     CoverityAnalysisResult,
 )
 
 
-class CoveritySAST(SAST):
+class CoveritySAST(BuildlessSAST):
     """SAST integration for Coverity.
 
     Attributes:
@@ -36,7 +36,7 @@ class CoveritySAST(SAST):
     name = "Coverity"
     supported_languages = LANGUAGES.keys()
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
-    properties = SASTProperties(free=False, offline=True, buildless=True)
+    properties = SASTProperties(free=False, offline=True)
     requirements = SASTRequirements(
         full_reqs=[
             Binary(

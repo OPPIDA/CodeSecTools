@@ -6,18 +6,18 @@ the execution of Bearer scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.Bearer.parser import BearerAnalysisResult
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import (
     Binary,
     GitRepo,
     SASTRequirements,
 )
+from codesectools.sasts.tools.Bearer.parser import BearerAnalysisResult
 from codesectools.utils import USER_CACHE_DIR
 
 
-class BearerSAST(SAST):
+class BearerSAST(BuildlessSAST):
     """SAST integration for Bearer.
 
     Attributes:
@@ -37,7 +37,7 @@ class BearerSAST(SAST):
     name = "Bearer"
     supported_languages = ["java"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
-    properties = SASTProperties(free=True, offline=True, buildless=True)
+    properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
         full_reqs=[Binary("bearer", url="https://docs.bearer.com/quickstart/")],
         partial_reqs=[
@@ -61,6 +61,7 @@ class BearerSAST(SAST):
             "--format=json",
             "--output=bearer_output.json",
             "--disable-version-check",
+            "--exit-code=0",
         ]
     ]
     output_files = [

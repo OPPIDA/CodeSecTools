@@ -6,18 +6,18 @@ the execution of Semgrep Community Edition scans using the core SAST framework.
 
 from pathlib import Path
 
-from codesectools.sasts.core.sast import SAST
+from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import (
     Binary,
     GitRepo,
     SASTRequirements,
 )
-from codesectools.sasts.SemgrepCE.parser import SemgrepCEAnalysisResult
+from codesectools.sasts.tools.SemgrepCE.parser import SemgrepCEAnalysisResult
 from codesectools.utils import USER_CACHE_DIR
 
 
-class SemgrepCESAST(SAST):
+class SemgrepCESAST(BuildlessSAST):
     """SAST integration for Semgrep Community Edition.
 
     Attributes:
@@ -37,7 +37,7 @@ class SemgrepCESAST(SAST):
     name = "SemgrepCE"
     supported_languages = ["java"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
-    properties = SASTProperties(free=True, offline=True, buildless=True)
+    properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
         full_reqs=[
             Binary("semgrep", url="https://semgrep.dev/docs/getting-started/quickstart")
