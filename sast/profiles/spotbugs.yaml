@@ -1,0 +1,16 @@
+name: SpotBugs
+description: SpotBugs is a program which uses static analysis to look for bugs in Java code. SpotBugs is a fork of FindBugs (which is now an abandoned project), carrying on from the point where it left off with support of its community.
+type: Data Flow Analysis (Compiled code)
+url: https://github.com/spotbugs/spotbugs
+supported_version: 4.9.7
+legal:
+  license: LGPL-2.1
+  license_type: Copyleft
+  license_url: https://github.com/spotbugs/spotbugs/blob/master/LICENSE
+requirements:
+  - An existing installation of SpotBugs.
+  - An internet connection is required **only** to download [find-sec-bugs](https://github.com/find-sec-bugs/find-sec-bugs) plugin.
+extra: |
+    !!! warning "Key Considerations"
+        
+        The analysis tool is using find-sec-bugs which is license under [LGPL-3.0](https://find-sec-bugs.github.io/license.htm).
