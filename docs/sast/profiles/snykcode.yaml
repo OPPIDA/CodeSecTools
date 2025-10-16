@@ -1,6 +1,6 @@
 name: Snyk Code
 description: Snyk Code is a developer-first static application security testing (SAST) solution. By scanning code in real-time and providing actionable insights directly in the developer workflow across IDEs, repositories, and CI/CD pipelines, you can identify and address vulnerabilities early on. The AI-based engine results in fewer false positives for your developers, improving code quality and security.
-type: Data Flow Analysis
+type: Data Flow Analysis (Source code)
 url: https://docs.snyk.io/scan-with-snyk/snyk-code
 supported_version: 1.1298.3
 legal:

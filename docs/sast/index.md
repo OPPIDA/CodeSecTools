@@ -6,8 +6,8 @@
 
 SAST tools use various techniques, including:
 
-- `Pattern Matching`: It searches for code patterns that match known vulnerabilities.
-- `Data Flow Analysis`: It tracks data from sources to sinks to identify potential security flaws.
+- `Pattern Matching`: Finds known-vulnerable code patterns. This technique does not require compilation.
+- `Data Flow Analysis`:: Tracks data from sources to sinks to find security flaws. It is more accurate on compiled code but also works on source code.
 
 The analysis process also depends on the programming language:
 
