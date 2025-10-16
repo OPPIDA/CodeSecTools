@@ -6,11 +6,12 @@ from a Git repository and associates test files with expected results from a CSV
 """
 
 import csv
+from pathlib import Path
 from typing import Self
 
 import git
 
-from codesectools.datasets.core.dataset import File, FileDataset
+from codesectools.datasets.core.dataset import File, PrebuiltFileDataset
 from codesectools.shared.cwe import CWE, CWEs
 
 
@@ -50,7 +51,7 @@ class TestCode(File):
         self.vuln_type = vuln_type
 
 
-class BenchmarkJava(FileDataset):
+class BenchmarkJava(PrebuiltFileDataset):
     """Represents the BenchmarkJava dataset.
 
     This class handles the loading of the dataset, which includes Java test files
@@ -66,6 +67,9 @@ class BenchmarkJava(FileDataset):
     supported_languages = ["java"]
     license = "GPL-2.0"
     license_url = "https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE"
+
+    build_command = "mvn clean compile"
+    prebuilt_expected = (Path("target/classes/org/owasp/benchmark/testcode"), "*.class")
 
     def __init__(self, lang: None | str = None) -> None:
         """Initialize the BenchmarkJava dataset.
@@ -97,21 +101,8 @@ class BenchmarkJava(FileDataset):
 
     def download_files(self: Self) -> None:
         """Download the dataset files from the official Git repository."""
-        repo = git.Repo.clone_from(
-            "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
-            self.directory,
-            depth=1,
-            sparse=True,
-            filter=["tree:0"],
-        )
-        repo.git.sparse_checkout(
-            "set",
-            "--no-cone",
-            *[
-                "src/main/java/org/owasp/benchmark/testcode/",
-                "expectedresults-1.2.csv",
-                "LICENSE",
-            ],
+        git.Repo.clone_from(
+            "https://github.com/OWASP-Benchmark/BenchmarkJava.git", self.directory
         )
 
     def load_dataset(self) -> list[TestCode]:
