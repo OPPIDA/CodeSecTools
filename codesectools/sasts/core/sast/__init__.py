@@ -189,7 +189,8 @@ class SAST(ABC):
             if "*" not in filename:
                 file_path = project_dir / parent_dir / filename
                 if file_path.is_file():
-                    shutil.copy2(file_path, output_dir / filename)
+                    if not file_path == output_dir / filename:
+                        shutil.copy2(file_path, output_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -197,7 +198,8 @@ class SAST(ABC):
                 file_paths = (project_dir / parent_dir).glob(filename)
                 if file_paths:
                     for file_path in file_paths:
-                        shutil.copy2(file_path, output_dir / file_path.name)
+                        if not file_path == output_dir / filename:
+                            shutil.copy2(file_path, output_dir / file_path.name)
                 else:
                     if required:
                         missing_files.append(filename)
