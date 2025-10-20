@@ -38,6 +38,15 @@ classDiagram
         +list_results(project, dataset, limit)
     }
 
+    class BuildlessSAST {
+    }
+
+    class PrebuiltSAST {
+    }
+    
+    SAST <|-- BuildlessSAST
+    SAST <|-- PrebuiltSAST
+
     class AnalysisResult {
         +name: str
         +lang: str
