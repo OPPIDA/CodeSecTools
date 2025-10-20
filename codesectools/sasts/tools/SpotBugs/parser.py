@@ -21,7 +21,7 @@ class SpotBugsIssue(Defect):
 
     def __init__(
         self,
-        file: Path,
+        filepath: Path,
         checker: str,
         category: str,
         cwe: CWE,
@@ -32,7 +32,7 @@ class SpotBugsIssue(Defect):
         """Initialize a SpotBugsIssue instance.
 
         Args:
-            file: The file path of the defect.
+            filepath: The file path of the defect.
             checker: The name of the rule/checker.
             category: The category of the checker.
             cwe: The CWE associated with the defect.
@@ -41,7 +41,7 @@ class SpotBugsIssue(Defect):
             data: Raw data from the SAST tool for this defect.
 
         """
-        super().__init__(file, checker, category, cwe, message, location, data)
+        super().__init__(filepath, checker, category, cwe, message, location, data)
 
 
 class SpotBugsAnalysisResult(AnalysisResult):
@@ -77,24 +77,23 @@ class SpotBugsAnalysisResult(AnalysisResult):
                 rule_index = result["ruleIndex"]
                 checker = result["ruleId"]
 
-                partial_file_path = Path(
+                partial_filepath = Path(
                     result["locations"][0]["physicalLocation"]["artifactLocation"][
                         "uri"
                     ]
                 )
-                if partial_file_path.parent not in partial_parents:
-                    file_path = next(
-                        self.source_path.rglob(str(partial_file_path))
+                if partial_filepath.parent not in partial_parents:
+                    filepath = next(
+                        self.source_path.rglob(str(partial_filepath))
                     ).relative_to(self.source_path)
-                    partial_parents[partial_file_path.parent] = file_path.parent
+                    partial_parents[partial_filepath.parent] = filepath.parent
                 else:
-                    file_path = (
-                        partial_parents[partial_file_path.parent]
-                        / partial_file_path.name
+                    filepath = (
+                        partial_parents[partial_filepath.parent] / partial_filepath.name
                     )
 
                 defect = SpotBugsIssue(
-                    file=file_path,
+                    filepath=filepath,
                     checker=checker,
                     category=run["tool"]["driver"]["rules"][rule_index]["properties"][
                         "tags"
@@ -120,7 +119,7 @@ class SpotBugsAnalysisResult(AnalysisResult):
                 if defect.category in ["SECURITY", "CORRECTNESS", "MT_CORRECTNESS"]:
                     self.defects.append(defect)
 
-        self.files = list(set(d.file for d in self.defects))
+        self.files = list(set(d.filepath_str for d in self.defects))
 
     @classmethod
     def load_from_output_dir(cls, output_dir: Path) -> Self:

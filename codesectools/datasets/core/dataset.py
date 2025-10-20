@@ -9,7 +9,6 @@ and data classes to hold benchmark results.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import git
@@ -22,6 +21,7 @@ from rich.progress import Progress
 from codesectools.utils import USER_CACHE_DIR
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from typing import Self
 
     from codesectools.sasts.core.parser import AnalysisResult, Defect
@@ -296,7 +296,7 @@ class FileDataset(Dataset):
             if not defect.cwe or defect.cwe.id == -1:
                 continue
 
-            file_cwe_pair = (Path(defect.file).name, defect.cwe)  # TODO: USE FULL PATH
+            file_cwe_pair = (defect.filename, defect.cwe)
             if file_cwe_pair not in unique_reported_defects:
                 unique_reported_defects[file_cwe_pair] = defect
 
@@ -563,18 +563,18 @@ class GitRepoDataset(Dataset):
 
             # 1. Process reported defects to get unique (file, cwe) pairs
             # and keep one original Defect object for each to retain metadata.
-            unique_reported_defects: dict[tuple[str, CWE], Defect] = {}
+            unique_reported_defects: dict[tuple[Path, CWE], Defect] = {}
             for defect in analysis_result.defects:
                 if not defect.cwe or defect.cwe.id == -1:
                     continue
 
-                file_cwe_pair = (defect.file_path, defect.cwe)
+                file_cwe_pair = (defect.filepath, defect.cwe)
                 if file_cwe_pair not in unique_reported_defects:
                     unique_reported_defects[file_cwe_pair] = defect
 
             # 2. Classify unique reported defects as TP or FP.
-            tp_defects_map: dict[tuple[str, CWE], Defect] = {}
-            fp_defects_map: dict[tuple[str, CWE], Defect] = {}
+            tp_defects_map: dict[tuple[Path, CWE], Defect] = {}
+            fp_defects_map: dict[tuple[Path, CWE], Defect] = {}
 
             if repo.has_vuln:
                 for (filename, cwe), defect in unique_reported_defects.items():

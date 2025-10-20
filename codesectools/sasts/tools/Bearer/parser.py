@@ -28,7 +28,7 @@ class BearerFinding(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["filename"]),
+            filepath=Path(defect_data["filename"]),
             checker=defect_data["id"],
             category=severity,
             cwe=CWEs.from_id(int(defect_data["cwe_ids"][0])),

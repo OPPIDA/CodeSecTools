@@ -37,7 +37,7 @@ class SemgrepCEFinding(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["path"]),
+            filepath=Path(defect_data["path"]),
             checker=defect_data["check_id"].split(".")[-1],
             category=defect_data["extra"]["metadata"].get("impact", "NONE"),
             cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),

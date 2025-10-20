@@ -187,19 +187,19 @@ class SAST(ABC):
             parent_dir = path_from_root.parent
             filename = path_from_root.name
             if "*" not in filename:
-                file_path = project_dir / parent_dir / filename
-                if file_path.is_file():
-                    if not file_path == output_dir / filename:
-                        shutil.copy2(file_path, output_dir / filename)
+                filepath = project_dir / parent_dir / filename
+                if filepath.is_file():
+                    if not filepath == output_dir / filename:
+                        shutil.copy2(filepath, output_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
             else:
-                file_paths = (project_dir / parent_dir).glob(filename)
-                if file_paths:
-                    for file_path in file_paths:
-                        if not file_path == output_dir / filename:
-                            shutil.copy2(file_path, output_dir / file_path.name)
+                filepaths = (project_dir / parent_dir).glob(filename)
+                if filepaths:
+                    for filepath in filepaths:
+                        if not filepath == output_dir / filename:
+                            shutil.copy2(filepath, output_dir / filepath.name)
                 else:
                     if required:
                         missing_files.append(filename)
