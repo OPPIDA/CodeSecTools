@@ -1,6 +1,7 @@
 """Test the 'allsast' command integration."""
 
 import logging
+import os
 from pathlib import Path
 from types import GeneratorType
 
@@ -12,6 +13,11 @@ from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.cli import build_cli
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.utils import run_command
+
+if os.environ.get("TEST_TYPE") == "no-sast":
+    pytest.skip(
+        "Skipping SAST tools testing in no-sast environment", allow_module_level=True
+    )
 
 all_sast = AllSAST()
 
