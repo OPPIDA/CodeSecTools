@@ -1,7 +1,12 @@
-name: Run Tests on Pull Request
+name: Run tests on Pull Request
 
 on:
-  pull_request
+  pull_request:
+      branches:
+        - 'main'
+      paths: 
+        - 'codesectools/**'
+        - 'tests/**'
   
 jobs:
   tests:
