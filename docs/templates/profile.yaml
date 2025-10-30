@@ -3,6 +3,7 @@ description:
 type: 
 url: 
 supported_version: 
+supported_languages:
 legal:
   # https://en.wikipedia.org/wiki/Software_license
   license: 

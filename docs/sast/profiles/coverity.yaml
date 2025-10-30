@@ -3,6 +3,8 @@ description: Coverity® Static Analysis provides comprehensive code scanning tha
 type: Data Flow Analysis (Source code and compiled code)
 url: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
 supported_version: 2024.12.1
+supported_languages:
+  - Java
 legal:
   terms: Black Duck Terms of Service v2024.2
   terms_url: https://www.blackduck.com/company/legal/terms-of-service.html

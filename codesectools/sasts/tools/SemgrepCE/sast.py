@@ -27,6 +27,7 @@ class SemgrepCESAST(BuildlessSAST):
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
+        valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SemgrepCEAnalysisResult]): The parser class for the tool's results.
@@ -35,7 +36,7 @@ class SemgrepCESAST(BuildlessSAST):
     """
 
     name = "SemgrepCE"
-    supported_languages = ["java"]
+    supported_languages = ["java", "c"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
@@ -60,6 +61,7 @@ class SemgrepCESAST(BuildlessSAST):
             "--json-output=semgrepce_output.json",
         ]
     ]
+    valid_codes = [0, 1]  # https://semgrep.dev/docs/cli-reference#exit-codes
     output_files = [
         (Path("semgrepce_output.json"), True),
     ]

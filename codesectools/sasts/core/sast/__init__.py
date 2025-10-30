@@ -53,6 +53,7 @@ class SAST(ABC):
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): Command-line templates to be executed.
+        valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
@@ -75,6 +76,7 @@ class SAST(ABC):
     properties: SASTProperties
     requirements: SASTRequirements
     commands: list[list[str]]
+    valid_codes: list[int]
     environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
@@ -84,9 +86,7 @@ class SAST(ABC):
     def __init__(self) -> None:
         """Initialize the SAST instance.
 
-        Set up the list of supported dataset objects based on the
-        `supported_dataset_names` class attribute and define the tool-specific
-        output directory.
+        Set up supported datasets, the output directory, and requirement status.
         """
         self.supported_datasets = [
             DATASETS_ALL[d] for d in self.supported_dataset_names
@@ -153,7 +153,7 @@ class SAST(ABC):
                 rendered_command = self.render_command(command, render_variables)
                 retcode, out = run_command(rendered_command, project_dir, self.environ)
                 command_output += out
-                if retcode != 0:
+                if retcode not in self.valid_codes:
                     raise NonZeroExit(rendered_command, command_output)
             end = time.time()
 

@@ -3,6 +3,8 @@ description: The OWASP Benchmark Project is a Java test suite designed to verify
 type: File
 url: https://github.com/OWASP-Benchmark/BenchmarkJava
 supported_version: Latest
+supported_languages:
+  - Java
 legal:
   license: GPL-2.0
   license_type: Copyleft

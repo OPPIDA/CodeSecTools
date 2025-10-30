@@ -66,7 +66,7 @@ def build_cli() -> typer.Typer:
         lang: Annotated[
             str,
             typer.Argument(
-                click_type=Choice(all_sast.supported_languages),
+                click_type=Choice(all_sast.sasts_by_lang.keys()),
                 help="Source code language (only one at the time)",
                 metavar="LANG",
             ),
@@ -89,7 +89,7 @@ def build_cli() -> typer.Typer:
         ] = False,
     ) -> None:
         """Run analysis on the current project with all available SAST tools."""
-        for sast in all_sast.sasts:
+        for sast in all_sast.sasts_by_lang.get(lang, []):
             if isinstance(sast, PrebuiltSAST) and artifact_dir is None:
                 print(f"{sast.name} required pre-built artifacts for analysis")
                 print(
@@ -117,7 +117,7 @@ def build_cli() -> typer.Typer:
         dataset: Annotated[
             str,
             typer.Argument(
-                click_type=Choice(all_sast.supported_dataset_full_names),
+                click_type=Choice([d.name for d in all_sast.sasts_by_dataset]),
                 metavar="DATASET",
             ),
         ],
@@ -138,7 +138,7 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run a benchmark on a dataset using all available SAST tools."""
         dataset_name, lang = dataset.split("_")
-        for sast in all_sast.sasts:
+        for sast in all_sast.sasts_by_dataset.get(lang, []):
             dataset = DATASETS_ALL[dataset_name](lang)
             if isinstance(dataset, FileDataset):
                 sast.analyze_files(dataset, overwrite, testing)

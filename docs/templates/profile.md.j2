@@ -9,6 +9,8 @@ Type: `{{ type }}`
 
 Supported version: `{{ supported_version }}`
 
+Supported languages: `{{ supported_languages | join(', ') }}`
+
 !!! legal "Legal Notice"
     {% if legal.license -%}
     - License: `{{ legal.license }}` (`{{ legal.license_type }}`) [:material-open-in-new:]({{ legal.license_url }})

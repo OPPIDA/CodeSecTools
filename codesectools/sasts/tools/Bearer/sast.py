@@ -27,6 +27,7 @@ class BearerSAST(BuildlessSAST):
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
+        valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[BearerAnalysisResult]): The parser class for the tool's results.
@@ -64,6 +65,7 @@ class BearerSAST(BuildlessSAST):
             "--exit-code=0",
         ]
     ]
+    valid_codes = [0]
     output_files = [
         (Path("bearer_output.json"), True),
     ]

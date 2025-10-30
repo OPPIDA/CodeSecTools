@@ -2,7 +2,6 @@
 
 from typing import TYPE_CHECKING
 
-from codesectools.datasets import DATASETS_ALL
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.parser import AllSASTAnalysisResult
 from codesectools.utils import USER_OUTPUT_DIR
@@ -25,31 +24,21 @@ class AllSAST:
             if sast_data["status"] == "full":
                 self.sasts.append(sast_data["sast"]())
 
-        self.supported_languages = {}
-        self.supported_dataset_names = {}
+        self.sasts_by_lang = {}
+        self.sasts_by_dataset = {}
 
         for sast in self.sasts:
-            if not self.supported_languages:
-                self.supported_languages = set(sast.supported_languages)
-                self.supported_dataset_names = set(sast.supported_dataset_names)
-            else:
-                self.supported_languages &= set(sast.supported_languages)
-                self.supported_dataset_names &= set(sast.supported_dataset_names)
+            for lang in sast.supported_languages:
+                if self.sasts_by_lang.get(lang):
+                    self.sasts_by_lang[lang].append(sast)
+                else:
+                    self.sasts_by_lang[lang] = [sast]
 
-        self.supported_datasets = [
-            DATASETS_ALL[d] for d in self.supported_dataset_names
-        ]
-
-    @property
-    def supported_dataset_full_names(self) -> set[str]:
-        """List all language-specific datasets supported by all enabled SAST tools."""
-        datasets_full_name = set()
-        for dataset in self.supported_datasets:
-            for dataset_full_name in dataset.list_dataset_full_names():
-                dataset_name, lang = dataset_full_name.split("_")
-                if lang in self.supported_languages:
-                    datasets_full_name.add(dataset_full_name)
-        return datasets_full_name
+            for dataset in sast.supported_datasets:
+                if self.sasts_by_dataset.get(dataset):
+                    self.sasts_by_dataset[dataset].append(sast)
+                else:
+                    self.sasts_by_dataset[dataset] = [sast]
 
     def list_results(
         self, project: bool = False, dataset: bool = False, limit: int | None = None

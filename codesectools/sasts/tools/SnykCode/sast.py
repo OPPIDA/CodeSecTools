@@ -23,6 +23,7 @@ class SnykCodeSAST(BuildlessSAST):
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
+        valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SnykCodeAnalysisResult]): The parser class for the tool's results.
@@ -31,7 +32,7 @@ class SnykCodeSAST(BuildlessSAST):
     """
 
     name = "SnykCode"
-    supported_languages = ["java"]
+    supported_languages = ["java", "c"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=False)
     requirements = SASTRequirements(
@@ -45,6 +46,10 @@ class SnykCodeSAST(BuildlessSAST):
         partial_reqs=[],
     )
     commands = [["snyk", "code", "test", "--json-file-output=snyk_results.json"]]
+    valid_codes = [
+        0,
+        1,
+    ]  # https://docs.snyk.io/developer-tools/snyk-cli/commands/code-test#exit-codes
     output_files = [
         (Path("snyk_results.json"), False),
     ]

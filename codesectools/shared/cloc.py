@@ -32,7 +32,7 @@ class Cloc:
     """
 
     version = "2.06"
-    cloc_names = {"java": "Java"}
+    cloc_names = {"java": "Java", "c": "C"}
 
     def __init__(self, dir: Path, lang: str) -> None:
         """Initialize the Cloc wrapper.

@@ -31,8 +31,11 @@ class Graphics:
         self.output_dir = self.all_sast.output_dir / project_name
         self.color_mapping = {}
         cmap = plt.get_cmap("Set2")
+        self.sast_names = []
         for i, sast in enumerate(self.all_sast.sasts):
-            self.color_mapping[sast.name] = cmap(i)
+            if self.project_name in sast.list_results(project=True):
+                self.color_mapping[sast.name] = cmap(i)
+                self.sast_names.append(sast.name)
         self.plot_functions = []
 
         # Plot options
@@ -156,6 +159,9 @@ class ProjectGraphics(Graphics):
         # Plot by categories
         X_categories = ["HIGH", "MEDIUM", "LOW"]
         for category in X_categories:
+            if not by_categories.get(category):
+                continue
+
             sast_counts = by_categories[category]["sast_counts"]
 
             bars = []
@@ -200,10 +206,9 @@ class ProjectGraphics(Graphics):
             X_cwes.append(f"{cwe.name}")
             cwe_data.append(data)
 
-        sast_names = sorted([sast.name for sast in self.all_sast.sasts])
         bottoms = [0] * len(X_cwes)
 
-        for sast_name in sast_names:
+        for sast_name in self.sast_names:
             sast_counts = [data["sast_counts"].get(sast_name, 0) for data in cwe_data]
 
             ax.bar(

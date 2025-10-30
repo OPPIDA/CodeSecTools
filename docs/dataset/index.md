@@ -21,10 +21,10 @@ classDiagram
         +license: str
         +license_url: str
         +directory: Path
-        +files: list~File~
-        +is_cached()*
-        +download_files()*
-        +download_dataset()
+        +files: list~DatasetUnit~
+        +is_cached() bool
+        +download_files()* void
+        +download_dataset() void
         +load_dataset()* list~DatasetUnit~
     }
     class FileDataset {
@@ -50,8 +50,8 @@ classDiagram
         +files: list~str~
         +has_vuln: bool
     }
-    Dataset --> FileDataset : extends
-    Dataset --> GitRepoDataset : extends
+    Dataset <-- FileDataset : extends
+    Dataset <-- GitRepoDataset : extends
     FileDataset --> File : contains
     GitRepoDataset --> GitRepo : contains
 ```

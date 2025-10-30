@@ -31,11 +31,11 @@ classDiagram
         +environ: dict~str, str~
         +output_files: list~tuple~Path, bool~~
         +parser: type~AnalysisResult~
-        +run_analysis(lang, project_dir, output_dir)
-        +save_results(project_dir, output_dir, extra)
-        +analyze_files(dataset, overwrite, testing)
-        +analyze_repos(dataset, overwrite, testing)
-        +list_results(project, dataset, limit)
+        +run_analysis(lang, project_dir, output_dir) void
+        +save_results(project_dir, output_dir, extra) void
+        +analyze_files(dataset, overwrite, testing) void
+        +analyze_repos(dataset, overwrite, testing) void
+        +list_results(project, dataset, limit) list~str~
     }
 
     class BuildlessSAST {
@@ -49,23 +49,29 @@ classDiagram
 
     class AnalysisResult {
         +name: str
+        +source_path: Path
         +lang: str
         +files: list~str~
         +defects: list~Defect~
-        +load_from_output_dir(output_dir)*
-        +load_from_output_dirs(output_dirs)
-        +stats_by_checkers()
-        +stats_by_categories()
-        +stats_by_files()
-        +stats_by_cwes()
+        +time: float
+        +loc: int
+        +load_from_output_dir(output_dir)* Self
+        +load_from_output_dirs(output_dirs) list~Self~
+        +stats_by_checkers() dict
+        +stats_by_categories() dict
+        +stats_by_files() dict
+        +stats_by_cwes() dict
     }
 
     class Defect {
         +sast: str
-        +file: str
+        +filepath: Path
+        +filename: str
         +checker: str
         +category: str
         +cwe: CWE
+        +message: str
+        +location: tuple~int, int~
     }
 
     AnalysisResult --> Defect : contains

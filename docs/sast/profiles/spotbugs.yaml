@@ -3,6 +3,8 @@ description: SpotBugs is a program which uses static analysis to look for bugs i
 type: Data Flow Analysis (Compiled code)
 url: https://github.com/spotbugs/spotbugs
 supported_version: 4.9.7
+supported_languages:
+  - Java
 legal:
   license: LGPL-2.1
   license_type: Copyleft

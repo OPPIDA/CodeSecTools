@@ -27,6 +27,7 @@ class SpotBugsSAST(PrebuiltSAST):
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
         commands (list[list[str]]): A list of command-line templates to be executed.
+        valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SpotBugsAnalysisResult]): The parser class for the tool's results.
@@ -64,6 +65,7 @@ class SpotBugsSAST(PrebuiltSAST):
             "{artifact_dir}",
         ]
     ]
+    valid_codes = [0]
     output_files = [
         (Path("spotbugs_output.json"), True),
     ]

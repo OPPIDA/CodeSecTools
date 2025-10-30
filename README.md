@@ -24,7 +24,7 @@ A framework for code security that provides abstractions for static analysis too
 
 - Clone the repository:
 ```bash
-git clone git@github.com:OPPIDA/CodeSecTools.git
+git clone https://github.com/OPPIDA/CodeSecTools.git
 cd CodeSecTools
 ```
 
@@ -52,6 +52,16 @@ cd CodeSecTools
 - **Project Analysis and Benchmarking**: Users can analyze their own projects or benchmark SAST tools against curated datasets to evaluate their effectiveness, including metrics like true positives, false positives, and false negatives.
 - **Concurrent Analysis for Cross-Verification**: CodeSecTools can run multiple SAST tools simultaneously on the same project. This allows for the aggregation and cross-verification of results, increasing confidence in the identified vulnerabilities by highlighting findings reported by multiple tools.
 - **Automated Reporting and Visualization**: The framework can generate detailed reports in HTML format and create graphs to visualize analysis results, helping to identify trends such as the most common CWEs or the files with the highest number of defects.
+
+### SAST Tool Integration Status
+
+|SAST Tool|Languages|Maintained|Tested|
+|:---:|:---:|:---:|:---:|
+|Coverity|Java|❌ (Proprietary)|❌ (Proprietary)|
+|Semgrep Community Edition|C, Java|✅|✅|
+|Snyk Code|C, Java|✅|❌ (Rate limited)|
+|Bearer|Java|✅|✅|
+|SpotBugs|Java|✅|✅|
 
 ## Usage
 
