@@ -40,10 +40,13 @@ class SpotBugsSAST(PrebuiltSAST):
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
         full_reqs=[
-            Binary("spotbugs", url="https://github.com/spotbugs/spotbugs"),
+            binary := Binary("spotbugs", url="https://github.com/spotbugs/spotbugs"),
             File(
                 name="findsecbugs-plugin-1.14.0.jar",
-                parent_dir=Path(shutil.which("spotbugs")).parent.parent / "plugin",
+                depends_on=[binary],
+                parent_dir=Path(shutil.which("spotbugs")).parent.parent / "plugin"
+                if shutil.which("spotbugs")
+                else Path("/tmp"),
                 file_url="https://search.maven.org/remotecontent?filepath=com/h3xstream/findsecbugs/findsecbugs-plugin/1.14.0/findsecbugs-plugin-1.14.0.jar",
                 license="LGPL-3.0",
                 license_url="https://find-sec-bugs.github.io/license.htm",

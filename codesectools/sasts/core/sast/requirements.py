@@ -3,7 +3,7 @@
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 import requests
 import typer
@@ -21,6 +21,7 @@ class SASTRequirement(ABC):
     def __init__(
         self,
         name: str,
+        depends_on: list[Self] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -29,12 +30,14 @@ class SASTRequirement(ABC):
 
         Args:
             name: The name of the requirement.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
         self.name = name
+        self.depends_on = depends_on
         self.instruction = instruction
         self.url = url
         self.doc = doc
@@ -43,6 +46,12 @@ class SASTRequirement(ABC):
     def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the requirement is met."""
         pass
+
+    def dependencies_fulfilled(self) -> bool:
+        """Check if all dependencies for this requirement are fulfilled."""
+        if not self.depends_on:
+            return True
+        return all(dependency.is_fulfilled() for dependency in self.depends_on)
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the requirement."""
@@ -55,6 +64,7 @@ class DownloadableRequirement(SASTRequirement):
     def __init__(
         self,
         name: str,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -65,13 +75,16 @@ class DownloadableRequirement(SASTRequirement):
 
         Args:
             name: The name of the requirement.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
         instruction = f"cstools download {name}"
-        super().__init__(name, instruction, url, doc)
+        super().__init__(
+            name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
+        )
 
     @abstractmethod
     def download(self, **kwargs: Any) -> None:
@@ -85,6 +98,7 @@ class Config(SASTRequirement):
     def __init__(
         self,
         name: str,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -93,12 +107,15 @@ class Config(SASTRequirement):
 
         Args:
             name: The name of the requirement.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
-        super().__init__(name, instruction, url, doc)
+        super().__init__(
+            name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
+        )
 
     def is_fulfilled(self, sast_name: str, **kwargs: Any) -> bool:
         """Check if the configuration file exists for the given SAST tool."""
@@ -111,6 +128,7 @@ class Binary(SASTRequirement):
     def __init__(
         self,
         name: str,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -119,12 +137,15 @@ class Binary(SASTRequirement):
 
         Args:
             name: The name of the requirement.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
-        super().__init__(name, instruction, url, doc)
+        super().__init__(
+            name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
+        )
 
     def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the binary is available in the system's PATH."""
@@ -140,6 +161,7 @@ class GitRepo(DownloadableRequirement):
         repo_url: str,
         license: str,
         license_url: str,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -151,12 +173,15 @@ class GitRepo(DownloadableRequirement):
             repo_url: The URL of the Git repository to clone.
             license: The license of the repository.
             license_url: A URL for the repository's license.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
-        super().__init__(name, instruction, url, doc)
+        super().__init__(
+            name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
+        )
         self.repo_url = repo_url
         self.license = license
         self.license_url = license_url
@@ -206,6 +231,7 @@ class File(DownloadableRequirement):
         file_url: str,
         license: str,
         license_url: str,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -218,12 +244,15 @@ class File(DownloadableRequirement):
             file_url: The URL to download the file from.
             license: The license of the file.
             license_url: A URL for the file's license.
+            depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
-            doc: A flag indicating if the instruction is available in the documentaton.
+            doc: A flag indicating if the instruction is available in the documentation.
 
         """
-        super().__init__(name, instruction, url, doc)
+        super().__init__(
+            name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
+        )
         self.parent_dir = parent_dir
         self.file_url = file_url
         self.license = license

@@ -135,7 +135,7 @@ def get_downloadable() -> dict[str, DownloadableRequirement | Dataset]:
         sast = sast_data["sast"]
         for req in sast.requirements.all:
             if isinstance(req, DownloadableRequirement):
-                if not req.is_fulfilled():
+                if not req.is_fulfilled() and req.dependencies_fulfilled():
                     downloadable[req.name] = req
 
     for dataset_name, dataset in DATASETS_ALL.items():

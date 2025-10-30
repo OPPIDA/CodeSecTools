@@ -114,7 +114,9 @@ class CLIFactory:
                 install_help += (
                     f"{'❌' if req in missing_reqs else '✅'} [b]{req}[/b]\n"
                 )
-                if req.instruction:
+                if req.depends_on:
+                    install_help += f"- Depends on: [red]{', '.join([str(r) for r in req.depends_on])}[/red]\n"
+                elif req.instruction:
                     install_help += f"- Instruction: [red]{req.instruction}[/red]\n"
                 if req.url:
                     install_help += f"- URL: [u]{req.url}[/u]\n"
