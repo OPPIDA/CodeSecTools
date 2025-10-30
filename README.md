@@ -24,7 +24,7 @@ A framework for code security that provides abstractions for static analysis too
 
 - Clone the repository:
 ```bash
-git clone git@github.com:OPPIDA/CodeSecTools.git
+git clone https://github.com/OPPIDA/CodeSecTools.git
 cd CodeSecTools
 ```
 
