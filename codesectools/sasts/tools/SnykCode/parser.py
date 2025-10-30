@@ -54,6 +54,8 @@ class SnykCodeAnalysisResult(AnalysisResult):
     metadata, including timings, file lists, and defects.
     """
 
+    normalize_lang_names = {"cpp": ["c", "cpp"]}
+
     def __init__(self, output_dir: Path, result_data: dict, cmdout: dict) -> None:
         """Initialize a SnykCodeAnalysisResult instance.
 
@@ -81,7 +83,7 @@ class SnykCodeAnalysisResult(AnalysisResult):
             for result in run["results"]:
                 rule_index = result["ruleIndex"]
                 lang, *_, checker = result["ruleId"].split("/")
-                if lang != self.lang:
+                if self.lang not in self.normalize_lang_names[lang]:
                     continue
 
                 defect = SnykCodeIssue(
