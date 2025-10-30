@@ -53,6 +53,16 @@ cd CodeSecTools
 - **Concurrent Analysis for Cross-Verification**: CodeSecTools can run multiple SAST tools simultaneously on the same project. This allows for the aggregation and cross-verification of results, increasing confidence in the identified vulnerabilities by highlighting findings reported by multiple tools.
 - **Automated Reporting and Visualization**: The framework can generate detailed reports in HTML format and create graphs to visualize analysis results, helping to identify trends such as the most common CWEs or the files with the highest number of defects.
 
+### SAST Tool Integration Status
+
+|SAST Tool|Languages|Maintained|Tested|
+|:---:|:---:|:---:|:---:|
+|Coverity|Java|❌ (Proprietary)|❌ (Proprietary)|
+|Semgrep Community Edition|C, Java|✅|✅|
+|Snyk Code|C, Java|✅|❌ (Rate limited)|
+|Bearer|Java|✅|✅|
+|SpotBugs|Java|✅|✅|
+
 ## Usage
 
 #### Command-line interface
