@@ -1,6 +1,7 @@
 """Test SAST integration functionalities."""
 
 import logging
+import os
 import tempfile
 from pathlib import Path
 from types import GeneratorType
@@ -17,6 +18,11 @@ from codesectools.datasets.core.dataset import (
 )
 from codesectools.sasts import SASTS_ALL
 from codesectools.utils import run_command
+
+if os.environ.get("TEST_TYPE") == "no-sast":
+    pytest.skip(
+        "Skipping SAST tools testing in no-sast environment", allow_module_level=True
+    )
 
 
 @pytest.fixture(autouse=True, scope="module")

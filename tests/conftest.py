@@ -8,6 +8,9 @@ from types import GeneratorType
 
 import pytest
 
+test_type = os.environ.get("TEST_TYPE")
+state_file = Path(f".pytest_cache/state_{test_type}.json")
+
 
 def gen_state() -> dict[str, str]:
     """Generate a state dictionary of source file paths and their SHA256 hashes.
@@ -29,7 +32,6 @@ def source_code_changed() -> bool:
 
     Compares the current state with a saved state in '.pytest_cache/state.json'.
     """
-    state_file = Path(".pytest_cache/state.json")
     if not state_file.is_file():
         return True
 
@@ -67,7 +69,6 @@ def pytest_sessionfinish(session: pytest.Session) -> None:
     """
     if session.testscollected > 0 and session.testsfailed == 0:
         new_state = gen_state()
-        state_file = Path(".pytest_cache/state.json")
         state_file.parent.mkdir(exist_ok=True, parents=True)
         with state_file.open("w") as f:
             json.dump(new_state, f, indent=2)

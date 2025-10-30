@@ -1,9 +1,26 @@
 services:
-  test:
-    image: cstools_test
+  no-sast:
+    image: cstools_no-sast
     build:
       context: .
       dockerfile: tests/Dockerfile
+      target: no-sast
+
+    tty: true
+    stdin_open: true
+
+    volumes:      
+      - pytest-cache:/app/.pytest_cache
+    
+    environment:
+      _TYPER_STANDARD_TRACEBACK: 1
+
+  with-sast:
+    image: cstools_with-sast
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+      target: with-sast
 
     tty: true
     stdin_open: true

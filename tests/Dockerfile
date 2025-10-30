@@ -12,8 +12,8 @@ COPY codesectools /app/codesectools
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --extra test
 
-# =========================== Test stage ===========================
-FROM python:3.12-slim-bookworm AS test
+# =========================== Base ===========================
+FROM python:3.12-slim-bookworm AS test-base
 
 RUN apt update -qq && \
     DEBIAN_FRONTEND=noninteractive \
@@ -23,6 +23,23 @@ RUN apt update -qq && \
         openjdk-17-jdk-headless maven \
     -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
+
+# =========================== No SAST Tools ===========================
+FROM test-base AS no-sast
+ENV TEST_TYPE=no-sast
+
+# === Run tests ===
+COPY --from=builder --chown=app:app /app /app
+ENV PATH="/app/.venv/bin:$PATH"
+
+WORKDIR /app
+COPY tests /app/tests
+
+CMD ["pytest"]
+
+# =========================== With SAST Tools ===========================
+FROM test-base AS with-sast
+ENV TEST_TYPE=with-sast
 
 # === Free SAST tools only ===
 # Semgrep Community Edition
