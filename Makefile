@@ -27,6 +27,3 @@ test-debug:	## Spawn an interactive shell in the test container to debug
 
 doc-serve:	## Serve the documentation locally
 	@mkdocs serve
-
-doc-deploy:	## Build and deploy docs to the gh-pages branch
-	@mkdocs gh-deploy --no-history --force --strict
