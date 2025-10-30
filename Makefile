@@ -28,4 +28,4 @@ test-debug:	## Spawn an interactive shell in the test container to debug
 	@docker compose run --rm test /bin/bash
 
 docs-serve:	## Serve the documentation locally
-	@mkdocs serve
+	@mkdocs serve --livereload
