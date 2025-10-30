@@ -35,7 +35,7 @@ class SemgrepCESAST(BuildlessSAST):
     """
 
     name = "SemgrepCE"
-    supported_languages = ["java"]
+    supported_languages = ["java", "c"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
