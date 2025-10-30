@@ -62,7 +62,7 @@ class AllSAST:
                     sast.list_results(project=project, dataset=dataset, limit=limit)
                 )
             else:
-                output_dirs &= set(
+                output_dirs |= set(
                     sast.list_results(project=project, dataset=dataset, limit=limit)
                 )
         return output_dirs

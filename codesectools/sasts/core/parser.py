@@ -18,8 +18,9 @@ class Defect:
 
     Attributes:
         sast (str): The name of the SAST tool that reported the defect.
-        file (Path): The path to the file where the defect was found.
-        file_path (str): The string representation of the file path.
+        filepath (Path): The path to the file where the defect was found.
+        filepath_str (str): The string representation of the file path.
+        filename (str): The name of the file.
         checker (str): The name of the checker or rule that reported the defect.
         category (str): The category of the checker (e.g., security, performance).
         cwe (CWE): The CWE associated with the defect.
@@ -33,7 +34,7 @@ class Defect:
 
     def __init__(
         self,
-        file: Path,
+        filepath: Path,
         checker: str,
         category: str,
         cwe: CWE,
@@ -44,7 +45,7 @@ class Defect:
         """Initialize a Defect instance.
 
         Args:
-            file: The file path of the defect.
+            filepath: The file path of the defect.
             checker: The name of the rule/checker.
             category: The category of the checker.
             cwe: The CWE associated with the defect.
@@ -53,8 +54,9 @@ class Defect:
             data: Raw data from the SAST tool for this defect.
 
         """
-        self.file = file
-        self.file_path = str(file)
+        self.filepath = filepath
+        self.filepath_str = str(filepath)
+        self.filename = filepath.name
         self.checker = checker
         self.category = category
         self.cwe = cwe
@@ -206,9 +208,9 @@ class AnalysisResult(ABC):
         stats = {}
         for defect in self.defects:
             if defect.checker not in stats.keys():
-                stats[defect.checker] = {"count": 1, "files": [defect.file_path]}
+                stats[defect.checker] = {"count": 1, "files": [defect.filepath_str]}
             else:
-                stats[defect.checker]["files"].append(defect.file_path)
+                stats[defect.checker]["files"].append(defect.filepath_str)
                 stats[defect.checker]["count"] += 1
 
         return stats
@@ -250,11 +252,11 @@ class AnalysisResult(ABC):
         """
         stats = {}
         for defect in self.defects:
-            if defect.file_path not in stats.keys():
-                stats[defect.file_path] = {"count": 1, "checkers": [defect.checker]}
+            if defect.filepath_str not in stats.keys():
+                stats[defect.filepath_str] = {"count": 1, "checkers": [defect.checker]}
             else:
-                stats[defect.file_path]["checkers"].append(defect.checker)
-                stats[defect.file_path]["count"] += 1
+                stats[defect.filepath_str]["checkers"].append(defect.checker)
+                stats[defect.filepath_str]["count"] += 1
 
         return stats
 
@@ -269,9 +271,9 @@ class AnalysisResult(ABC):
         stats = {}
         for defect in self.defects:
             if defect.cwe not in stats.keys():
-                stats[defect.cwe] = {"count": 1, "files": [defect.file_path]}
+                stats[defect.cwe] = {"count": 1, "files": [defect.filepath_str]}
             else:
-                stats[defect.cwe]["files"].append(defect.file_path)
+                stats[defect.cwe]["files"].append(defect.filepath_str)
                 stats[defect.cwe]["count"] += 1
 
         return stats

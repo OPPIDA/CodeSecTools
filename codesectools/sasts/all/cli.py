@@ -157,13 +157,21 @@ def build_cli() -> typer.Typer:
             table.add_row(
                 dataset_full_name,
                 "Dataset",
-                ", ".join(f"[b]{sast.name}[/b]" for sast in all_sast.sasts),
+                ", ".join(
+                    f"[b]{sast.name}[/b]"
+                    for sast in all_sast.sasts
+                    if dataset_full_name in sast.list_results(dataset=True)
+                ),
             )
         for project in all_sast.list_results(project=True):
             table.add_row(
                 project,
                 "Project",
-                ", ".join(f"[b]{sast.name}[/b]" for sast in all_sast.sasts),
+                ", ".join(
+                    f"[b]{sast.name}[/b]"
+                    for sast in all_sast.sasts
+                    if project in sast.list_results(project=True)
+                ),
             )
 
         print(table)

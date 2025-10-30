@@ -76,11 +76,11 @@ class AllSASTAnalysisResult:
         """Calculate statistics on defects, grouped by file."""
         stats = {}
         for defect in self.defects:
-            if defect.file_path not in stats.keys():
-                stats[defect.file_path] = {"count": 1, "sasts": [defect.sast]}
+            if defect.filepath_str not in stats.keys():
+                stats[defect.filepath_str] = {"count": 1, "sasts": [defect.sast]}
             else:
-                stats[defect.file_path]["sasts"].append(defect.sast)
-                stats[defect.file_path]["count"] += 1
+                stats[defect.filepath_str]["sasts"].append(defect.sast)
+                stats[defect.filepath_str]["count"] += 1
 
         return stats
 
@@ -117,13 +117,13 @@ class AllSASTAnalysisResult:
             if defect.cwe not in stats:
                 stats[defect.cwe] = {
                     "count": 1,
-                    "files": [defect.file_path],
+                    "files": [defect.filepath_str],
                     "sast_counts": {defect.sast: 1},
                 }
             else:
                 stats[defect.cwe]["count"] += 1
-                if defect.file_path not in stats[defect.cwe]["files"]:
-                    stats[defect.cwe]["files"].append(defect.file_path)
+                if defect.filepath_str not in stats[defect.cwe]["files"]:
+                    stats[defect.cwe]["files"].append(defect.filepath_str)
                 stats[defect.cwe]["sast_counts"][defect.sast] = (
                     stats[defect.cwe]["sast_counts"].get(defect.sast, 0) + 1
                 )
@@ -133,9 +133,9 @@ class AllSASTAnalysisResult:
         """Calculate a risk score for each file based on defect data."""
         defect_files = {}
         for defect in self.defects:
-            if defect.file_path not in defect_files:
-                defect_files[defect.file_path] = []
-            defect_files[defect.file_path].append(defect)
+            if defect.filepath_str not in defect_files:
+                defect_files[defect.filepath_str] = []
+            defect_files[defect.filepath_str].append(defect)
 
         stats = {}
         for defect_file, defects in defect_files.items():
@@ -192,9 +192,9 @@ class AllSASTAnalysisResult:
 
         defect_files = {}
         for defect in self.defects:
-            if defect.file_path not in defect_files:
-                defect_files[defect.file_path] = []
-            defect_files[defect.file_path].append(defect)
+            if defect.filepath_str not in defect_files:
+                defect_files[defect.filepath_str] = []
+            defect_files[defect.filepath_str].append(defect)
 
         for defect_file, defects in defect_files.items():
             for k, v in scores[defect_file]["score"].items():
@@ -211,7 +211,7 @@ class AllSASTAnalysisResult:
 
             report["defects"][defect_file] = {
                 "score": scores[defect_file]["score"],
-                "source_path": str(self.source_path / defect.file),
+                "source_path": str(self.source_path / defect.filepath),
                 "locations": locations,
                 "raw": defects,
             }

@@ -78,7 +78,7 @@ class CoverityDefect(Defect):
 
         """
         super().__init__(
-            file=Path(defect_data["file"]),
+            filepath=Path(defect_data["file"]),
             checker=defect_data["checker"],
             category=None,
             cwe=CWEs.from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
@@ -158,7 +158,7 @@ class CoverityAnalysisResult(AnalysisResult):
 
         self.time = int(self.metrics["time"])
 
-        self.files = list(map(lambda line: Path(line).name, captured_list.splitlines()))
+        self.files = list(map(lambda line: str(Path(line)), captured_list.splitlines()))
 
         file_count = 0
         for lang, pattern in LANGUAGES.items():
@@ -202,16 +202,16 @@ class CoverityAnalysisResult(AnalysisResult):
         cmdout = json.load((output_dir / "cstools_output.json").open())
 
         # Analysis metrics
-        file_path = output_dir / "ANALYSIS.metrics.xml"
-        if file_path.is_file():
-            analysis_data = xmltodict.parse(file_path.open("rb"))
+        filepath = output_dir / "ANALYSIS.metrics.xml"
+        if filepath.is_file():
+            analysis_data = xmltodict.parse(filepath.open("rb"))
         else:
             raise MissingFile(["ANALYSIS.metrics.xml"])
 
         # Config
-        file_path = output_dir / "coverity.yaml"
-        if file_path.is_file():
-            config_data = yaml.load(file_path.open("r"), Loader=yaml.Loader)
+        filepath = output_dir / "coverity.yaml"
+        if filepath.is_file():
+            config_data = yaml.load(filepath.open("r"), Loader=yaml.Loader)
         else:
             config_data = None
 
