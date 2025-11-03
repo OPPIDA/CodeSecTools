@@ -20,7 +20,7 @@ from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.graphics import ProjectGraphics
 from codesectools.sasts.all.sast import AllSAST
-from codesectools.sasts.core.sast import PrebuiltSAST
+from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
 from codesectools.utils import group_successive
 
 
@@ -91,13 +91,16 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run analysis on the current project with all available SAST tools."""
         for sast in all_sast.sasts_by_lang.get(lang, []):
-            if isinstance(sast, PrebuiltSAST) and artifacts is None:
+            if isinstance(sast, PrebuiltBuildlessSAST) and artifacts is None:
                 print(
-                    f"{sast.name} required pre-built artifacts for analysis ({sast.artefact_name} {sast.artefact_type})"
+                    f"[i]{sast.name} can use pre-built artifacts ({sast.artefact_name} {sast.artefact_type}) for more accurate analysis"
                 )
+                print("[i]Use the flag --artifacts to provide the artifacts")
+            elif isinstance(sast, PrebuiltSAST) and artifacts is None:
                 print(
-                    "Please provide the artifacts (with --artifacts) to include this tool"
+                    f"[b]Skipping {sast.name} because it requires pre-built artifacts ({sast.artefact_name} {sast.artefact_type})"
                 )
+                print("[b]Use the flag --artifacts to provide the artifacts")
                 continue
 
             output_dir = sast.output_dir / Path.cwd().name

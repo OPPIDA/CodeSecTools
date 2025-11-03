@@ -23,7 +23,7 @@ from codesectools.sasts.core.graphics import (
     GitRepoDatasetGraphics,
     ProjectGraphics,
 )
-from codesectools.sasts.core.sast import SAST, PrebuiltSAST
+from codesectools.sasts.core.sast import SAST, PrebuiltBuildlessSAST, PrebuiltSAST
 
 
 class CLIFactory:
@@ -139,7 +139,13 @@ class CLIFactory:
 
         """
         # PrebuiltSAST additional options
-        if isinstance(self.sast, PrebuiltSAST):
+        if isinstance(self.sast, PrebuiltBuildlessSAST):
+            artifacts_default = typer.Option(
+                default=None,
+                help=f"Pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type}) for more accurate analysis",
+                metavar="ARTIFACTS",
+            )
+        elif isinstance(self.sast, PrebuiltSAST):
             artifacts_default = typer.Option(
                 help=f"Pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type})",
                 metavar="ARTIFACTS",
@@ -181,6 +187,12 @@ class CLIFactory:
                 overwrite: If True, overwrite any existing analysis results for the project.
 
             """
+            if isinstance(self.sast, PrebuiltBuildlessSAST) and artifacts is None:
+                print(
+                    f"[i]{self.sast.name} can use pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type}) for more accurate analysis"
+                )
+                print("[i]Use the flag --artifacts to provide the artifacts")
+
             output_dir = self.sast.output_dir / Path.cwd().name
             if output_dir.is_dir():
                 if overwrite:

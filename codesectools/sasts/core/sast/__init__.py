@@ -112,7 +112,14 @@ class SAST(ABC):
             for i, arg in enumerate(_command):
                 if pattern in arg:
                     _command[i] = arg.replace(pattern, value)
-        return _command
+
+        # Remove not rendered part of the command:
+        __command = []
+        for part in _command:
+            if not ("{" in part and "}" in part):
+                __command.append(part)
+
+        return __command
 
     def run_analysis(
         self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
@@ -435,3 +442,31 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
 
         # Clear temporary directory
         temp_dir.cleanup()
+
+
+class PrebuiltBuildlessSAST(PrebuiltSAST, BuildlessSAST):
+    """Represent a SAST tool that can analyze both source code and pre-built artifacts."""
+
+    def run_analysis(
+        self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
+    ) -> None:
+        """Run analysis, deciding whether to use pre-built or buildless mode.
+
+        If `artifacts` are provided in `kwargs`, it runs the analysis in pre-built mode.
+        Otherwise, it falls back to the buildless mode, analyzing source code directly.
+
+        Args:
+            lang: The programming language of the project.
+            project_dir: The path to the project's source code.
+            output_dir: The path to save the analysis results.
+            **kwargs: Additional tool-specific arguments, including optional 'artifacts'.
+
+        """
+        if kwargs.get("artifacts"):
+            return PrebuiltSAST.run_analysis(
+                self, lang, project_dir, output_dir, **kwargs
+            )
+        else:
+            return BuildlessSAST.run_analysis(
+                self, lang, project_dir, output_dir, **kwargs
+            )
