@@ -72,11 +72,11 @@ def build_cli() -> typer.Typer:
             ),
         ],
         # Additional options
-        artifact_dir: Annotated[
+        artifacts: Annotated[
             Path | None,
             typer.Option(
                 help="Pre-built artifacts directory (for PrebuiltSAST only)",
-                metavar="ARTIFACT_DIR",
+                metavar="ARTIFACTS",
             ),
         ] = None,
         # Common NOT REQUIRED option
@@ -90,10 +90,12 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run analysis on the current project with all available SAST tools."""
         for sast in all_sast.sasts_by_lang.get(lang, []):
-            if isinstance(sast, PrebuiltSAST) and artifact_dir is None:
-                print(f"{sast.name} required pre-built artifacts for analysis")
+            if isinstance(sast, PrebuiltSAST) and artifacts is None:
                 print(
-                    "Please provide the directory with artifacts (with --artifact-dir) to include this tool"
+                    f"{sast.name} required pre-built artifacts for analysis ({sast.artefact_name} {sast.artefact_type})"
+                )
+                print(
+                    "Please provide the artifacts (with --artifacts) to include this tool"
                 )
                 continue
 
@@ -101,16 +103,12 @@ def build_cli() -> typer.Typer:
             if output_dir.is_dir():
                 if overwrite:
                     shutil.rmtree(output_dir)
-                    sast.run_analysis(
-                        lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
-                    )
+                    sast.run_analysis(lang, Path.cwd(), output_dir, artifacts=artifacts)
                 else:
                     print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
-                sast.run_analysis(
-                    lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
-                )
+                sast.run_analysis(lang, Path.cwd(), output_dir, artifacts=artifacts)
 
     @cli.command(help="Benchmark a dataset using all SAST tools.")
     def benchmark(

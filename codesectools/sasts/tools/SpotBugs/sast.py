@@ -62,7 +62,7 @@ class SpotBugsSAST(PrebuiltSAST):
             "-nested:true",
             "-progress",
             "-sarif=spotbugs_output.json",
-            "{artifact_dir}",
+            "{artifacts}",
         ]
     ]
     valid_codes = [0]
@@ -76,3 +76,7 @@ class SpotBugsSAST(PrebuiltSAST):
         "CORRECTNESS": "orange",
         "MT_CORRECTNESS": "yellow",
     }
+
+    # PrebuiltSAST
+    artefact_name = "Java Bytecode"
+    artefact_type = "directory"

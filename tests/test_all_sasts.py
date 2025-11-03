@@ -58,7 +58,7 @@ def test_analyze(monkeypatch: pytest.MonkeyPatch) -> None:
     assert retcode == 0
 
     result = runner.invoke(
-        build_cli(), ["analyze", "java", "--artifact-dir", "target/classes"]
+        build_cli(), ["analyze", "java", "--artifacts", "target/classes"]
     )
     assert result.exit_code == 0
 

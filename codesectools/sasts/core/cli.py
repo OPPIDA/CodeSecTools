@@ -140,16 +140,16 @@ class CLIFactory:
         """
         # PrebuiltSAST additional options
         if isinstance(self.sast, PrebuiltSAST):
-            artifact_dir_default = typer.Option(
-                help="Pre-built artifacts directory",
-                metavar="ARTIFACT_DIR",
+            artifacts_default = typer.Option(
+                help=f"Pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type})",
+                metavar="ARTIFACTS",
             )
         else:
-            artifact_dir_default = typer.Option(
+            artifacts_default = typer.Option(
                 default=None,
                 hidden=True,
-                help="Pre-built artifacts directory (for PrebuiltSAST only)",
-                metavar="ARTIFACT_DIR",
+                help="Pre-built artifacts (for PrebuiltSAST only)",
+                metavar="ARTIFACTS",
             )
 
         @self.cli.command(help=help)
@@ -163,7 +163,7 @@ class CLIFactory:
                 ),
             ],
             # Additional REQUIRED options
-            artifact_dir: Optional[Path] = artifact_dir_default,
+            artifacts: Optional[Path] = artifacts_default,
             # Common NOT REQUIRED option
             overwrite: Annotated[
                 bool,
@@ -177,7 +177,7 @@ class CLIFactory:
 
             Args:
                 lang: The source code language to analyze.
-                artifact_dir: The directory containing pre-built artifacts, required for PrebuiltSAST tools.
+                artifacts: The path to pre-built artifacts, required for PrebuiltSAST tools.
                 overwrite: If True, overwrite any existing analysis results for the project.
 
             """
@@ -186,14 +186,14 @@ class CLIFactory:
                 if overwrite:
                     shutil.rmtree(output_dir)
                     self.sast.run_analysis(
-                        lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                        lang, Path.cwd(), output_dir, artifacts=artifacts
                     )
                 else:
                     print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
                 self.sast.run_analysis(
-                    lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
+                    lang, Path.cwd(), output_dir, artifacts=artifacts
                 )
 
     def add_benchmark(self, help: str = "") -> None:

@@ -13,7 +13,7 @@ import tempfile
 import time
 from abc import ABC
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import git
 from rich import print
@@ -362,7 +362,16 @@ class BuildlessSAST(SAST):
 
 
 class PrebuiltSAST(SAST):
-    """Represent a SAST tool that requires a pre-built project."""
+    """Represent a SAST tool that requires pre-built artifacts for analysis.
+
+    Attributes:
+        artefact_name (str): The name of the expected artifact (e.g., 'Java Bytecode').
+        artefact_type (Literal["file", "directory"]): The type of artifact expected.
+
+    """
+
+    artefact_name: str
+    artefact_type: Literal["file", "directory"]
 
     def analyze_files(
         self,
@@ -421,7 +430,7 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
 
         # Run analysis
         self.run_analysis(
-            dataset.lang, dataset.directory, result_path, artifact_dir=temp_path
+            dataset.lang, dataset.directory, result_path, artifacts=temp_path
         )
 
         # Clear temporary directory

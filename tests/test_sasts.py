@@ -115,9 +115,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
                 for file in Path(TEST_CODES_DIR, lang).iterdir():
                     Path(temp_dir, file.name).write_bytes(file.read_bytes())
 
-                result = runner.invoke(
-                    sast_cli, ["analyze", lang, "--artifact-dir", "."]
-                )
+                result = runner.invoke(sast_cli, ["analyze", lang, "--artifacts", "."])
                 assert result.exit_code == 0
                 assert "--overwrite" not in result.output
 
@@ -129,9 +127,7 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
                 SAST_RESULTS[sast_name].append(Path(temp_dir).name)
 
-                result = runner.invoke(
-                    sast_cli, ["analyze", lang, "--artifact-dir", "."]
-                )
+                result = runner.invoke(sast_cli, ["analyze", lang, "--artifacts", "."])
                 assert result.exit_code == 0
                 assert "--overwrite" in result.output
 
