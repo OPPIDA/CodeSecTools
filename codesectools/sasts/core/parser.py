@@ -39,7 +39,7 @@ class Defect:
         category: str,
         cwe: CWE,
         message: str,
-        location: tuple[int] | None,
+        lines: list[int] | None,
         data: tuple[Any],
     ) -> None:
         """Initialize a Defect instance.
@@ -50,7 +50,7 @@ class Defect:
             category: The category of the checker.
             cwe: The CWE associated with the defect.
             message: The description of the defect.
-            location: A tuple with start and end line numbers of the defect, or None.
+            lines: A list of line numbers where the defect is located.
             data: Raw data from the SAST tool for this defect.
 
         """
@@ -61,14 +61,8 @@ class Defect:
         self.category = category
         self.cwe = cwe
         self.message = message
-        self.location = location
+        self.lines = lines
         self.data = data
-
-        start, end = self.location
-        if start and not end:
-            self.location = (start, start)
-        elif not start and end:
-            self.location = (end, end)
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the Defect.

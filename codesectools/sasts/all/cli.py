@@ -21,6 +21,7 @@ from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.graphics import ProjectGraphics
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltSAST
+from codesectools.utils import group_successive
 
 
 def build_cli() -> typer.Typer:
@@ -321,20 +322,43 @@ def build_cli() -> typer.Typer:
             defect_table.add_column("SAST", justify="center")
             defect_table.add_column("CWE", justify="center")
             defect_table.add_column("Message")
-            for defect in sorted(set(defect_data["raw"]), key=lambda d: d.location[0]):
-                if location := defect.location:
-                    start, end = location
-                    shortcut = Text(f"{start}", style=Style(link=f"#L{start}"))
+            rows = []
+            for defect in defect_data["raw"]:
+                groups = group_successive(defect.lines)
+                if groups:
+                    for group in groups:
+                        start, end = group[0], group[-1]
+                        shortcut = Text(f"{start}", style=Style(link=f"#L{start}"))
+                        cwe_link = (
+                            Text(
+                                f"CWE-{defect.cwe.id}",
+                                style=Style(
+                                    link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
+                                ),
+                            )
+                            if defect.cwe.id != -1
+                            else "None"
+                        )
+                        rows.append(
+                            (start, shortcut, defect.sast, cwe_link, defect.message)
+                        )
                 else:
-                    shortcut = "None"
-                cwe_link = Text(
-                    f"CWE-{defect.cwe.id}",
-                    style=Style(
-                        link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
-                    ),
-                )
-                defect_table.add_row(shortcut, defect.sast, cwe_link, defect.message)
+                    cwe_link = (
+                        Text(
+                            f"CWE-{defect.cwe.id}",
+                            style=Style(
+                                link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
+                            ),
+                        )
+                        if defect.cwe.id != -1
+                        else "None"
+                    )
+                    rows.append(
+                        (float("inf"), "None", defect.sast, cwe_link, defect.message)
+                    )
 
+            for row in sorted(rows, key=lambda r: r[0]):
+                defect_table.add_row(*row[1:])
             defect_page.print(defect_table)
 
             # Syntax
@@ -350,7 +374,11 @@ def build_cli() -> typer.Typer:
                 for location in defect_data["locations"]:
                     sast, cwe, message, (start, end) = location
                     for i in range(start, end + 1):
-                        text = f"<b>{sast}</b>: <i>{message} (CWE-{cwe.id})</i>"
+                        text = (
+                            f"<b>{sast}</b>: <i>{message} (CWE-{cwe.id})</i>"
+                            if cwe.id != -1
+                            else f"<b>{sast}</b>: <i>{message}</i>"
+                        )
                         if highlights.get(i):
                             highlights[i].add(text)
                         else:

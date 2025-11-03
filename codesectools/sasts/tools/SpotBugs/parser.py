@@ -26,7 +26,7 @@ class SpotBugsIssue(Defect):
         category: str,
         cwe: CWE,
         message: str,
-        location: tuple[int, int] | None,
+        lines: list[int] | None,
         data: dict,
     ) -> None:
         """Initialize a SpotBugsIssue instance.
@@ -37,11 +37,11 @@ class SpotBugsIssue(Defect):
             category: The category of the checker.
             cwe: The CWE associated with the defect.
             message: The description of the defect.
-            location: A tuple with start and end line numbers of the defect, or None.
+            lines: A list of line numbers where the defect is located, or None.
             data: Raw data from the SAST tool for this defect.
 
         """
-        super().__init__(filepath, checker, category, cwe, message, location, data)
+        super().__init__(filepath, checker, category, cwe, message, lines, data)
 
 
 class SpotBugsAnalysisResult(AnalysisResult):
@@ -92,6 +92,25 @@ class SpotBugsAnalysisResult(AnalysisResult):
                         partial_parents[partial_filepath.parent] / partial_filepath.name
                     )
 
+                start = (
+                    result["locations"][0]["physicalLocation"]
+                    .get("region", {})
+                    .get("startLine", None)
+                )
+                end = (
+                    result["locations"][0]["physicalLocation"]
+                    .get("region", {})
+                    .get("endLine", None)
+                )
+                if start and end:
+                    lines = list(range(start, end + 1))
+                elif start:
+                    lines = [start]
+                elif end:
+                    lines = [end]
+                else:
+                    lines = None
+
                 defect = SpotBugsIssue(
                     filepath=filepath,
                     checker=checker,
@@ -106,14 +125,7 @@ class SpotBugsAnalysisResult(AnalysisResult):
                         )
                     ),
                     message=result["message"]["text"],
-                    location=(
-                        result["locations"][0]["physicalLocation"]
-                        .get("region", {})
-                        .get("startLine", None),
-                        result["locations"][0]["physicalLocation"]
-                        .get("region", {})
-                        .get("endLine", None),
-                    ),
+                    lines=lines,
                     data=result,
                 )
                 if defect.category in ["SECURITY", "CORRECTNESS", "MT_CORRECTNESS"]:

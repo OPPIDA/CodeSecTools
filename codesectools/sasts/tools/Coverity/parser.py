@@ -83,7 +83,7 @@ class CoverityDefect(Defect):
             category=None,
             cwe=CWEs.from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
             message="",  # TODO
-            location=(defect_data["line"], defect_data["line"]),
+            lines=[defect_data["line"]],
             data=defect_data,
         )
 

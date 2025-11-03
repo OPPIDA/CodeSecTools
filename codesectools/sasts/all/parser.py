@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Self
 
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.core.parser import AnalysisResult
+from codesectools.utils import group_successive
 
 if TYPE_CHECKING:
     from codesectools.sasts.core.sast import SAST
@@ -149,12 +150,10 @@ class AllSASTAnalysisResult:
 
             defect_locations = {}
             for defect in defects:
-                if any(defect.location):
-                    start, end = defect.location
-                    for line in range(start, end + 1):
-                        if not defect_locations.get(line):
-                            defect_locations[line] = []
-                        defect_locations[line].append(defect)
+                for line in defect.lines:
+                    if not defect_locations.get(line):
+                        defect_locations[line] = []
+                    defect_locations[line].append(defect)
 
             defects_same_location = 0
             defects_same_location_same_cwe = 0
@@ -202,12 +201,11 @@ class AllSASTAnalysisResult:
 
             locations = []
             for defect in defects:
-                if any(defect.location):
-                    start, end = defect.location
-                    if start and end:
-                        locations.append(
-                            (defect.sast, defect.cwe, defect.message, (start, end))
-                        )
+                for group in group_successive(defect.lines):
+                    start, end = group[0], group[-1]
+                    locations.append(
+                        (defect.sast, defect.cwe, defect.message, (start, end))
+                    )
 
             report["defects"][defect_file] = {
                 "score": scores[defect_file]["score"],
