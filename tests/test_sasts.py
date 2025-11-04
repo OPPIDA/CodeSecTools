@@ -51,7 +51,7 @@ def test_compile() -> None | AssertionError:
         if isinstance(dataset, PrebuiltDatasetMixin):
             logging.info(f"Compiling dataset: {dataset.name}")
             retcode, stdout = run_command(
-                dataset.build_command.split(" "), cwd=dataset.directory
+                dataset.build_command.split(" ") + ["--test"], cwd=dataset.directory
             )
             assert retcode == 0
 

@@ -160,8 +160,8 @@ else:
 
 
 @cli.command(hidden=download_hidden)
-def download(name: download_arg_type = download_arg_value) -> None:
-    """Download any missing resources that are available for download."""
+def download(name: download_arg_type = download_arg_value, test: bool = False) -> None:
+    """Download and install any missing resources that are available for download."""
     if name is None:
         print("All downloadable resources have been retrieved.")
     else:
@@ -174,7 +174,7 @@ def download(name: download_arg_type = download_arg_value) -> None:
             if isinstance(downloadable, DownloadableRequirement):
                 downloadable.download()
             else:
-                downloadable.download_dataset()
+                downloadable.download_dataset(test=test)
 
 
 cli.add_typer(build_all_sast_cli())
