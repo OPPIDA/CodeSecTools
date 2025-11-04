@@ -12,6 +12,7 @@ authors = [
 dependencies = [
     "gitpython>=3.1.44",
     "humanize>=4.12.3",
+    "lxml>=6.0.2",
     "matplotlib>=3.10.3",
     "numpy>=2.3.1",
     "pyyaml>=6.0.2",
@@ -31,6 +32,7 @@ dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.12.8",
     "ty>=0.0.1a17",
+    "types-lxml>=2025.8.25",
 ]
 docs = [
     "mkdocs>=1.6.1",
