@@ -21,6 +21,7 @@ RUN apt update -qq && \
         curl git \
         cloc \
         openjdk-17-jdk-headless maven \
+        build-essential bear \
     -y -qq --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
@@ -50,6 +51,10 @@ RUN curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/insta
 RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.7/spotbugs-4.9.7.tgz | tar -xzvf - && \
     mv spotbugs-* /tmp/spotbugs
 ENV PATH="/tmp/spotbugs/bin:$PATH"
+# Cppcheck
+RUN apt update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt install cppcheck -y -qq --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # === Run tests ===
 COPY --from=builder --chown=app:app /app /app

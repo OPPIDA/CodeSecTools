@@ -27,7 +27,12 @@ if os.environ.get("TEST_TYPE") == "no-sast":
 
 @pytest.fixture(autouse=True, scope="module")
 def update_sast_module_state() -> GeneratorType:
-    """Update the state of SAST modules between tests."""
+    """Update the state of SAST modules before running tests in this module.
+
+    This fixture re-initializes each SAST tool's status and missing requirements
+    to ensure a clean state for the test functions.
+
+    """
     for sast_data in SASTS_ALL.values():
         sast_instance = sast_data["sast"]()
         sast_data["cli_factory"].sast.__init__()
@@ -40,7 +45,12 @@ def update_sast_module_state() -> GeneratorType:
 runner = CliRunner(env={"COLUMNS": "200"})
 
 TEST_CODES_DIR = Path("tests/testcodes").resolve()
-TEST_CODES = {"java": {"build_command": "javac {filename}"}}
+TEST_CODES = {
+    "java": {"build_command": "javac {filename}"},
+    "c": {"build_command": "bear -- gcc {filename}"},
+}
+
+ARTIFACTS_ARG = {"java": ".", "c": "compile_commands.json"}
 
 
 @pytest.mark.order(0)
@@ -51,7 +61,7 @@ def test_compile() -> None | AssertionError:
         if isinstance(dataset, PrebuiltDatasetMixin):
             logging.info(f"Compiling dataset: {dataset.name}")
             retcode, stdout = run_command(
-                dataset.build_command.split(" ") + ["--test"], cwd=dataset.directory
+                dataset.build_command.split(" "), cwd=dataset.directory
             )
             assert retcode == 0
 
@@ -115,7 +125,9 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
                 for file in Path(TEST_CODES_DIR, lang).iterdir():
                     Path(temp_dir, file.name).write_bytes(file.read_bytes())
 
-                result = runner.invoke(sast_cli, ["analyze", lang, "--artifacts", "."])
+                result = runner.invoke(
+                    sast_cli, ["analyze", lang, "--artifacts", ARTIFACTS_ARG[lang]]
+                )
                 assert result.exit_code == 0
                 assert "--overwrite" not in result.output
 
