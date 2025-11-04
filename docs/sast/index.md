@@ -43,9 +43,16 @@ classDiagram
 
     class PrebuiltSAST {
     }
-    
+
+    class PrebuiltBuildlessSAST {
+        +artefact_name: str
+        +artefact_type: str
+    }
+
     SAST <|-- BuildlessSAST
     SAST <|-- PrebuiltSAST
+    BuildlessSAST <|-- PrebuiltBuildlessSAST
+    PrebuiltSAST <|-- PrebuiltBuildlessSAST
 
     class AnalysisResult {
         +name: str
