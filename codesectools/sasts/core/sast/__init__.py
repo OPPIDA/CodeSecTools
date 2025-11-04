@@ -13,7 +13,7 @@ import tempfile
 import time
 from abc import ABC
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 import git
 from rich import print
@@ -52,7 +52,7 @@ class SAST(ABC):
         supported_datasets (list[Dataset]): A list of supported dataset classes.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
-        commands (list[list[str]]): Command-line templates to be executed.
+        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendred and executed.
         valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and
@@ -75,7 +75,7 @@ class SAST(ABC):
     supported_datasets: list[Dataset]
     properties: SASTProperties
     requirements: SASTRequirements
-    commands: list[list[str]]
+    commands: list[list[Union[str, tuple[str]]]]
     valid_codes: list[int]
     environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
@@ -110,8 +110,16 @@ class SAST(ABC):
         _command = command.copy()
         for pattern, value in map.items():
             for i, arg in enumerate(_command):
-                if pattern in arg:
-                    _command[i] = arg.replace(pattern, value)
+                # Check if optional argument can be used
+                if isinstance(arg, tuple):
+                    default_arg, optional_arg = arg
+                    if pattern in optional_arg:
+                        _command[i] = arg.replace(pattern, value)
+                    else:
+                        _command[i] = default_arg
+                else:
+                    if pattern in arg:
+                        _command[i] = arg.replace(pattern, value)
 
         # Remove not rendered part of the command:
         __command = []
