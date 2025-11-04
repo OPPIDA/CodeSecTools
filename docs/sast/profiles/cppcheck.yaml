@@ -1,0 +1,13 @@
+name: Cppcheck
+description: Cppcheck is a static analysis tool for C/C++ code. It provides unique code analysis to detect bugs and focuses on detecting undefined behaviour and dangerous coding constructs. The goal is to have very few false positives. Cppcheck is designed to be able to analyze your C/C++ code even if it has non-standard syntax (common in embedded projects).
+type: Data Flow Analysis (Compiled code)
+url: https://cppcheck.sourceforge.io/
+supported_version: 2.13.0
+supported_languages:
+  - C
+legal:
+  license: GPL-3.0
+  license_type: Copyleft
+  license_url: https://github.com/danmar/cppcheck/blob/main/COPYING
+requirements:
+  - An existing installation of Cppcheck.

@@ -62,6 +62,7 @@ cd CodeSecTools
 |Snyk Code|C, Java|✅|❌ (Rate limited)|
 |Bearer|Java|✅|✅|
 |SpotBugs|Java|✅|✅|
+|Cppcheck|C|✅|✅|
 
 ## Usage
 
