@@ -33,7 +33,7 @@ class BearerFinding(Defect):
             category=severity,
             cwe=CWEs.from_id(int(defect_data["cwe_ids"][0])),
             message=defect_data["description"].split("\n")[2],
-            location=(defect_data["line_number"], defect_data["line_number"]),
+            lines=[defect_data["line_number"]],
             data=defect_data,
         )
 

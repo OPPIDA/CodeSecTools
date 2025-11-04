@@ -20,10 +20,6 @@ class SemgrepCEFinding(Defect):
 
     Parses defect data from the Semgrep JSON output to extract file, checker,
     category, CWE, and line information.
-
-    Attributes:
-        lines (str): The line or lines of code where the finding occurred.
-
     """
 
     sast = "SemgrepCE"
@@ -42,12 +38,11 @@ class SemgrepCEFinding(Defect):
             category=defect_data["extra"]["metadata"].get("impact", "NONE"),
             cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),
             message=defect_data["extra"]["message"],
-            location=(defect_data["start"]["line"], defect_data["end"]["line"]),
+            lines=list(
+                range(defect_data["start"]["line"], defect_data["end"]["line"] + 1)
+            ),
             data=defect_data,
         )
-
-        # Extra
-        self.lines = self.data["extra"]["lines"]
 
 
 class SemgrepCEAnalysisResult(AnalysisResult):

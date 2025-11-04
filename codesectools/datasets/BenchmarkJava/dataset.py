@@ -6,6 +6,7 @@ from a Git repository and associates test files with expected results from a CSV
 """
 
 import csv
+import random
 from pathlib import Path
 from typing import Self
 
@@ -99,11 +100,27 @@ class BenchmarkJava(PrebuiltFileDataset):
         else:
             return False
 
-    def download_files(self: Self) -> None:
-        """Download the dataset files from the official Git repository."""
+    def download_files(self: Self, test: bool = False) -> None:
+        """Download the dataset files from the official Git repository.
+
+        Clones the BenchmarkJava repository and, if in test mode, prunes it to a smaller size.
+
+        Args:
+            test: If True, reduce the number of test files for faster testing.
+
+        """
         git.Repo.clone_from(
             "https://github.com/OWASP-Benchmark/BenchmarkJava.git", self.directory
         )
+
+        if test:
+            testcodes = list(
+                (
+                    self.directory / "src/main/java/org/owasp/benchmark/testcode"
+                ).iterdir()
+            )
+            for to_delete_testcode in random.sample(testcodes, k=len(testcodes) - 50):
+                to_delete_testcode.unlink()
 
     def load_dataset(self) -> list[TestCode]:
         """Load the BenchmarkJava dataset from its source files.

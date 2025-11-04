@@ -13,7 +13,7 @@ import tempfile
 import time
 from abc import ABC
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import git
 from rich import print
@@ -112,7 +112,14 @@ class SAST(ABC):
             for i, arg in enumerate(_command):
                 if pattern in arg:
                     _command[i] = arg.replace(pattern, value)
-        return _command
+
+        # Remove not rendered part of the command:
+        __command = []
+        for part in _command:
+            if not ("{" in part and "}" in part):
+                __command.append(part)
+
+        return __command
 
     def run_analysis(
         self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
@@ -362,7 +369,16 @@ class BuildlessSAST(SAST):
 
 
 class PrebuiltSAST(SAST):
-    """Represent a SAST tool that requires a pre-built project."""
+    """Represent a SAST tool that requires pre-built artifacts for analysis.
+
+    Attributes:
+        artefact_name (str): The name of the expected artifact (e.g., 'Java Bytecode').
+        artefact_type (Literal["file", "directory"]): The type of artifact expected.
+
+    """
+
+    artefact_name: str
+    artefact_type: Literal["file", "directory"]
 
     def analyze_files(
         self,
@@ -421,8 +437,36 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
 
         # Run analysis
         self.run_analysis(
-            dataset.lang, dataset.directory, result_path, artifact_dir=temp_path
+            dataset.lang, dataset.directory, result_path, artifacts=temp_path
         )
 
         # Clear temporary directory
         temp_dir.cleanup()
+
+
+class PrebuiltBuildlessSAST(PrebuiltSAST, BuildlessSAST):
+    """Represent a SAST tool that can analyze both source code and pre-built artifacts."""
+
+    def run_analysis(
+        self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
+    ) -> None:
+        """Run analysis, deciding whether to use pre-built or buildless mode.
+
+        If `artifacts` are provided in `kwargs`, it runs the analysis in pre-built mode.
+        Otherwise, it falls back to the buildless mode, analyzing source code directly.
+
+        Args:
+            lang: The programming language of the project.
+            project_dir: The path to the project's source code.
+            output_dir: The path to save the analysis results.
+            **kwargs: Additional tool-specific arguments, including optional 'artifacts'.
+
+        """
+        if kwargs.get("artifacts"):
+            return PrebuiltSAST.run_analysis(
+                self, lang, project_dir, output_dir, **kwargs
+            )
+        else:
+            return BuildlessSAST.run_analysis(
+                self, lang, project_dir, output_dir, **kwargs
+            )

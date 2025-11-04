@@ -25,7 +25,7 @@ test-force:	## Run tests in a Docker container while ignoring any stored state
 
 test-debug:	## Spawn an interactive shell in the test container to debug
 	@docker compose build
-	@docker compose run --rm test /bin/bash
+	@docker compose run --rm with-sast /bin/bash
 
 docs-serve:	## Serve the documentation locally
 	@mkdocs serve --livereload

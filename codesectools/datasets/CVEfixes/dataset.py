@@ -42,7 +42,7 @@ class CVEfixes(GitRepoDataset):
         self.max_repo_size = 100e6
         super().__init__(lang)
 
-    def download_files(self: Self) -> None:
+    def download_files(self: Self, test: bool = False) -> None:
         """Copy the dataset files from the package data directory to the user cache."""
         self.directory.mkdir(exist_ok=True, parents=True)
         license_file = DATA_DIR / self.name / "LICENSE"

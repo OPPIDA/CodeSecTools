@@ -20,7 +20,8 @@ from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.graphics import ProjectGraphics
 from codesectools.sasts.all.sast import AllSAST
-from codesectools.sasts.core.sast import PrebuiltSAST
+from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
+from codesectools.utils import group_successive
 
 
 def build_cli() -> typer.Typer:
@@ -72,11 +73,11 @@ def build_cli() -> typer.Typer:
             ),
         ],
         # Additional options
-        artifact_dir: Annotated[
+        artifacts: Annotated[
             Path | None,
             typer.Option(
                 help="Pre-built artifacts directory (for PrebuiltSAST only)",
-                metavar="ARTIFACT_DIR",
+                metavar="ARTIFACTS",
             ),
         ] = None,
         # Common NOT REQUIRED option
@@ -90,27 +91,28 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run analysis on the current project with all available SAST tools."""
         for sast in all_sast.sasts_by_lang.get(lang, []):
-            if isinstance(sast, PrebuiltSAST) and artifact_dir is None:
-                print(f"{sast.name} required pre-built artifacts for analysis")
+            if isinstance(sast, PrebuiltBuildlessSAST) and artifacts is None:
                 print(
-                    "Please provide the directory with artifacts (with --artifact-dir) to include this tool"
+                    f"[i]{sast.name} can use pre-built artifacts ({sast.artefact_name} {sast.artefact_type}) for more accurate analysis"
                 )
+                print("[i]Use the flag --artifacts to provide the artifacts")
+            elif isinstance(sast, PrebuiltSAST) and artifacts is None:
+                print(
+                    f"[b]Skipping {sast.name} because it requires pre-built artifacts ({sast.artefact_name} {sast.artefact_type})"
+                )
+                print("[b]Use the flag --artifacts to provide the artifacts")
                 continue
 
             output_dir = sast.output_dir / Path.cwd().name
             if output_dir.is_dir():
                 if overwrite:
                     shutil.rmtree(output_dir)
-                    sast.run_analysis(
-                        lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
-                    )
+                    sast.run_analysis(lang, Path.cwd(), output_dir, artifacts=artifacts)
                 else:
                     print(f"Found existing analysis result at {output_dir}")
                     print("Use --overwrite to overwrite it")
             else:
-                sast.run_analysis(
-                    lang, Path.cwd(), output_dir, artifact_dir=artifact_dir
-                )
+                sast.run_analysis(lang, Path.cwd(), output_dir, artifacts=artifacts)
 
     @cli.command(help="Benchmark a dataset using all SAST tools.")
     def benchmark(
@@ -323,20 +325,43 @@ def build_cli() -> typer.Typer:
             defect_table.add_column("SAST", justify="center")
             defect_table.add_column("CWE", justify="center")
             defect_table.add_column("Message")
-            for defect in sorted(set(defect_data["raw"]), key=lambda d: d.location[0]):
-                if location := defect.location:
-                    start, end = location
-                    shortcut = Text(f"{start}", style=Style(link=f"#L{start}"))
+            rows = []
+            for defect in defect_data["raw"]:
+                groups = group_successive(defect.lines)
+                if groups:
+                    for group in groups:
+                        start, end = group[0], group[-1]
+                        shortcut = Text(f"{start}", style=Style(link=f"#L{start}"))
+                        cwe_link = (
+                            Text(
+                                f"CWE-{defect.cwe.id}",
+                                style=Style(
+                                    link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
+                                ),
+                            )
+                            if defect.cwe.id != -1
+                            else "None"
+                        )
+                        rows.append(
+                            (start, shortcut, defect.sast, cwe_link, defect.message)
+                        )
                 else:
-                    shortcut = "None"
-                cwe_link = Text(
-                    f"CWE-{defect.cwe.id}",
-                    style=Style(
-                        link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
-                    ),
-                )
-                defect_table.add_row(shortcut, defect.sast, cwe_link, defect.message)
+                    cwe_link = (
+                        Text(
+                            f"CWE-{defect.cwe.id}",
+                            style=Style(
+                                link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
+                            ),
+                        )
+                        if defect.cwe.id != -1
+                        else "None"
+                    )
+                    rows.append(
+                        (float("inf"), "None", defect.sast, cwe_link, defect.message)
+                    )
 
+            for row in sorted(rows, key=lambda r: r[0]):
+                defect_table.add_row(*row[1:])
             defect_page.print(defect_table)
 
             # Syntax
@@ -352,7 +377,11 @@ def build_cli() -> typer.Typer:
                 for location in defect_data["locations"]:
                     sast, cwe, message, (start, end) = location
                     for i in range(start, end + 1):
-                        text = f"<b>{sast}</b>: <i>{message} (CWE-{cwe.id})</i>"
+                        text = (
+                            f"<b>{sast}</b>: <i>{message} (CWE-{cwe.id})</i>"
+                            if cwe.id != -1
+                            else f"<b>{sast}</b>: <i>{message}</i>"
+                        )
                         if highlights.get(i):
                             highlights[i].add(text)
                         else:

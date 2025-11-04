@@ -119,3 +119,35 @@ class NonZeroExit(Exception):
     def __str__(self) -> str:
         """Return a user-friendly string representation of the exception."""
         return f"Non zero return code while running command:\n{self.command}\n{self.command_output}"
+
+
+def group_successive(numbers_list: list[int]) -> list[list[int]]:
+    """Group a list of integers into sublists of consecutive numbers.
+
+    For example, `[1, 2, 4, 5, 6, 8]` becomes `[[1, 2], [4, 5, 6], [8]]`.
+
+    Args:
+        numbers_list: A list of integers.
+
+    Returns:
+        A list of lists, where each sublist contains consecutive integers.
+
+    """
+    if not numbers_list:
+        return []
+
+    sorted_list = sorted(list(set(numbers_list)))
+
+    groups = []
+    current_group = [sorted_list[0]]
+
+    for i in range(1, len(sorted_list)):
+        if sorted_list[i] == current_group[-1] + 1:
+            current_group.append(sorted_list[i])
+        else:
+            groups.append(current_group)
+            current_group = [sorted_list[i]]
+
+    groups.append(current_group)
+
+    return groups

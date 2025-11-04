@@ -94,16 +94,33 @@ By proceeding, you agree to abide by its terms.""",
             raise typer.Exit(code=1)
 
     @abstractmethod
-    def download_files(self) -> None:
-        """Download the raw dataset files."""
+    def download_files(self, test: bool = False) -> None:
+        """Download the raw dataset files.
+
+        This method must be implemented by subclasses to define how the
+        raw files for the dataset are obtained.
+
+        Args:
+            test: If True, download a smaller subset of the dataset for testing.
+
+        """
         pass
 
-    def download_dataset(self) -> None:
-        """Handle the full dataset download process, including license prompt and caching."""
+    def download_dataset(self, test: bool = False) -> None:
+        """Handle the full dataset download process, including license prompt and caching.
+
+        This method orchestrates the download by first prompting for license
+        agreement, then calling the `download_files` method, and finally creating
+        a `.complete` file to mark the dataset as cached.
+
+        Args:
+            test: If True, download a smaller subset of the dataset for testing.
+
+        """
         self.prompt_license_agreement()
         with Progress() as progress:
             progress.add_task(f"Downloading [b]{self.name}[/b]...", total=None)
-            self.download_files()
+            self.download_files(test=test)
         (self.directory / ".complete").write_bytes(b"\x42")
         print(f"[b]{self.name}[/b] has been downloaded at {self.directory}.")
 
