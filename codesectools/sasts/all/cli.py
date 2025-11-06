@@ -119,7 +119,13 @@ def build_cli() -> typer.Typer:
         dataset: Annotated[
             str,
             typer.Argument(
-                click_type=Choice([d.name for d in all_sast.sasts_by_dataset]),
+                click_type=Choice(
+                    [
+                        f"{d.name}_{lang}"
+                        for d in all_sast.sasts_by_dataset
+                        for lang in d.supported_languages
+                    ]
+                ),
                 metavar="DATASET",
             ),
         ],
@@ -140,7 +146,7 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Run a benchmark on a dataset using all available SAST tools."""
         dataset_name, lang = dataset.split("_")
-        for sast in all_sast.sasts_by_dataset.get(lang, []):
+        for sast in all_sast.sasts_by_dataset.get(DATASETS_ALL[dataset_name], []):
             dataset = DATASETS_ALL[dataset_name](lang)
             if isinstance(dataset, FileDataset):
                 sast.analyze_files(dataset, overwrite, testing)
