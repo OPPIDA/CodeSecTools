@@ -9,6 +9,7 @@ and data classes to hold benchmark results.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import git
@@ -21,7 +22,6 @@ from rich.progress import Progress
 from codesectools.utils import USER_CACHE_DIR
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from typing import Self
 
     from codesectools.sasts.core.parser import AnalysisResult, Defect
@@ -197,7 +197,7 @@ class File(DatasetUnit):
     """Represent a single file in a dataset.
 
     Attributes:
-        filename (str): The name of the file.
+        filepath (Path): The relative path to the file.
         content (bytes): The byte content of the file.
         cwes (list[CWE]): A list of CWEs associated with the file.
         has_vuln (bool): True if the vulnerability is real, False if it's
@@ -206,12 +206,12 @@ class File(DatasetUnit):
     """
 
     def __init__(
-        self, filename: str, content: str | bytes, cwes: list[CWE], has_vuln: bool
+        self, filepath: Path, content: str | bytes, cwes: list[CWE], has_vuln: bool
     ) -> None:
         """Initialize a File instance.
 
         Args:
-            filename: The name of the file.
+            filepath: The relative path of the file.
             content: The content of the file, as a string or bytes. It will be
                 converted to bytes if provided as a string.
             cwes: A list of CWEs associated with the file.
@@ -219,7 +219,8 @@ class File(DatasetUnit):
                 intended to be a false positive test case.
 
         """
-        self.filename = filename
+        self.filepath = filepath
+        self.filename = self.filepath.name
         self.content = content
         self.cwes = cwes
         self.has_vuln = has_vuln
@@ -231,29 +232,29 @@ class File(DatasetUnit):
         """Return a developer-friendly string representation of the File.
 
         Returns:
-            A string showing the class name, filename, and CWE IDs.
+            A string showing the class name, filepath, and CWE IDs.
 
         """
         return f"""{self.__class__.__name__}(
-    filename: \t{self.filename}
+    filepath: \t{self.filepath}
     cwes: \t{self.cwes}
 )"""
 
-    def __eq__(self, other: str | Self) -> bool:
-        """Compare this File with another object for equality based on filename.
+    def __eq__(self, other: str | Path | Self) -> bool:
+        """Compare this File with another object for equality based on filepath.
 
         Args:
-            other: The object to compare with. Can be a string (filename) or
+            other: The object to compare with. Can be a string/Path (filepath) or
                    another File instance.
 
         Returns:
-            True if the filenames are equal, False otherwise.
+            True if the filepaths are equal, False otherwise.
 
         """
-        if isinstance(other, str):
-            return self.filename == other
+        if isinstance(other, (str, Path)):
+            return self.filepath == Path(other)
         elif isinstance(other, self.__class__):
-            return self.filename == other.filename
+            return self.filepath == other.filepath
         else:
             return False
 
@@ -264,7 +265,9 @@ class File(DatasetUnit):
             dir: The path to the directory where the file should be saved.
 
         """
-        (dir / self.filename).write_bytes(self.content)
+        target_path = dir / self.filepath
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        target_path.write_bytes(self.content)
 
 
 class FileDataset(Dataset):
@@ -303,7 +306,7 @@ class FileDataset(Dataset):
         """
         # 1. Prepare ground truth from all files in the dataset
         ground_truth: dict[str, tuple[bool, set[CWE]]] = {
-            file.filename: (file.has_vuln, set(file.cwes)) for file in self.files
+            str(file.filepath): (file.has_vuln, set(file.cwes)) for file in self.files
         }
 
         # 2. Process reported defects to get unique (file, cwe) pairs
@@ -313,7 +316,7 @@ class FileDataset(Dataset):
             if not defect.cwe or defect.cwe.id == -1:
                 continue
 
-            file_cwe_pair = (defect.filename, defect.cwe)
+            file_cwe_pair = (str(defect.filepath), defect.cwe)
             if file_cwe_pair not in unique_reported_defects:
                 unique_reported_defects[file_cwe_pair] = defect
 
@@ -321,24 +324,24 @@ class FileDataset(Dataset):
         tp_defects_map: dict[tuple[str, CWE], Defect] = {}
         fp_defects_map: dict[tuple[str, CWE], Defect] = {}
 
-        for (filename, cwe), defect in unique_reported_defects.items():
-            has_vuln, expected_cwes = ground_truth.get(filename, (False, set()))
+        for (filepath, cwe), defect in unique_reported_defects.items():
+            has_vuln, expected_cwes = ground_truth.get(filepath, (False, set()))
 
             if has_vuln and cwe in expected_cwes:
                 # Correctly identified a vulnerability
-                tp_defects_map[(filename, cwe)] = defect
+                tp_defects_map[(filepath, cwe)] = defect
             else:
                 # Reported a vuln in a non-vulnerable file, with wrong CWE,
                 # or in a file not part of the dataset.
-                fp_defects_map[(filename, cwe)] = defect
+                fp_defects_map[(filepath, cwe)] = defect
 
         # 4. Determine False Negatives by finding what was missed from the ground truth.
         fn_defects_set: set[tuple[str, CWE]] = set()
-        for filename, (has_vuln, expected_cwes) in ground_truth.items():
+        for filepath, (has_vuln, expected_cwes) in ground_truth.items():
             if has_vuln:
                 for expected_cwe in expected_cwes:
-                    if (filename, expected_cwe) not in tp_defects_map:
-                        fn_defects_set.add((filename, expected_cwe))
+                    if (filepath, expected_cwe) not in tp_defects_map:
+                        fn_defects_set.add((filepath, expected_cwe))
 
         # 5. Convert maps and sets to lists of objects for downstream use
         tp_defects = list(tp_defects_map.values())
@@ -354,7 +357,7 @@ class FileDataset(Dataset):
         fp_cwes = [cwe for _, cwe in fp_defects_map.keys()]
         fn_cwes = [cwe for _, cwe in fn_defects_set]
 
-        unique_correct_number = len({filename for filename, _ in tp_defects_map.keys()})
+        unique_correct_number = len({filepath for filepath, _ in tp_defects_map.keys()})
 
         return FileDatasetData(
             dataset=self,
