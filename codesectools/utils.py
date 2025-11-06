@@ -151,3 +151,11 @@ def group_successive(numbers_list: list[int]) -> list[list[int]]:
     groups.append(current_group)
 
     return groups
+
+
+def shorten_path(p: str) -> str:
+    """Shorten a file path for display if it's too long."""
+    path = Path(p)
+    if len(path.parts) > 3:
+        return str(Path("...") / path.parts[-2] / path.parts[-1])
+    return p

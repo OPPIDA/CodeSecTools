@@ -7,7 +7,6 @@ benchmark performance.
 
 import shutil
 import tempfile
-from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -19,6 +18,7 @@ from rich import print
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts.core.sast import SAST
 from codesectools.shared.cwe import CWE
+from codesectools.utils import shorten_path
 
 ## Matplotlib config
 matplotlib.rcParams.update(
@@ -153,7 +153,7 @@ class ProjectGraphics(Graphics):
         project_name = self.result.name
 
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
-        by_files = {Path(k).name: v for k, v in self.result.stats_by_files().items()}
+        by_files = self.result.stats_by_files()
         by_checkers = self.result.stats_by_checkers()
         by_categories = self.result.stats_by_categories()
 
@@ -163,7 +163,7 @@ class ProjectGraphics(Graphics):
             list(by_files.items()), key=lambda e: e[1]["count"], reverse=True
         )
         for k, v in sorted_files[: self.limit]:
-            X_files.append(k)
+            X_files.append(shorten_path(k))
             Y_files.append(v["count"])
 
             COLORS_COUNT = {v: 0 for k, v in self.color_mapping.items()}
@@ -177,11 +177,11 @@ class ProjectGraphics(Graphics):
             current_height = 0
             for color, height in COLORS_COUNT.items():
                 if height > 0:
-                    bars.append((k, current_height + height, color))
+                    bars.append((shorten_path(k), current_height + height, color))
                     current_height += height
 
-            for k, height, color in bars[::-1]:
-                ax1.bar(k, height, color=color)
+            for k_short, height, color in bars[::-1]:
+                ax1.bar(k_short, height, color=color)
 
         ax1.set_xticks(X_files, X_files, rotation=45, ha="right")
         ax1.set_title(f"Stats by files (limit to {self.limit})")

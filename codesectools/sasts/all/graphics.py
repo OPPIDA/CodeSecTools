@@ -2,7 +2,6 @@
 
 import shutil
 import tempfile
-from pathlib import Path
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -11,6 +10,7 @@ from matplotlib.figure import Figure
 from rich import print
 
 from codesectools.sasts.all.sast import AllSAST
+from codesectools.utils import shorten_path
 
 ## Matplotlib config
 matplotlib.rcParams.update(
@@ -107,7 +107,7 @@ class ProjectGraphics(Graphics):
     def plot_overview(self) -> Figure:
         """Generate an overview plot with stats by files, SAST tools, and categories."""
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
-        by_files = {Path(k).name: v for k, v in self.result.stats_by_files().items()}
+        by_files = self.result.stats_by_files()
         by_sasts = self.result.stats_by_sasts()
         by_categories = self.result.stats_by_categories()
 
@@ -117,7 +117,7 @@ class ProjectGraphics(Graphics):
             list(by_files.items()), key=lambda e: e[1]["count"], reverse=True
         )
         for k, v in sorted_files[: self.limit]:
-            X_files.append(k)
+            X_files.append(shorten_path(k))
             Y_files.append(v["count"])
 
             COLORS_COUNT = {v: 0 for k, v in self.color_mapping.items()}
@@ -130,11 +130,11 @@ class ProjectGraphics(Graphics):
             current_height = 0
             for color, height in COLORS_COUNT.items():
                 if height > 0:
-                    bars.append((k, current_height + height, color))
+                    bars.append((shorten_path(k), current_height + height, color))
                     current_height += height
 
-            for k, height, color in bars[::-1]:
-                ax1.bar(k, height, color=color)
+            for k_short, height, color in bars[::-1]:
+                ax1.bar(k_short, height, color=color)
 
         ax1.set_xticks(X_files, X_files, rotation=45, ha="right")
         ax1.set_title(f"Stats by files (limit to {self.limit})")
@@ -231,7 +231,7 @@ class ProjectGraphics(Graphics):
     def plot_top_scores(self) -> Figure:
         """Generate a stacked bar plot for files with the highest scores."""
         fig, ax = plt.subplots(1, 1, layout="constrained")
-        by_scores = {Path(k).name: v for k, v in self.result.stats_by_scores().items()}
+        by_scores = self.result.stats_by_scores()
 
         for file, data in by_scores.items():
             by_scores[file]["total_score"] = sum(data["score"].values())
@@ -244,7 +244,7 @@ class ProjectGraphics(Graphics):
 
         X_files, score_data = [], []
         for file, data in sorted_files[: self.limit]:
-            X_files.append(file)
+            X_files.append(shorten_path(file))
             score_data.append(data["score"])
 
         score_keys = score_data[0].keys()
