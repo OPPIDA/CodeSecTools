@@ -4,7 +4,7 @@ type: Pattern matching
 url: https://github.com/semgrep/semgrep
 supported_version: 1.128.1
 supported_languages:
-  - C
+  - C/C++
   - Java
 legal:
   license: LGPL-2.1
