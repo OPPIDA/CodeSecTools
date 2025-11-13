@@ -53,7 +53,7 @@ class SAST(ABC):
         supported_datasets (list[Dataset]): A list of supported dataset classes.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
-        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendred and executed.
+        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendered and executed.
         valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and

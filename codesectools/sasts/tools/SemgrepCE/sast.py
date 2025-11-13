@@ -26,7 +26,7 @@ class SemgrepCESAST(BuildlessSAST):
         supported_dataset_names (list[str]): A list of names of compatible datasets.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
-        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendred and executed.
+        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendered and executed.
         valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
