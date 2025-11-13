@@ -90,7 +90,9 @@ class SAST(ABC):
         Set up supported datasets, the output directory, and requirement status.
         """
         self.supported_datasets = [
-            DATASETS_ALL[d] for d in self.supported_dataset_names
+            DATASETS_ALL[d]
+            for d in self.supported_dataset_names
+            if DATASETS_ALL[d].is_cached()
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.requirements.name = self.name
