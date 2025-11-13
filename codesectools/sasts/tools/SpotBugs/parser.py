@@ -77,6 +77,7 @@ class SpotBugsAnalysisResult(AnalysisResult):
                 rule_index = result["ruleIndex"]
                 checker = result["ruleId"]
 
+                # Note: All file paths are relative to the application's class path, not the project source directory.
                 partial_filepath = Path(
                     result["locations"][0]["physicalLocation"]["artifactLocation"][
                         "uri"
