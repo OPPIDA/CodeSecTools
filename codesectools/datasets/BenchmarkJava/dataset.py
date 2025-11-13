@@ -22,9 +22,6 @@ class TestCode(File):
     Inherits from the base `File` class and adds a `vuln_type` attribute
     specific to this dataset.
 
-    Attributes:
-        vuln_type (str): The type of vulnerability present in the file.
-
     """
 
     def __init__(
@@ -32,7 +29,6 @@ class TestCode(File):
         filepath: Path,
         content: str | bytes,
         cwes: list[CWE],
-        vuln_type: str,
         has_vuln: bool,
     ) -> None:
         """Initialize a TestCode instance.
@@ -41,15 +37,12 @@ class TestCode(File):
             filepath: The path to the file.
             content: The content of the file, as a string or bytes.
             cwes: A list of CWEs associated with the file.
-            vuln_type: The type of vulnerability.
             has_vuln: A boolean indicating if the vulnerability is real or a false positive test case.
 
         """
         super().__init__(
             filepath=filepath, content=content, cwes=cwes, has_vuln=has_vuln
         )
-
-        self.vuln_type = vuln_type
 
 
 class BenchmarkJava(PrebuiltFileDataset):
@@ -151,14 +144,12 @@ class BenchmarkJava(PrebuiltFileDataset):
             filepath = testcode_dir / filename
             content = filepath.read_text()
             cwes = [CWEs.from_id(int(row[3]))]
-            vuln_type = row[1]
             has_vuln = True if row[2] == "true" else False
             files.append(
                 TestCode(
                     filepath.relative_to(self.directory),
                     content,
                     cwes,
-                    vuln_type,
                     has_vuln,
                 )
             )
