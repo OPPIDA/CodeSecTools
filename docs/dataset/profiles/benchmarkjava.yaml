@@ -14,7 +14,7 @@ requirements:
 extra: |
   !!! info "Dataset content"
     
-      - `src/main/java/org/owasp/benchmark/testcode/*`
-      - `expectedresults-1.2.csv`
+      - Test files: `src/main/java/org/owasp/benchmark/testcode/*`
+      - Labeled data: `expectedresults-1.2.csv`
 
       *Downloaded from [OWASP-Benchmark/BenchmarkJava](https://github.com/OWASP-Benchmark/BenchmarkJava).*

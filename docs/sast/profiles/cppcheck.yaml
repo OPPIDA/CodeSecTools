@@ -4,7 +4,7 @@ type: Data Flow Analysis (Compiled code)
 url: https://cppcheck.sourceforge.io/
 supported_version: 2.13.0
 supported_languages:
-  - C
+  - C/C++
 legal:
   license: GPL-3.0
   license_type: Copyleft

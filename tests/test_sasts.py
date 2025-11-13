@@ -47,7 +47,7 @@ runner = CliRunner(env={"COLUMNS": "200"})
 TEST_CODES_DIR = Path("tests/testcodes").resolve()
 TEST_CODES = {
     "java": {"build_command": "javac {filename}"},
-    "c": {"build_command": "bear -- gcc {filename}"},
+    "c": {"build_command": "bear -- g++ {filename}"},
 }
 
 ARTIFACTS_ARG = {"java": ".", "c": "compile_commands.json"}
@@ -139,7 +139,9 @@ def test_sasts_analyze(monkeypatch: pytest.MonkeyPatch) -> None | AssertionError
 
                 SAST_RESULTS[sast_name].append(Path(temp_dir).name)
 
-                result = runner.invoke(sast_cli, ["analyze", lang, "--artifacts", "."])
+                result = runner.invoke(
+                    sast_cli, ["analyze", lang, "--artifacts", ARTIFACTS_ARG[lang]]
+                )
                 assert result.exit_code == 0
                 assert "--overwrite" in result.output
 

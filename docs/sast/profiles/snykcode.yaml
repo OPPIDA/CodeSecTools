@@ -4,7 +4,7 @@ type: Data Flow Analysis (Source code)
 url: https://docs.snyk.io/scan-with-snyk/snyk-code
 supported_version: 1.1298.3
 supported_languages:
-  - C
+  - C/C++
   - Java
 legal:
   terms: SNYK TERMS OF SERVICE

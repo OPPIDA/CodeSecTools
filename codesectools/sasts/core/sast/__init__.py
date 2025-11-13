@@ -35,6 +35,7 @@ from codesectools.utils import (
     USER_OUTPUT_DIR,
     MissingFile,
     NonZeroExit,
+    render_command,
     run_command,
 )
 
@@ -52,7 +53,7 @@ class SAST(ABC):
         supported_datasets (list[Dataset]): A list of supported dataset classes.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
-        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendred and executed.
+        commands (list[list[Union[str, tuple[str]]]]): The list of commands templates to be rendered and executed.
         valid_codes (list[int]): A list of exit codes indicating that the command did not fail.
         environ (dict[str, str]): Environment variables to set for commands.
         output_files (list[tuple[Path, bool]]): Expected output files and
@@ -89,45 +90,14 @@ class SAST(ABC):
         Set up supported datasets, the output directory, and requirement status.
         """
         self.supported_datasets = [
-            DATASETS_ALL[d] for d in self.supported_dataset_names
+            DATASETS_ALL[d]
+            for d in self.supported_dataset_names
+            if DATASETS_ALL[d].is_cached()
         ]
         self.output_dir = USER_OUTPUT_DIR / self.name
         self.requirements.name = self.name
         self.status = self.requirements.get_status()
         self.missing = self.requirements.get_missing()
-
-    def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
-        """Render a command template by replacing placeholders with values.
-
-        Args:
-            command: The command template as a list of strings.
-            map: A dictionary of placeholders to their replacement values.
-
-        Returns:
-            The rendered command as a list of strings.
-
-        """
-        _command = command.copy()
-        for pattern, value in map.items():
-            for i, arg in enumerate(_command):
-                # Check if optional argument can be used
-                if isinstance(arg, tuple):
-                    default_arg, optional_arg = arg
-                    if pattern in optional_arg:
-                        _command[i] = arg.replace(pattern, value)
-                    else:
-                        _command[i] = default_arg
-                else:
-                    if pattern in arg:
-                        _command[i] = arg.replace(pattern, value)
-
-        # Remove not rendered part of the command:
-        __command = []
-        for part in _command:
-            if not ("{" in part and "}" in part):
-                __command.append(part)
-
-        return __command
 
     def run_analysis(
         self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
@@ -165,7 +135,7 @@ class SAST(ABC):
             command_output = ""
             start = time.time()
             for command in self.commands:
-                rendered_command = self.render_command(command, render_variables)
+                rendered_command = render_command(command, render_variables)
                 retcode, out = run_command(rendered_command, project_dir, self.environ)
                 command_output += out
                 if retcode not in self.valid_codes:

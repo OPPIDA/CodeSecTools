@@ -39,6 +39,40 @@ def DEBUG() -> bool:
 
 
 # Subprocess wrapper
+def render_command(command: list[str], map: dict[str, str]) -> list[str]:
+    """Render a command template by replacing placeholders with values.
+
+    Args:
+        command: The command template as a list of strings.
+        map: A dictionary of placeholders to their replacement values.
+
+    Returns:
+        The rendered command as a list of strings.
+
+    """
+    _command = command.copy()
+    for pattern, value in map.items():
+        for i, arg in enumerate(_command):
+            # Check if optional argument can be used
+            if isinstance(arg, tuple):
+                default_arg, optional_arg = arg
+                if pattern in optional_arg:
+                    _command[i] = arg.replace(pattern, value)
+                else:
+                    _command[i] = default_arg
+            else:
+                if pattern in arg:
+                    _command[i] = arg.replace(pattern, value)
+
+    # Remove not rendered part of the command:
+    __command = []
+    for part in _command:
+        if not ("{" in part and "}" in part):
+            __command.append(part)
+
+    return __command
+
+
 def run_command(
     command: Sequence[str], cwd: Path, env: dict[str, str] | None = None
 ) -> tuple[int | None, str]:

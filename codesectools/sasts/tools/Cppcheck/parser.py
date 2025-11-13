@@ -79,7 +79,7 @@ class CppcheckAnalysisResult(AnalysisResult):
                         filepath=Path(error.xpath("location")[0].get("file")),
                         checker=error.get("id"),
                         category=category,
-                        cwe=CWEs.from_id(error.get("cwe", -1)),
+                        cwe=CWEs.from_id(int(error.get("cwe", -1))),
                         message=error.get("msg"),
                         lines=[
                             int(location.get("line"))
