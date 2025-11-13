@@ -99,6 +99,7 @@ class CWEsCollection:
             "Research Concepts": "1000.csv",
         }
         self.directory = USER_CACHE_DIR / "cwe"
+        self.NOCWE = CWE(id=-1, name="	Missing or invalid CWE", description="None")
 
         try:
             self.cwes = self.load()
@@ -162,7 +163,7 @@ class CWEsCollection:
         if match := re.search(r"[CWE|cwe]-(\d+)", cwe_string):
             return self.from_id(int(match.group(1)))
         else:
-            return CWE(id=-1, name="Invalid CWE", description="None")
+            return self.NOCWE
 
     def from_id(self, cwe_id: int) -> CWE:
         """Get a CWE by its identifier.
@@ -177,7 +178,7 @@ class CWEsCollection:
         try:
             return self.cwes[self.cwes.index(cwe_id)]
         except ValueError:
-            return CWE(id=-1, name="Invalid CWE", description="None")
+            return self.NOCWE
 
 
 CWEs = CWEsCollection()
