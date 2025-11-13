@@ -127,17 +127,6 @@ class AnalysisResult(ABC):
         self.loc = loc
         self.data = data
 
-        # Ensure all defect filepaths are relative to the source path
-        for defect in self.defects:
-            if defect.filepath.is_absolute():
-                try:
-                    defect.filepath = defect.filepath.relative_to(self.source_path)
-                    defect.filepath_str = str(defect.filepath)
-                except ValueError:
-                    # This can happen if the path is outside the source_path tree.
-                    # We leave it as is, but it will likely not match during validation.
-                    pass
-
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the AnalysisResult.
 
