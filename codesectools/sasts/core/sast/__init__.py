@@ -35,6 +35,7 @@ from codesectools.utils import (
     USER_OUTPUT_DIR,
     MissingFile,
     NonZeroExit,
+    render_command,
     run_command,
 )
 
@@ -96,39 +97,6 @@ class SAST(ABC):
         self.status = self.requirements.get_status()
         self.missing = self.requirements.get_missing()
 
-    def render_command(self, command: list[str], map: dict[str, str]) -> list[str]:
-        """Render a command template by replacing placeholders with values.
-
-        Args:
-            command: The command template as a list of strings.
-            map: A dictionary of placeholders to their replacement values.
-
-        Returns:
-            The rendered command as a list of strings.
-
-        """
-        _command = command.copy()
-        for pattern, value in map.items():
-            for i, arg in enumerate(_command):
-                # Check if optional argument can be used
-                if isinstance(arg, tuple):
-                    default_arg, optional_arg = arg
-                    if pattern in optional_arg:
-                        _command[i] = arg.replace(pattern, value)
-                    else:
-                        _command[i] = default_arg
-                else:
-                    if pattern in arg:
-                        _command[i] = arg.replace(pattern, value)
-
-        # Remove not rendered part of the command:
-        __command = []
-        for part in _command:
-            if not ("{" in part and "}" in part):
-                __command.append(part)
-
-        return __command
-
     def run_analysis(
         self, lang: str, project_dir: Path, output_dir: Path, **kwargs: Any
     ) -> None:
@@ -165,7 +133,7 @@ class SAST(ABC):
             command_output = ""
             start = time.time()
             for command in self.commands:
-                rendered_command = self.render_command(command, render_variables)
+                rendered_command = render_command(command, render_variables)
                 retcode, out = run_command(rendered_command, project_dir, self.environ)
                 command_output += out
                 if retcode not in self.valid_codes:
