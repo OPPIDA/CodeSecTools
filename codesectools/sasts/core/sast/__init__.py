@@ -9,6 +9,7 @@ import json
 import os
 import random
 import shutil
+import tempfile
 import time
 from abc import ABC
 from pathlib import Path
@@ -121,8 +122,14 @@ class SAST(ABC):
                 render_variables[to_replace] = v
             elif isinstance(v, Path):
                 render_variables[to_replace] = str(v.resolve())
+            elif isinstance(v, list):
+                render_variables[to_replace] = v
             else:
                 raise NotImplementedError(k, v)
+
+        # Make temporary directory available to command
+        temp_dir = tempfile.TemporaryDirectory()
+        render_variables["{tempdir}"] = temp_dir.name
 
         with Progress() as progress:
             progress.add_task(

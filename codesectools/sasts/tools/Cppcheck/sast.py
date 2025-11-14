@@ -50,6 +50,7 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
             "--enable=all",
             "--xml",
             "--output-file=cppcheck_output.xml",
+            "--cppcheck-build-dir={tempdir}",
         ]
     ]
     valid_codes = [0]
