@@ -374,7 +374,12 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
                 )
                 return
 
-        self.run_analysis(dataset.lang, dataset.directory, result_path)
+        self.run_analysis(
+            dataset.lang,
+            dataset.directory,
+            result_path,
+            artifacts=dataset.artefacts_arg,
+        )
 
 
 class PrebuiltBuildlessSAST(PrebuiltSAST, BuildlessSAST):

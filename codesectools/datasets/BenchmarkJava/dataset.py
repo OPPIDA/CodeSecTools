@@ -54,6 +54,11 @@ class BenchmarkJava(PrebuiltFileDataset):
     Attributes:
         name (str): The name of the dataset, "BenchmarkJava".
         supported_languages (list[str]): A list of supported programming languages.
+        license (str): The license under which the dataset is distributed.
+        license_url (str): A URL to the full text of the license.
+        build_command (str): The command to build the Java project.
+        prebuilt_expected (tuple): A tuple defining the path and glob pattern for expected build artifacts.
+        artefacts_arg (str): The argument to specify the location of build artifacts for SAST tools.
 
     """
 
@@ -64,6 +69,7 @@ class BenchmarkJava(PrebuiltFileDataset):
 
     build_command = "mvn clean compile"
     prebuilt_expected = (Path("target/classes/org/owasp/benchmark/testcode"), "*.class")
+    artefacts_arg = "."
 
     def __init__(self, lang: None | str = None) -> None:
         """Initialize the BenchmarkJava dataset.
