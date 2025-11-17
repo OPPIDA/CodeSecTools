@@ -33,7 +33,7 @@ class SnykCodeSAST(BuildlessSAST):
 
     name = "SnykCode"
     supported_languages = ["java", "c"]
-    supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
+    supported_dataset_names = ["BenchmarkJava", "CVEfixes", "JulietTestSuiteC"]
     properties = SASTProperties(free=False, offline=False)
     requirements = SASTRequirements(
         full_reqs=[

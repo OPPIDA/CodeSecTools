@@ -36,7 +36,7 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
 
     name = "Cppcheck"
     supported_languages = ["c"]
-    supported_dataset_names = []
+    supported_dataset_names = ["JulietTestSuiteC"]
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
         full_reqs=[
