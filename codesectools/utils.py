@@ -6,6 +6,7 @@ standardized error reporting.
 """
 
 import os
+import re
 import subprocess
 from collections.abc import Sequence
 from importlib.resources import files
@@ -39,30 +40,59 @@ def DEBUG() -> bool:
 
 
 # Subprocess wrapper
-def render_command(command: list[str], map: dict[str, str]) -> list[str]:
-    """Render a command template by replacing placeholders with values.
+def get_pattern(arg: str, mapping: dict[str, str]) -> str | None:
+    """Find a placeholder pattern like '{placeholder}' in an argument string.
 
     Args:
-        command: The command template as a list of strings.
-        map: A dictionary of placeholders to their replacement values.
+        arg: The string to search for a pattern.
+        mapping: A dictionary of placeholders, kept for contextual consistency
+                 with `render_command`.
+
+    Returns:
+        The found pattern string (e.g., '{placeholder}') or None if not found.
+
+    """
+    if m := re.search(r"\{.*\}", arg):
+        return m.group(0)
+
+
+def render_command(command: list, mapping: dict[str, str]) -> list[str]:
+    """Render a command template by replacing placeholders with values.
+
+    Substitutes placeholders in a command list from a given map. It handles
+    simple string arguments and optional arguments represented as tuples.
+    If a mapped value is a list, the argument is expanded.
+
+    Args:
+        command: The command template, which can contain strings and tuples
+            of the form `(default, optional_template)`.
+        mapping: A dictionary of placeholders to their replacement values.
 
     Returns:
         The rendered command as a list of strings.
 
     """
     _command = command.copy()
-    for pattern, value in map.items():
-        for i, arg in enumerate(_command):
-            # Check if optional argument can be used
-            if isinstance(arg, tuple):
-                default_arg, optional_arg = arg
-                if pattern in optional_arg:
-                    _command[i] = arg.replace(pattern, value)
+    for i, arg in enumerate(_command):
+        # Check if optional argument can be used
+        if isinstance(arg, tuple):
+            default_arg, optional_arg = arg
+
+            if pattern := get_pattern(optional_arg, mapping):
+                _command[i] = optional_arg.replace(pattern, mapping[pattern])
+            elif pattern := get_pattern(default_arg, mapping):
+                _command[i] = default_arg.replace(pattern, mapping[pattern])
+        else:
+            if pattern := get_pattern(arg, mapping):
+                value = mapping[pattern]
+                if isinstance(value, list):
+                    _command[i] = " ".join(
+                        arg.replace(pattern, subvalue) for subvalue in value
+                    )
                 else:
-                    _command[i] = default_arg
-            else:
-                if pattern in arg:
                     _command[i] = arg.replace(pattern, value)
+
+    _command = " ".join(_command).split(" ")
 
     # Remove not rendered part of the command:
     __command = []
