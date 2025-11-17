@@ -57,12 +57,17 @@ class Dataset(ABC):
         """
         self.directory = USER_CACHE_DIR / self.name
         self.lang = lang
+        self._files = []
         if self.lang:
             self.full_name = f"{self.name}_{self.lang}"
             assert self.full_name in self.list_dataset_full_names()
-            self.files: list[File] = self.load_dataset()
-        else:
-            self.files = []
+
+    @property
+    def files(self) -> list:
+        """Get the list of dataset files, loading them if necessary."""
+        if self.lang:
+            self._files = self.load_dataset()
+        return self._files
 
     @classmethod
     def is_cached(cls) -> bool:

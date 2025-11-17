@@ -148,16 +148,17 @@ class BenchmarkJava(PrebuiltFileDataset):
         for row in reader:
             filename = f"{row[0]}.java"
             filepath = testcode_dir / filename
-            content = filepath.read_text()
-            cwes = [CWEs.from_id(int(row[3]))]
-            has_vuln = True if row[2] == "true" else False
-            files.append(
-                TestCode(
-                    filepath.relative_to(self.directory),
-                    content,
-                    cwes,
-                    has_vuln,
+            if filepath.is_file():
+                content = filepath.read_text()
+                cwes = [CWEs.from_id(int(row[3]))]
+                has_vuln = True if row[2] == "true" else False
+                files.append(
+                    TestCode(
+                        filepath.relative_to(self.directory),
+                        content,
+                        cwes,
+                        has_vuln,
+                    )
                 )
-            )
 
         return files
