@@ -36,7 +36,9 @@ def test_download() -> None | AssertionError:
     """Test the download of missing resources."""
     downloadable = get_downloadable()
     logging.info("Downloading all missing resources.")
-    result = runner.invoke(cli, ["download", "all"], input="y\n" * len(downloadable))
+    result = runner.invoke(
+        cli, ["download", "all", "--test"], input="y\n" * len(downloadable)
+    )
     assert result.exit_code == 0
 
     for name, instance in downloadable.items():
