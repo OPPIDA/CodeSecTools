@@ -13,6 +13,7 @@ from codesectools.sasts.core.sast.requirements import (
     SASTRequirements,
 )
 from codesectools.sasts.tools.Cppcheck.parser import CppcheckAnalysisResult
+from codesectools.utils import CPU_COUNT
 
 
 class CppcheckSAST(PrebuiltBuildlessSAST):
@@ -51,6 +52,7 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
             "--xml",
             "--output-file=cppcheck_output.xml",
             "--cppcheck-build-dir={tempdir}",
+            f"-j{CPU_COUNT}",
         ]
     ]
     valid_codes = [0]

@@ -223,3 +223,6 @@ def shorten_path(p: str) -> str:
     if len(path.parts) > 3:
         return str(Path("...") / path.parts[-2] / path.parts[-1])
     return p
+
+
+CPU_COUNT = os.cpu_count()
