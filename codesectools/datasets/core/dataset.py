@@ -150,10 +150,19 @@ By proceeding, you agree to abide by its terms.""",
 
 
 class PrebuiltDatasetMixin:
-    """Provide functionality for datasets that require a build step."""
+    """Provide functionality for datasets that require a build step.
+
+    Attributes:
+        build_command (str): The command required to build the dataset.
+        prebuilt_expected (tuple[Path, str]): A tuple containing the path and glob pattern
+            to find the built artifacts.
+        artefacts_arg (str): The argument to pass to the SAST tool command template.
+
+    """
 
     build_command: str
     prebuilt_expected: tuple[Path, str]
+    artefacts_arg: str
 
     def is_built(self) -> bool:
         """Check if the dataset has been built."""
@@ -271,15 +280,7 @@ class File(DatasetUnit):
 
 
 class FileDataset(Dataset):
-    """Abstract base class for datasets composed of individual files.
-
-    Attributes:
-        directory (Path): The directory path for the dataset.
-        lang (str): The programming language of the dataset.
-        full_name (str): The full name of the dataset, including the language.
-        files (list[File]): A list of `File` objects loaded from the dataset.
-
-    """
+    """Abstract base class for datasets composed of individual files."""
 
     def __init__(self, lang: str) -> None:
         """Initialize a FileDataset instance.

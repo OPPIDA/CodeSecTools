@@ -15,7 +15,6 @@ from abc import ABC
 from pathlib import Path
 from typing import Any, Literal, Union
 
-import git
 from rich import print
 from rich.panel import Panel
 from rich.progress import Progress
@@ -123,8 +122,14 @@ class SAST(ABC):
                 render_variables[to_replace] = v
             elif isinstance(v, Path):
                 render_variables[to_replace] = str(v.resolve())
+            elif isinstance(v, list):
+                render_variables[to_replace] = v
             else:
                 raise NotImplementedError(k, v)
+
+        # Make temporary directory available to command
+        temp_dir = tempfile.TemporaryDirectory()
+        render_variables["{tempdir}"] = temp_dir.name
 
         with Progress() as progress:
             progress.add_task(
@@ -165,7 +170,7 @@ class SAST(ABC):
 
         """
         output_dir.mkdir(exist_ok=True, parents=True)
-        json.dump(extra, (output_dir / "cstools_output.json").open("w"))
+        json.dump(extra, (output_dir / "cstools_output.json").open("w"), indent=4)
 
         missing_files = []
         for path_from_root, required in self.output_files:
@@ -175,7 +180,7 @@ class SAST(ABC):
                 filepath = project_dir / parent_dir / filename
                 if filepath.is_file():
                     if not filepath == output_dir / filename:
-                        shutil.copy2(filepath, output_dir / filename)
+                        filepath.rename(output_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -184,7 +189,7 @@ class SAST(ABC):
                 if filepaths:
                     for filepath in filepaths:
                         if not filepath == output_dir / filename:
-                            shutil.copy2(filepath, output_dir / filepath.name)
+                            filepath.rename(output_dir / filepath.name)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -218,25 +223,7 @@ class SAST(ABC):
                 )
                 return
 
-        # Create temporary directory for the project
-        temp_dir = tempfile.TemporaryDirectory()
-        temp_path = Path(temp_dir.name)
-
-        # Copy files into the temporary directory
-        if testing:
-            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-            files = random.sample(dataset.files, k=2)
-        else:
-            files = dataset.files
-
-        for file in files:
-            file.save(temp_path)
-
-        # Run analysis
-        self.run_analysis(dataset.lang, temp_path, result_path)
-
-        # Clear temporary directory
-        temp_dir.cleanup()
+        self.run_analysis(dataset.lang, dataset.directory, result_path)
 
     def analyze_repos(
         self, dataset: GitRepoDataset, overwrite: bool = False, testing: bool = False
@@ -252,8 +239,8 @@ class SAST(ABC):
             testing: If True, run analysis on a sample of two small random repositories for testing purposes.
 
         """
-        base_result_path = self.output_dir / dataset.full_name
-        base_result_path.mkdir(exist_ok=True, parents=True)
+        result_path = self.output_dir / dataset.full_name
+        result_path.mkdir(exist_ok=True, parents=True)
 
         if testing:
             random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
@@ -263,27 +250,22 @@ class SAST(ABC):
             repos = dataset.repos
 
         for repo in repos:
-            result_path = base_result_path / repo.name
-            if result_path.is_dir():
-                if list(result_path.iterdir()) and not overwrite:
+            repo_result_path = result_path / repo.name
+            if repo_result_path.is_dir():
+                if list(repo_result_path.iterdir()) and not overwrite:
                     print(f"Results already exist for {repo.name}, skipping...")
                     print("Please use --overwrite to analyze again")
+                    continue
 
-            # Create temporary directory for the project
-            temp_dir = tempfile.TemporaryDirectory()
-            repo_path = Path(temp_dir.name)
+            repo_source_path = dataset.directory / repo.name
 
-            # Clone and checkout to the vulnerable commit
-            try:
-                repo.save(repo_path)
-            except git.GitCommandError:
-                continue
+            if repo_source_path.is_dir():
+                shutil.rmtree(repo_source_path)
 
-            # Run analysis
-            self.run_analysis(dataset.lang, repo_path, result_path)
+            repo_source_path.mkdir()
+            repo.save(repo_source_path)
 
-            # Clear temporary directory
-            temp_dir.cleanup()
+            self.run_analysis(dataset.lang, repo_source_path, repo_result_path)
 
     @property
     def supported_dataset_full_names(self) -> list[str]:
@@ -399,27 +381,12 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
                 )
                 return
 
-        # Create temporary directory for the project
-        temp_dir = tempfile.TemporaryDirectory()
-        temp_path = Path(temp_dir.name)
-
-        # Copy files into the temporary directory
-        if testing:
-            random.seed(os.environ.get("CONSTANT_RANDOM", os.urandom(16)))
-            prebuilt_files = random.sample(dataset.list_prebuilt_files(), k=2)
-        else:
-            prebuilt_files = dataset.list_prebuilt_files()
-
-        for prebuilt_file in prebuilt_files:
-            shutil.copy2(prebuilt_file, temp_path / prebuilt_file.name)
-
-        # Run analysis
         self.run_analysis(
-            dataset.lang, dataset.directory, result_path, artifacts=temp_path
+            dataset.lang,
+            dataset.directory,
+            result_path,
+            artifacts=dataset.artefacts_arg,
         )
-
-        # Clear temporary directory
-        temp_dir.cleanup()
 
 
 class PrebuiltBuildlessSAST(PrebuiltSAST, BuildlessSAST):
