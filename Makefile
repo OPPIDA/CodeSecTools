@@ -12,6 +12,9 @@ check:		## Lint, format, and type-check the code
 	@ruff format
 	@ty check
 
+profile: 	## Run profiling
+	@python3 -X importtime -m codesectools 1>/dev/null 2>/tmp/import.log || tuna /tmp/import.log
+
 test:		## Run tests in a Docker container
 	@docker compose build 1>/dev/null
 	@docker compose run --rm no-sast
