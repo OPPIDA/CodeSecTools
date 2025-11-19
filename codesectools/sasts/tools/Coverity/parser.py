@@ -7,52 +7,81 @@ format used by CodeSecTools.
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Self
-
-import xmltodict
-import yaml
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.shared.cwe import CWEs
 from codesectools.utils import USER_CONFIG_DIR, MissingFile
 
-"""Loads and provides configuration for the Coverity integration.
-
-This module reads `issueTypes.json` and `config.json` from the user's
-Coverity configuration directory. It creates mappings and settings
-used by the Coverity SAST integration.
-
-Attributes:
-    USER_COVERITY_DIR (Path): The path to the user's Coverity config directory.
-    TYPE_TO_CWE (dict): A mapping from Coverity issue types to CWE IDs.
-    LANGUAGES (dict): Configuration for supported languages.
-    COLOR_MAPPING (dict): A mapping of result categories to colors for plotting.
-
-"""
-
 USER_COVERITY_DIR = USER_CONFIG_DIR / "Coverity"
 
-types_file = USER_COVERITY_DIR / "issueTypes.json"
 
-if types_file.is_file():
-    TYPES = json.load(types_file.open())["issue_type"]
+class CoverityConfig:
+    """Handle the loading and parsing of Coverity configuration files."""
 
-    TYPE_TO_CWE = {}
-    for type in TYPES:
-        TYPE_TO_CWE[type["type"]] = type["cim_checker_properties"]["cweCategory"]
-else:
-    TYPE_TO_CWE = {}
+    def __init__(self) -> None:
+        """Initialize the CoverityConfig instance."""
+        self._type_to_cwe = None
+        self._languages = None
+        self._color_mapping = None
 
-config_file = USER_COVERITY_DIR / "config.json"
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def _load_issue_types_file() -> dict | None:
+        """Load and parse the issueTypes.json file."""
+        types_file = USER_COVERITY_DIR / "issueTypes.json"
+        if types_file.is_file():
+            return json.load(types_file.open())
+        return None
 
-if config_file.is_file():
-    config = json.load(config_file.open())
-    LANGUAGES = config["languages"]
-    COLOR_MAPPING = config["color_mapping"]
-else:
-    LANGUAGES = {}
-    COLOR_MAPPING = {}
+    @staticmethod
+    @lru_cache(maxsize=None)
+    def _load_config_file() -> dict | None:
+        """Load and parse the config.json file."""
+        config_file = USER_COVERITY_DIR / "config.json"
+        if config_file.is_file():
+            return json.load(config_file.open())
+        return None
+
+    @property
+    def type_to_cwe(self) -> dict:
+        """Get a mapping from Coverity issue types to CWE IDs."""
+        if self._type_to_cwe is None:
+            types_data = self._load_issue_types_file()
+            if types_data and "issue_type" in types_data:
+                self._type_to_cwe = {
+                    type_info["type"]: type_info["cim_checker_properties"][
+                        "cweCategory"
+                    ]
+                    for type_info in types_data["issue_type"]
+                }
+            else:
+                self._type_to_cwe = {}
+        return self._type_to_cwe
+
+    @property
+    def languages(self) -> dict:
+        """Get the language configuration for Coverity."""
+        if self._languages is None:
+            config_data = self._load_config_file()
+            if config_data and "languages" in config_data:
+                self._languages = config_data["languages"]
+            else:
+                self._languages = {}
+        return self._languages
+
+    @property
+    def color_mapping(self) -> dict:
+        """Get the color mapping for Coverity issue categories."""
+        if self._color_mapping is None:
+            config_data = self._load_config_file()
+            if config_data and "color_mapping" in config_data:
+                self._color_mapping = config_data["color_mapping"]
+            else:
+                self._color_mapping = {}
+        return self._color_mapping
 
 
 class CoverityDefect(Defect):
@@ -81,7 +110,7 @@ class CoverityDefect(Defect):
             filepath=Path(defect_data["file"]),
             checker=defect_data["checker"],
             category=None,
-            cwe=CWEs.from_id(TYPE_TO_CWE.get(defect_data["type"], -1)),
+            cwe=CWEs.from_id(CoverityConfig().type_to_cwe.get(defect_data["type"], -1)),
             message="",  # TODO
             lines=[defect_data["line"]],
             data=defect_data,
@@ -94,10 +123,10 @@ class CoverityDefect(Defect):
         elif self.checker.startswith("FB"):
             self.category = "SPOTBUGS"
         else:
-            if self.lang in LANGUAGES.keys():
-                for set_name, checker_set in LANGUAGES[self.lang][
-                    "checker_sets"
-                ].items():
+            if self.lang in CoverityConfig().languages.keys():
+                for set_name, checker_set in (
+                    CoverityConfig().languages[self.lang]["checker_sets"].items()
+                ):
                     if self.checker in checker_set:
                         self.category = set_name
                         break
@@ -161,7 +190,7 @@ class CoverityAnalysisResult(AnalysisResult):
         self.files = list(map(lambda line: str(Path(line)), captured_list.splitlines()))
 
         file_count = 0
-        for lang, pattern in LANGUAGES.items():
+        for lang, pattern in CoverityConfig().languages.items():
             include = pattern["include"]
             exclude = pattern["exclude"]
             files = [
@@ -199,6 +228,9 @@ class CoverityAnalysisResult(AnalysisResult):
             MissingFile: If a required result file is not found.
 
         """
+        import xmltodict
+        import yaml
+
         cmdout = json.load((output_dir / "cstools_output.json").open())
 
         # Analysis metrics

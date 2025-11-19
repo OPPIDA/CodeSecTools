@@ -12,12 +12,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import git
 import humanize
 import typer
 from rich import print
-from rich.panel import Panel
-from rich.progress import Progress
 
 from codesectools.utils import USER_CACHE_DIR
 
@@ -82,6 +79,8 @@ class Dataset(ABC):
 
     def prompt_license_agreement(self) -> None:
         """Display the dataset's license and prompt the user for agreement."""
+        from rich.panel import Panel
+
         panel = Panel(
             f"""Dataset:\t[b]{self.name}[/b]
 License:\t[b]{self.license}[/b]
@@ -122,6 +121,8 @@ By proceeding, you agree to abide by its terms.""",
             test: If True, download a smaller subset of the dataset for testing.
 
         """
+        from rich.progress import Progress
+
         self.prompt_license_agreement()
         with Progress() as progress:
             progress.add_task(f"Downloading [b]{self.name}[/b]...", total=None)
@@ -538,7 +539,9 @@ class GitRepo(DatasetUnit):
             dir: The path to the directory where the repository should be cloned.
 
         """
-        repo = git.Repo.clone_from(self.url, dir)
+        from git import Repo
+
+        repo = Repo.clone_from(self.url, dir)
         repo.git.checkout(self.commit)
 
 

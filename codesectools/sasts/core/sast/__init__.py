@@ -16,8 +16,6 @@ from pathlib import Path
 from typing import Any, Literal, Union
 
 from rich import print
-from rich.panel import Panel
-from rich.progress import Progress
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import (
@@ -113,6 +111,8 @@ class SAST(ABC):
             **kwargs: Additional tool-specific arguments.
 
         """
+        from rich.progress import Progress
+
         render_variables = {"{lang}": lang}
         for k, v in kwargs.items():
             if v is None:
@@ -357,6 +357,8 @@ class PrebuiltSAST(SAST):
             testing: If True, run analysis on a sample of two random files for testing.
 
         """
+        from rich.panel import Panel
+
         if not dataset.is_built():
             prebuilt_dir, prebuilt_glob = dataset.prebuilt_expected
             panel = Panel(

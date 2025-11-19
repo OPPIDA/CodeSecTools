@@ -109,6 +109,8 @@ class Graphics:
                 fig.savefig(figure_path_pgf, bbox_inches="tight")
                 print(f"Figure {fig_name} exported to pgf")
 
+            plt.close(fig)
+
 
 ## Single project
 class ProjectGraphics(Graphics):

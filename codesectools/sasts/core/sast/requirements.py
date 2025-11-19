@@ -5,12 +5,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Literal, Self
 
-import requests
 import typer
-from git import Repo
 from rich import print
-from rich.panel import Panel
-from rich.progress import Progress
 
 from codesectools.utils import USER_CACHE_DIR, USER_CONFIG_DIR
 
@@ -193,6 +189,10 @@ class GitRepo(DownloadableRequirement):
 
     def download(self, **kwargs: Any) -> None:
         """Prompt for license agreement and clone the Git repository."""
+        from git import Repo
+        from rich.panel import Panel
+        from rich.progress import Progress
+
         panel = Panel(
             f"""Repository:\t[b]{self.name}[/b]
 Repository URL:\t[u]{self.repo_url.rstrip(".git")}[/u]
@@ -264,6 +264,10 @@ class File(DownloadableRequirement):
 
     def download(self, **kwargs: Any) -> None:
         """Prompt for license agreement and download the file."""
+        import requests
+        from rich.panel import Panel
+        from rich.progress import Progress
+
         panel = Panel(
             f"""File:\t\t[b]{self.name}[/b]
 Download URL:\t[u]{self.file_url}[/u]

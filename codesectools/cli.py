@@ -4,7 +4,6 @@ This script sets up the main entry point for the application using `typer`.
 It dynamically discovers and adds CLI commands from all available SAST tools.
 """
 
-import importlib.metadata
 import os
 from typing import Optional
 
@@ -12,7 +11,6 @@ import typer
 import typer.core
 from click import Choice
 from rich import print
-from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
@@ -26,6 +24,8 @@ cli = typer.Typer(name="cstools", no_args_is_help=True)
 
 def version_callback(value: bool) -> None:
     """Print the application version and exit."""
+    import importlib.metadata
+
     if value:
         print(importlib.metadata.version("codesectools"))
         raise typer.Exit()
@@ -65,6 +65,8 @@ def status(
     ] = False,
 ) -> None:
     """Display the availability of SAST tools and datasets."""
+    from rich.table import Table
+
     if sasts or (not sasts and not datasets):
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)

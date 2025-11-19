@@ -12,17 +12,10 @@ from typing import Optional, Self
 import typer
 from click import Choice
 from rich import print
-from rich.panel import Panel
-from rich.table import Table
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
-from codesectools.sasts.core.graphics import (
-    FileDatasetGraphics,
-    GitRepoDatasetGraphics,
-    ProjectGraphics,
-)
 from codesectools.sasts.core.sast import SAST, PrebuiltBuildlessSAST, PrebuiltSAST
 
 
@@ -107,6 +100,8 @@ class CLIFactory:
         @self.cli.command(help=help)
         def install() -> None:
             """Display installation instructions for missing requirements."""
+            from rich.panel import Panel
+
             install_help = ""
             sast_reqs = self.sast.requirements
             missing_reqs = sast_reqs.get_missing()
@@ -272,6 +267,8 @@ class CLIFactory:
         @self.cli.command(help=help)
         def list() -> None:
             """List available analysis results."""
+            from rich.table import Table
+
             table = Table(show_lines=True)
             table.add_column("Name", justify="center", no_wrap=True)
             table.add_column("Type", justify="center", no_wrap=True)
@@ -341,6 +338,12 @@ class CLIFactory:
                 pgf: If True, export figures in PGF format for LaTeX documents.
 
             """
+            from codesectools.sasts.core.graphics import (
+                FileDatasetGraphics,
+                GitRepoDatasetGraphics,
+                ProjectGraphics,
+            )
+
             if result in self.sast.list_results(project=True):
                 project = result
                 project_graphics = ProjectGraphics(self.sast, project_name=project)

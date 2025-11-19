@@ -8,17 +8,11 @@ from pathlib import Path
 import typer
 from click import Choice
 from rich import print
-from rich.console import Console
-from rich.style import Style
-from rich.syntax import Syntax
-from rich.table import Table
-from rich.text import Text
 from typing_extensions import Annotated
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
-from codesectools.sasts.all.graphics import ProjectGraphics
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
 from codesectools.utils import group_successive
@@ -37,6 +31,8 @@ def build_cli() -> typer.Typer:
     @cli.command(help="List used SAST tools.")
     def info() -> None:
         """Display the status of all SAST tools and their inclusion in AllSAST."""
+        from rich.table import Table
+
         table = Table(show_lines=True)
         table.add_column("SAST", justify="center", no_wrap=True)
         table.add_column("Status", justify="center", no_wrap=True)
@@ -156,6 +152,8 @@ def build_cli() -> typer.Typer:
     @cli.command(name="list", help="List existing analysis results.")
     def list_() -> None:
         """List existing analysis results for projects and datasets."""
+        from rich.table import Table
+
         table = Table(show_lines=True)
         table.add_column("Name", justify="center", no_wrap=True)
         table.add_column("Type", justify="center", no_wrap=True)
@@ -218,6 +216,8 @@ def build_cli() -> typer.Typer:
         ] = False,
     ) -> None:
         """Generate and display plots for a project's aggregated analysis results."""
+        from codesectools.sasts.all.graphics import ProjectGraphics
+
         project_graphics = ProjectGraphics(project_name=project)
         project_graphics.export(overwrite=overwrite, show=show, pgf=pgf)
 
@@ -239,6 +239,12 @@ def build_cli() -> typer.Typer:
         ] = False,
     ) -> None:
         """Generate an HTML report for a project's aggregated analysis results."""
+        from rich.console import Console
+        from rich.style import Style
+        from rich.syntax import Syntax
+        from rich.table import Table
+        from rich.text import Text
+
         report_dir = all_sast.output_dir / project / "report"
         if report_dir.is_dir():
             if overwrite:

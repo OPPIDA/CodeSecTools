@@ -10,8 +10,6 @@ import random
 from pathlib import Path
 from typing import Self
 
-import git
-
 from codesectools.datasets.core.dataset import File, PrebuiltFileDataset
 from codesectools.shared.cwe import CWE, CWEs
 
@@ -108,7 +106,9 @@ class BenchmarkJava(PrebuiltFileDataset):
             test: If True, reduce the number of test files for faster testing.
 
         """
-        git.Repo.clone_from(
+        from git import Repo
+
+        Repo.clone_from(
             "https://github.com/OWASP-Benchmark/BenchmarkJava.git", self.directory
         )
 

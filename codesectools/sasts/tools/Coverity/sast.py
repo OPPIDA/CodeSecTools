@@ -10,9 +10,8 @@ from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import Binary, Config, SASTRequirements
 from codesectools.sasts.tools.Coverity.parser import (
-    COLOR_MAPPING,
-    LANGUAGES,
     CoverityAnalysisResult,
+    CoverityConfig,
 )
 
 
@@ -35,7 +34,7 @@ class CoveritySAST(BuildlessSAST):
     """
 
     name = "Coverity"
-    supported_languages = LANGUAGES.keys()
+    supported_languages = CoverityConfig().languages.keys()
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=True)
     requirements = SASTRequirements(
@@ -77,4 +76,4 @@ class CoveritySAST(BuildlessSAST):
         (Path("idir", "output", "*.xml"), False),
     ]
     parser = CoverityAnalysisResult
-    color_mapping = COLOR_MAPPING
+    color_mapping = CoverityConfig().color_mapping

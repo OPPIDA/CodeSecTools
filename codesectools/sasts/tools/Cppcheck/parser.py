@@ -9,9 +9,6 @@ import json
 from pathlib import Path
 from typing import Self
 
-from lxml import etree
-from lxml.etree import ElementTree
-
 from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.shared.cwe import CWE, CWEs
 from codesectools.utils import MissingFile
@@ -49,6 +46,8 @@ class CppcheckError(Defect):
 
 class CppcheckAnalysisResult(AnalysisResult):
     """Represent the complete result of a Cppcheck analysis."""
+
+    from lxml.etree import ElementTree
 
     def __init__(self, output_dir: Path, xml_tree: ElementTree, cmdout: dict) -> None:
         """Initialize a CppcheckAnalysisResult instance.
@@ -108,6 +107,8 @@ class CppcheckAnalysisResult(AnalysisResult):
             MissingFile: If a required result file is not found.
 
         """
+        from lxml import etree
+
         # Cmdout
         cmdout = json.load((output_dir / "cstools_output.json").open())
 

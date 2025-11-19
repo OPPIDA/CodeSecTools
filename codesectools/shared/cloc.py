@@ -9,8 +9,6 @@ import json
 import shutil
 from pathlib import Path
 
-import git
-
 from codesectools.utils import USER_CACHE_DIR, MissingFile, NonZeroExit, run_command
 
 
@@ -45,6 +43,8 @@ class Cloc:
             lang: The programming language to count.
 
         """
+        from git import Repo
+
         self.dir = dir
         self.lang = self.cloc_names[lang]
         if shutil.which("cloc"):
@@ -53,7 +53,7 @@ class Cloc:
             if shutil.which("perl"):
                 cloc_repo = USER_CACHE_DIR / "cloc"
                 if not cloc_repo.is_dir():
-                    repo = git.Repo.clone_from(
+                    repo = Repo.clone_from(
                         "https://github.com/AlDanial/cloc.git",
                         cloc_repo,
                         depth=1,
