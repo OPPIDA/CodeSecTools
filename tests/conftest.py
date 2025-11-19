@@ -2,11 +2,15 @@
 
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 from types import GeneratorType
 
 import pytest
+
+# Fix: I/O operation on closed (https://github.com/pallets/click/issues/824)
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 test_type = os.environ.get("TEST_TYPE")
 state_file = Path(f".pytest_cache/state_{test_type}.json")
