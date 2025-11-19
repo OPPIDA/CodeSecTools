@@ -10,9 +10,6 @@ import re
 import zipfile
 from typing import Self
 
-import requests
-from rich.progress import Progress
-
 from codesectools.utils import USER_CACHE_DIR
 
 
@@ -109,6 +106,9 @@ class CWEsCollection:
 
     def download(self) -> None:
         """Download CWE data from the official MITRE website."""
+        import requests
+        from rich.progress import Progress
+
         with Progress() as progress:
             task = progress.add_task(
                 "[red]Downloading CWEs from [b]cwe.mitre.org[/b]...", total=100

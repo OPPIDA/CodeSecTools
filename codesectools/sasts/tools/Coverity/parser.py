@@ -10,9 +10,6 @@ import re
 from pathlib import Path
 from typing import Self
 
-import xmltodict
-import yaml
-
 from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.shared.cwe import CWEs
 from codesectools.utils import USER_CONFIG_DIR, MissingFile
@@ -199,6 +196,9 @@ class CoverityAnalysisResult(AnalysisResult):
             MissingFile: If a required result file is not found.
 
         """
+        import xmltodict
+        import yaml
+
         cmdout = json.load((output_dir / "cstools_output.json").open())
 
         # Analysis metrics

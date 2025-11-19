@@ -13,9 +13,6 @@ import zipfile
 from pathlib import Path
 from typing import Self
 
-import requests
-from lxml import etree
-
 from codesectools.datasets.core.dataset import File, PrebuiltFileDataset
 from codesectools.shared.cwe import CWE, CWEs
 from codesectools.utils import CPU_COUNT
@@ -100,6 +97,8 @@ class JulietTestSuiteC(PrebuiltFileDataset):
             test: If True, reduce the number of test files for faster testing.
 
         """
+        import requests
+
         zip_file = io.BytesIO(
             requests.get(
                 "https://samate.nist.gov/SARD/downloads/test-suites/2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3.zip"
@@ -129,6 +128,8 @@ class JulietTestSuiteC(PrebuiltFileDataset):
             A list of `TestCode` objects representing the dataset.
 
         """
+        from lxml import etree
+
         files = []
         testcode_dir = self.directory / "C" / "testcases"
         testcode_paths = {
