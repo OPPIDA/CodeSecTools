@@ -12,9 +12,45 @@ Attributes:
 """
 
 import importlib
+from typing import Any
 
 from codesectools.datasets.core.dataset import Dataset
 from codesectools.utils import DATASETS_DIR
+
+
+class LazyDatasetLoader:
+    """Lazily load a dataset class to avoid premature imports."""
+
+    def __init__(self, name: str) -> None:
+        """Initialize the lazy loader.
+
+        Args:
+            name: The name of the dataset to load.
+
+        """
+        self.name = name
+        self.loaded = False
+
+    def _load(self) -> None:
+        """Import the dataset module and class on first access."""
+        if not self.loaded:
+            self.dataset_module = importlib.import_module(
+                f"codesectools.datasets.{self.name}.dataset"
+            )
+            self.dataset: Dataset = getattr(self.dataset_module, self.name)
+
+            self.loaded = True
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Dataset:
+        """Create an instance of the loaded dataset class."""
+        self._load()
+        return self.dataset(*args, **kwargs)
+
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401
+        """Proxy attribute access to the loaded dataset class."""
+        self._load()
+        return getattr(self.dataset, name)
+
 
 DATASETS_ALL = {}
 for child in DATASETS_DIR.iterdir():
@@ -22,11 +58,6 @@ for child in DATASETS_DIR.iterdir():
         if list(child.glob("dataset.py")) and child.name != "core":
             dataset_name = child.name
 
-            dataset_module = importlib.import_module(
-                f"codesectools.datasets.{dataset_name}.dataset"
-            )
-            dataset: Dataset = getattr(dataset_module, dataset_name)
-
-            DATASETS_ALL[dataset_name] = dataset
+            DATASETS_ALL[dataset_name] = LazyDatasetLoader(dataset_name)
 
 DATASETS_ALL = dict(sorted(DATASETS_ALL.items()))
