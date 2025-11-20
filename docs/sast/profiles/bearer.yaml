@@ -2,7 +2,7 @@ name: Bearer
 description: Bearer is a static application security testing (SAST) tool designed to scan your source code and analyze data flows to identify, filter, and prioritize security and privacy risks.
 type: Data Flow Analysis (Source code)
 url: https://github.com/Bearer/bearer
-supported_version: 1.151.0
+supported_version: 1.51.1
 supported_languages:
   - Java
 legal:

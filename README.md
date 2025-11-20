@@ -55,14 +55,14 @@ cd CodeSecTools
 
 ### SAST Tool Integration Status
 
-|SAST Tool|Languages|Maintained|Tested|
-|:---:|:---:|:---:|:---:|
-|Coverity|Java|❌ (Proprietary)|❌ (Proprietary)|
-|Semgrep Community Edition|C, Java|✅|✅|
-|Snyk Code|C, Java|✅|❌ (Rate limited)|
-|Bearer|Java|✅|✅|
-|SpotBugs|Java|✅|✅|
-|Cppcheck|C|✅|✅|
+|SAST Tool|Languages|Maintained|Continuous Testing|Last Test Date|
+|:---:|:---:|:---:|:---:|:---:|
+|Coverity|Java|❌<br>(Proprietary)|❌<br>(Proprietary)|October 2025|
+|Semgrep Community Edition|C/C++, Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|Snyk Code|C/C++, Java|✅|❌<br>(Rate limited)|November 2025|
+|Bearer|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|SpotBugs|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|Cppcheck|C/C++|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 
 ## Usage
 
