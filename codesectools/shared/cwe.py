@@ -20,18 +20,31 @@ class CWE:
         id (int): The CWE identifier.
         name (str): The name of the weakness.
         description (str): A description of the weakness.
+        parent (CWE | None): The parent CWE weakness, if any.
+        children (set[CWE]): A set of child CWE weaknesses.
 
     """
 
-    def __init__(self, id: int, name: str, description: str) -> None:
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        description: str,
+        parent: Self | None = None,
+        children: set[Self] | None = None,
+    ) -> None:
         """Initialize a CWE instance.
 
         Args:
             id: The CWE identifier.
             name: The name of the weakness.
             description: A description of the weakness.
+            parent: The parent CWE weakness, if any.
+            children: A set of child CWE weaknesses, if any.
 
         """
+        if children is None:
+            children = set()
         self.id = id
         if r := re.search(r"\('(.*)'\)", name):
             self.name = r.group(1)
@@ -40,6 +53,8 @@ class CWE:
             self.name = self.full_name = name
 
         self.description = description
+        self.parent = parent
+        self.children = children or set()
 
     def __eq__(self, other: Self | int) -> bool:
         """Compare this CWE with another object for equality.
@@ -71,6 +86,31 @@ class CWE:
 
         """
         return f"{self.__class__.__name__}(id={self.id})"
+
+    def extend(self, distance: int = 1) -> set[Self]:
+        """Retrieve the set of related CWEs within a specified distance in the hierarchy.
+
+        Recursively finds parent and child CWEs up to the given distance level.
+        Includes the current CWE in the returned set.
+
+        Args:
+            distance: The number of levels to traverse up (parents) and down (children).
+                Defaults to 1.
+
+        Returns:
+            A set of CWE objects including the self and related weaknesses.
+
+        """
+        cwes: set[Self] = set([self])
+        for _ in range(distance):
+            new_cwes = cwes.copy()
+            for cwe in cwes:
+                if cwe.parent:
+                    new_cwes.add(cwe.parent)
+                for child in cwe.children:
+                    new_cwes.add(child)
+            cwes = new_cwes.copy()
+        return cwes
 
 
 class CWEsCollection:
@@ -136,24 +176,50 @@ class CWEsCollection:
             )
             progress.update(task, advance=25)
 
-    def load(self) -> list[CWE]:
-        """Load CWE data from the CSV file.
+    def load(self) -> dict[int, CWE]:
+        """Load and parse CWE data from cached CSV files.
+
+        Reads the CSV files defined in `cwes_data`, instantiates `CWE` objects,
+        and establishes parent-child relationships based on the "Related Weaknesses" field.
 
         Returns:
-            A list of CWE objects.
+            A dictionary mapping CWE IDs (int) to `CWE` objects.
 
         """
-        cwes = []
+        cwes = {}
+        cwes_parent = {}
+        cwes_children = {}
         for filename in self.cwes_data.values():
             reader = csv.DictReader((self.directory / filename).open(encoding="utf-8"))
             for cwe_dict in reader:
-                cwes.append(
-                    CWE(
-                        id=int(cwe_dict["CWE-ID"]),
-                        name=cwe_dict["Name"],
-                        description=cwe_dict["Description"],
-                    )
+                cwe_id = int(cwe_dict["CWE-ID"])
+
+                cwes[cwe_id] = CWE(
+                    id=cwe_id,
+                    name=cwe_dict["Name"],
+                    description=cwe_dict["Description"],
                 )
+
+                for related in cwe_dict["Related Weaknesses"].split("::"):
+                    if m := re.search(r"NATURE:ChildOf:CWE ID:(\d+):", related):
+                        parent_id = int(m.group(1))
+
+                        cwes_parent[cwe_id] = parent_id
+
+                        if cwes_children.get(parent_id):
+                            cwes_children[parent_id].add(cwe_id)
+                        else:
+                            cwes_children[parent_id] = {cwe_id}
+
+                        break
+
+        for cwe_id, cwe in cwes.items():
+            if p_id := cwes_parent.get(cwe_id):
+                cwe.parent = cwes.get(p_id, None)
+            for c_id in cwes_children.get(cwe_id, []):
+                if child_cwe := cwes.get(c_id):
+                    cwe.children.add(child_cwe)
+
         return cwes
 
     def from_string(self, cwe_string: str) -> CWE:
@@ -181,10 +247,7 @@ class CWEsCollection:
             The CWE object if found, otherwise a default CWE object with ID -1.
 
         """
-        try:
-            return self.cwes[self.cwes.index(cwe_id)]
-        except ValueError:
-            return self.NOCWE
+        return self.cwes.get(cwe_id, self.NOCWE)
 
 
 CWEs = CWEsCollection()

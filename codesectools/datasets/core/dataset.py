@@ -34,6 +34,8 @@ class Dataset(ABC):
         name (str): The name of the dataset.
         supported_languages (list[str]): A list of programming languages supported
             by the dataset.
+        license (str): The license under which the dataset is distributed.
+        license_url (str): A URL to the full text of the license.
 
     """
 
@@ -333,8 +335,7 @@ class FileDataset(Dataset):
 
         for (filepath, cwe), defect in unique_reported_defects.items():
             has_vuln, expected_cwes = ground_truth.get(filepath, (False, set()))
-
-            if has_vuln and cwe in expected_cwes:
+            if has_vuln and bool(cwe.extend() & expected_cwes):
                 # Correctly identified a vulnerability
                 tp_defects_map[(filepath, cwe)] = defect
             else:
@@ -609,7 +610,7 @@ class GitRepoDataset(Dataset):
                 for (filename, cwe), defect in unique_reported_defects.items():
                     # A reported defect is a TP if it's in a known vulnerable file
                     # with a known CWE for that repo.
-                    if filename in repo.files and cwe in repo.cwes:
+                    if filename in repo.files and bool(cwe.extend() & set(repo.cwes)):
                         tp_defects_map[(filename, cwe)] = defect
                     else:
                         fp_defects_map[(filename, cwe)] = defect
