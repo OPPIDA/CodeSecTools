@@ -11,6 +11,7 @@ services:
 
     volumes:      
       - pytest-cache:/app/.pytest_cache
+      - cstools-cache:/root/.codesectools/cache
     
     environment:
       _TYPER_STANDARD_TRACEBACK: 1
@@ -27,9 +28,11 @@ services:
 
     volumes:      
       - pytest-cache:/app/.pytest_cache
-    
+      - cstools-cache:/root/.codesectools/cache
+      
     environment:
       _TYPER_STANDARD_TRACEBACK: 1
 
 volumes:
   pytest-cache:
+  cstools-cache:

@@ -180,7 +180,7 @@ class SAST(ABC):
                 filepath = project_dir / parent_dir / filename
                 if filepath.is_file():
                     if not filepath == output_dir / filename:
-                        filepath.rename(output_dir / filename)
+                        shutil.move(filepath, output_dir / filename)
                 else:
                     if required:
                         missing_files.append(filename)
@@ -189,7 +189,7 @@ class SAST(ABC):
                 if filepaths:
                     for filepath in filepaths:
                         if not filepath == output_dir / filename:
-                            filepath.rename(output_dir / filepath.name)
+                            shutil.move(filepath, output_dir / filepath.name)
                 else:
                     if required:
                         missing_files.append(filename)

@@ -4,10 +4,13 @@ import hashlib
 import json
 import logging
 import os
+import shutil
 from pathlib import Path
 from types import GeneratorType
 
 import pytest
+
+from codesectools.utils import USER_CACHE_DIR
 
 # Fix: I/O operation on closed (https://github.com/pallets/click/issues/824)
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
@@ -55,6 +58,13 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
     Skips the entire test session if no source files have changed.
     """
+    if USER_CACHE_DIR.is_dir():
+        for child in USER_CACHE_DIR.iterdir():
+            if child.is_file():
+                child.unlink()
+            elif child.is_dir():
+                shutil.rmtree(child)
+
     if not source_code_changed():
         pytest.exit("No changes in source code, skipping test session.", returncode=0)
 
