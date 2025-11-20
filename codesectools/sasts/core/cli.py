@@ -12,7 +12,7 @@ from typing import Optional, Self
 import typer
 from click import Choice
 from rich import print
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Literal
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
@@ -314,30 +314,12 @@ class CLIFactory:
                     help="Overwrite existing figures",
                 ),
             ] = False,
-            show: Annotated[
-                bool,
-                typer.Option(
-                    "--show",
-                    help="Display figures",
-                ),
-            ] = False,
-            pgf: Annotated[
-                bool,
-                typer.Option(
-                    "--pgf",
-                    help="Export figures to pgf format (for LaTeX document)",
-                ),
-            ] = False,
+            format: Annotated[
+                Literal["png", "pdf", "svg"],
+                typer.Option("--format", help="Figures export format"),
+            ] = "png",
         ) -> None:
-            """Generate and export plots for a given project or dataset result.
-
-            Args:
-                result: The name of the analysis result to plot.
-                overwrite: If True, overwrite existing figure files.
-                show: If True, display the generated figures.
-                pgf: If True, export figures in PGF format for LaTeX documents.
-
-            """
+            """Generate and export plots for a given project or dataset result."""
             from codesectools.sasts.core.graphics import (
                 FileDatasetGraphics,
                 GitRepoDatasetGraphics,
@@ -347,7 +329,7 @@ class CLIFactory:
             if result in self.sast.list_results(project=True):
                 project = result
                 project_graphics = ProjectGraphics(self.sast, project_name=project)
-                project_graphics.export(overwrite=overwrite, show=show, pgf=pgf)
+                project_graphics.export(overwrite=overwrite, format=format)
             elif result in self.sast.list_results(dataset=True):
                 dataset = result
                 dataset_name, lang = dataset.split("_")
@@ -356,15 +338,11 @@ class CLIFactory:
                     file_dataset_graphics = FileDatasetGraphics(
                         self.sast, dataset=dataset
                     )
-                    file_dataset_graphics.export(
-                        overwrite=overwrite, show=show, pgf=pgf
-                    )
+                    file_dataset_graphics.export(overwrite=overwrite, format=format)
                 elif isinstance(dataset, GitRepoDataset):
                     git_repo_dataset_graphics = GitRepoDatasetGraphics(
                         self.sast, dataset=dataset
                     )
-                    git_repo_dataset_graphics.export(
-                        overwrite=overwrite, show=show, pgf=pgf
-                    )
+                    git_repo_dataset_graphics.export(overwrite=overwrite, format=format)
                 else:
                     print("Not supported yet")

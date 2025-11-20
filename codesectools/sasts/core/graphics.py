@@ -5,9 +5,6 @@ visual representations of SAST analysis data, such as defect distributions and
 benchmark performance.
 """
 
-import shutil
-import tempfile
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,27 +17,23 @@ from codesectools.sasts.core.sast import SAST
 from codesectools.shared.cwe import CWE
 from codesectools.utils import shorten_path
 
-## Matplotlib config
-matplotlib.rcParams.update(
-    {
-        "font.family": "serif",
-        "font.size": 11,
-    }
-)
-
 
 class Graphics:
-    """Base class for generating graphics from SAST results.
+    """Base class for generating plots and visualizations from SAST results.
 
     Attributes:
-        sast (SAST): The SAST tool instance.
-        output_dir (Path): The directory containing the analysis results.
-        color_mapping (dict): A mapping of categories to colors for plotting.
-        plot_functions (list): A list of methods that generate plots.
-        limit (int): The maximum number of items to show in top-N plots.
-        has_latex (bool): True if a LaTeX installation is found.
+        limit (int): The maximum number of items to display in charts (default is 10).
+        filetypes (dict[str, str]): A mapping of file extensions to matplotlib backends.
+        sast (SAST): The SAST tool instance associated with the graphics.
+        output_dir (Path): The directory where the analysis results are stored.
+        color_mapping (dict): A dictionary mapping categories to colors for plots.
+        plot_functions (list): A list of methods responsible for generating plots.
 
     """
+
+    limit = 10
+
+    filetypes = {"png": "AGG", "pdf": "PDF", "svg": "SVG"}
 
     def __init__(self, sast: SAST, project_name: str) -> None:
         """Initialize the Graphics object.
@@ -56,44 +49,27 @@ class Graphics:
         self.color_mapping["NONE"] = "BLACK"
         self.plot_functions = []
 
-        # Plot options
-        self.limit = 10
+    def export(self, overwrite: bool, format: str) -> None:
+        """Generate and save the configured plots to the output directory.
 
-        self.has_latex = shutil.which("pdflatex")
-        if self.has_latex:
-            matplotlib.use("pgf")
-            matplotlib.rcParams.update(
-                {
-                    "pgf.texsystem": "pdflatex",
-                    "text.usetex": True,
-                    "pgf.rcfonts": False,
-                }
-            )
-        else:
-            print("pdflatex not found, pgf will not be generated")
-
-    def export(self, overwrite: bool, pgf: bool, show: bool) -> None:
-        """Generate, save, and optionally display all registered plots.
+        Iterates through the registered plot functions, generates the figures,
+        and saves them to a `_figures` subdirectory within the output directory.
 
         Args:
-            overwrite: If True, overwrite existing figure files.
-            pgf: If True and LaTeX is available, export figures in PGF format.
-            show: If True, open the generated figures using the default viewer.
+            overwrite: If True, overwrite existing figure files without prompting.
+            format: The file format for the exported figures (e.g., "png", "pdf", "svg").
 
         """
+        matplotlib.use(self.filetypes[format])
+
         for plot_function in self.plot_functions:
             fig = plot_function()
             fig_name = plot_function.__name__.replace("plot_", "")
             fig.set_size_inches(12, 7)
 
-            if show:
-                with tempfile.NamedTemporaryFile(delete=True) as temp:
-                    fig.savefig(f"{temp.name}.png", bbox_inches="tight")
-                    typer.launch(f"{temp.name}.png", wait=False)
-
             figure_dir = self.output_dir / "_figures"
             figure_dir.mkdir(exist_ok=True, parents=True)
-            figure_path = figure_dir / f"{fig_name}.png"
+            figure_path = figure_dir / f"{fig_name}.{format}"
             if figure_path.is_file() and not overwrite:
                 if not typer.confirm(
                     f"Found existing figure at {figure_path}, would you like to overwrite?"
@@ -103,11 +79,6 @@ class Graphics:
 
             fig.savefig(figure_path, bbox_inches="tight")
             print(f"Figure {fig_name} saved at {figure_path}")
-
-            if pgf and self.has_latex:
-                figure_path_pgf = figure_dir / f"{fig_name}.pgf"
-                fig.savefig(figure_path_pgf, bbox_inches="tight")
-                print(f"Figure {fig_name} exported to pgf")
 
             plt.close(fig)
 
