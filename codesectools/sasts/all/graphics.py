@@ -1,28 +1,25 @@
 """Provides classes for generating plots and visualizations from aggregated SAST results."""
 
-import shutil
-import tempfile
-
-import matplotlib
 import matplotlib.pyplot as plt
-import typer
 from matplotlib.figure import Figure
-from rich import print
 
 from codesectools.sasts.all.sast import AllSAST
+from codesectools.sasts.core.graphics import Graphics as CoreGraphics
 from codesectools.utils import shorten_path
 
-## Matplotlib config
-matplotlib.rcParams.update(
-    {
-        "font.family": "serif",
-        "font.size": 11,
-    }
-)
 
+class Graphics(CoreGraphics):
+    """Base class for generating plots for aggregated SAST results.
 
-class Graphics:
-    """Base class for generating graphics from aggregated SAST results."""
+    Attributes:
+        project_name (str): The name of the project being visualized.
+        all_sast (AllSAST): The instance managing all SAST tools.
+        output_dir (Path): The directory containing the aggregated results.
+        color_mapping (dict): A dictionary mapping SAST tool names to colors.
+        sast_names (list[str]): A list of names of the SAST tools involved in the analysis.
+        plot_functions (list): A list of methods responsible for generating plots.
+
+    """
 
     def __init__(self, project_name: str) -> None:
         """Initialize the Graphics object."""
@@ -37,61 +34,6 @@ class Graphics:
                 self.color_mapping[sast.name] = cmap(i)
                 self.sast_names.append(sast.name)
         self.plot_functions = []
-
-        # Plot options
-        self.limit = 10
-
-        self.has_latex = shutil.which("pdflatex")
-        if self.has_latex:
-            matplotlib.use("pgf")
-            matplotlib.rcParams.update(
-                {
-                    "pgf.texsystem": "pdflatex",
-                    "text.usetex": True,
-                    "pgf.rcfonts": False,
-                }
-            )
-        else:
-            print("pdflatex not found, pgf will not be generated")
-
-    def export(self, overwrite: bool, pgf: bool, show: bool) -> None:
-        """Generate, save, and optionally display all registered plots.
-
-        Args:
-            overwrite: If True, overwrite existing figure files.
-            pgf: If True and LaTeX is available, export figures in PGF format.
-            show: If True, open the generated figures using the default viewer.
-
-        """
-        for plot_function in self.plot_functions:
-            fig = plot_function()
-            fig_name = plot_function.__name__.replace("plot_", "")
-            fig.set_size_inches(12, 7)
-
-            if show:
-                with tempfile.NamedTemporaryFile(delete=True) as temp:
-                    fig.savefig(f"{temp.name}.png", bbox_inches="tight")
-                    typer.launch(f"{temp.name}.png", wait=False)
-
-            figure_dir = self.output_dir / "_figures"
-            figure_dir.mkdir(exist_ok=True, parents=True)
-            figure_path = figure_dir / f"{fig_name}.png"
-            if figure_path.is_file() and not overwrite:
-                if not typer.confirm(
-                    f"Found existing figure at {figure_path}, would you like to overwrite?"
-                ):
-                    print(f"Figure {fig_name} not saved")
-                    continue
-
-            fig.savefig(figure_path, bbox_inches="tight")
-            print(f"Figure {fig_name} saved at {figure_path}")
-
-            if pgf and self.has_latex:
-                figure_path_pgf = figure_dir / f"{fig_name}.pgf"
-                fig.savefig(figure_path_pgf, bbox_inches="tight")
-                print(f"Figure {fig_name} exported to pgf")
-
-            plt.close(fig)
 
 
 ## Single project

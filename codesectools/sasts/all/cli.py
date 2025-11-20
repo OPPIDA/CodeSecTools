@@ -8,7 +8,7 @@ from pathlib import Path
 import typer
 from click import Choice
 from rich import print
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Literal
 
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
@@ -200,26 +200,16 @@ def build_cli() -> typer.Typer:
                 help="Overwrite existing figures",
             ),
         ] = False,
-        show: Annotated[
-            bool,
-            typer.Option(
-                "--show",
-                help="Display figures",
-            ),
-        ] = False,
-        pgf: Annotated[
-            bool,
-            typer.Option(
-                "--pgf",
-                help="Export figures to pgf format (for LaTeX document)",
-            ),
-        ] = False,
+        format: Annotated[
+            Literal["png", "pdf", "svg"],
+            typer.Option("--format", help="Figures export format"),
+        ] = "png",
     ) -> None:
         """Generate and display plots for a project's aggregated analysis results."""
         from codesectools.sasts.all.graphics import ProjectGraphics
 
         project_graphics = ProjectGraphics(project_name=project)
-        project_graphics.export(overwrite=overwrite, show=show, pgf=pgf)
+        project_graphics.export(overwrite=overwrite, format=format)
 
     @cli.command(help="Generate an HTML report")
     def report(
