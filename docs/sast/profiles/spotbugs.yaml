@@ -2,7 +2,7 @@ name: SpotBugs
 description: SpotBugs is a program which uses static analysis to look for bugs in Java code. SpotBugs is a fork of FindBugs (which is now an abandoned project), carrying on from the point where it left off with support of its community.
 type: Data Flow Analysis (Compiled code)
 url: https://github.com/spotbugs/spotbugs
-supported_version: 4.9.7
+supported_version: 4.9.8
 supported_languages:
   - Java
 legal:

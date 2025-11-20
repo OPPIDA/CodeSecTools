@@ -48,7 +48,7 @@ RUN pip install --no-cache semgrep
 # Bearer
 RUN curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | BINDIR=/usr/bin sh
 # SpotBugs
-RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.7/spotbugs-4.9.7.tgz | tar -xzvf - && \
+RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.8/spotbugs-4.9.8.tgz | tar -xzvf - && \
     mv spotbugs-* /tmp/spotbugs
 ENV PATH="/tmp/spotbugs/bin:$PATH"
 # Cppcheck
