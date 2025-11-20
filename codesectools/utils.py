@@ -217,12 +217,30 @@ def group_successive(numbers_list: list[int]) -> list[list[int]]:
     return groups
 
 
-def shorten_path(p: str) -> str:
-    """Shorten a file path for display if it's too long."""
-    path = Path(p)
-    if len(path.parts) > 3:
-        return str(Path("...") / path.parts[-2] / path.parts[-1])
-    return p
+def shorten_path(path: str, max_len: int = 20) -> str:
+    """Shorten a file path for display if it's too long.
+
+    Args:
+        path: The file path to shorten.
+        max_len: The maximum length allowed for the path string.
+
+    Returns:
+        The shortened path string, potentially prefixed with an ellipsis.
+
+    """
+    original_path = Path(path)
+    shortened_path = Path(original_path.parts[-1])
+
+    for i in range(-2, -len(original_path.parts) - 1, -1):
+        if len(str(Path(original_path.parts[i], shortened_path))) < max_len:
+            shortened_path = Path(original_path.parts[i], shortened_path)
+        else:
+            break
+
+    if shortened_path != shortened_path.absolute():
+        shortened_path = Path("...", shortened_path)
+
+    return str(shortened_path)
 
 
 CPU_COUNT = os.cpu_count()
