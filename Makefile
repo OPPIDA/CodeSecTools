@@ -22,6 +22,7 @@ test:		## Run tests in a Docker container
 
 test-force:	## Run tests in a Docker container while ignoring any stored state
 	@docker volume rm codesectools_pytest-cache 2>&1 1>/dev/null || true
+	@docker volume rm codesectools_cstools-cache 2>&1 1>/dev/null || true
 	@docker compose build 1>/dev/null
 	@docker compose run --rm no-sast
 	@docker compose run --rm with-sast
