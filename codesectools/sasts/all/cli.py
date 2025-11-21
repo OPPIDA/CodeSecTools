@@ -230,6 +230,7 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Generate an HTML report for a project's aggregated analysis results."""
         from rich.console import Console
+        from rich.progress import track
         from rich.style import Style
         from rich.syntax import Syntax
         from rich.table import Table
@@ -301,7 +302,10 @@ def build_cli() -> typer.Typer:
         main_table = Table(title="")
         main_table.add_column("Files (sorted by defect number)")
 
-        for defect_data in report_data["defects"].values():
+        for defect_data in track(
+            report_data["defects"].values(),
+            description="Generating report for source file with defects...",
+        ):
             defect_report_name = (
                 f"{sha256(defect_data['source_path'].encode()).hexdigest()}.html"
             )
