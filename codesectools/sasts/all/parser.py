@@ -142,11 +142,15 @@ class AllSASTAnalysisResult:
         for defect_file, defects in defect_files.items():
             defects_cwes = {d.cwe for d in defects if d.cwe.id != -1}
 
-            cwes_found_by_all_sasts = 0
+            defects_same_cwe = 0
             for cwe in defects_cwes:
                 cwes_sasts = {d.sast for d in defects if d.cwe == cwe}
                 if set(self.sast_names) == cwes_sasts:
-                    cwes_found_by_all_sasts += 1
+                    defects_same_cwe += 1
+                else:
+                    defects_same_cwe += (
+                        len(set(self.sast_names) & cwes_sasts) - 1
+                    ) / len(self.sast_names)
 
             defect_locations = {}
             for defect in defects:
@@ -171,15 +175,23 @@ class AllSASTAnalysisResult:
                             self.sast_names
                         ):
                             defects_same_location_same_cwe += 1
+                        else:
+                            defects_same_location_same_cwe += (
+                                len(
+                                    set(defect.sast for defect in defects_)
+                                    & set(self.sast_names)
+                                )
+                                - 1
+                            ) / len(self.sast_names)
 
             stats[defect_file] = {
                 "score": {
                     "defect_number": len(defects),
-                    "unique_cwes_number": len(defects_cwes),
-                    "cwes_found_by_all_sasts": cwes_found_by_all_sasts,
-                    "defects_same_location": defects_same_location,
-                    "defects_same_location_same_cwe": defects_same_location_same_cwe,
-                }
+                    "defects_same_cwe": defects_same_cwe * 2,
+                    "defects_same_location": defects_same_location * 4,
+                    "defects_same_location_same_cwe": defects_same_location_same_cwe
+                    * 8,
+                },
             }
 
         return stats
