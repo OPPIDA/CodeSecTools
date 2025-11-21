@@ -15,7 +15,7 @@ from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
-from codesectools.utils import group_successive
+from codesectools.utils import group_successive, shorten_path
 
 
 def build_cli() -> typer.Typer:
@@ -317,7 +317,8 @@ def build_cli() -> typer.Typer:
             defect_page.print(defect_stats_table)
 
             defect_report_redirect = Text(
-                defect_data["source_path"], style=Style(link=defect_report_name)
+                shorten_path(defect_data["source_path"], 60),
+                style=Style(link=defect_report_name),
             )
             main_table.add_row(defect_report_redirect)
 
