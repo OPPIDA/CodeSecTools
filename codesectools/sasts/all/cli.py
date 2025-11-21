@@ -317,7 +317,15 @@ def build_cli() -> typer.Typer:
                 defect_stats_table.add_column(
                     key.replace("_", " ").title(), justify="center"
                 )
-            defect_stats_table.add_row(*[str(v) for v in defect_data["score"].values()])
+
+            rendered_scores = []
+            for v in defect_data["score"].values():
+                if isinstance(v, float):
+                    rendered_scores.append(f"~{v}")
+                else:
+                    rendered_scores.append(str(v))
+
+            defect_stats_table.add_row(*rendered_scores)
             defect_page.print(defect_stats_table)
 
             defect_report_redirect = Text(
