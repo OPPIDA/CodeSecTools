@@ -19,7 +19,7 @@ class AllSASTAnalysisResult:
         self.source_path = None
         self.analysis_results = analysis_results
         self.lang = None
-        self.sasts = []
+        self.sast_names = []
         self.files = set()
         self.defects = []
 
@@ -30,12 +30,12 @@ class AllSASTAnalysisResult:
             else:
                 assert analysis_result.lang == self.lang
                 assert analysis_result.source_path == self.source_path
-            self.sasts.append(sast_name)
+            self.sast_names.append(sast_name)
             self.files |= set(analysis_result.files)
             self.defects += analysis_result.defects
 
         self.category_mapping = {}
-        for sast_name in self.sasts:
+        for sast_name in self.sast_names:
             sast = SASTS_ALL[sast_name]["sast"]
             for category_name, color in sast.color_mapping.items():
                 if color.lower() == "red":
@@ -55,7 +55,7 @@ class AllSASTAnalysisResult:
         return f"""{self.__class__.__name__}(
     name: \t{self.name}
     lang: \t{self.lang}
-    sasts: \t{self.sasts}
+    sasts: \t{self.sast_names}
     file_count: \t{len(self.files)}
     defect_count: \t{len(self.defects)}
 )"""
@@ -145,7 +145,7 @@ class AllSASTAnalysisResult:
             cwes_found_by_all_sasts = 0
             for cwe in defects_cwes:
                 cwes_sasts = {d.sast for d in defects if d.cwe == cwe}
-                if set(self.sasts) == cwes_sasts:
+                if set(self.sast_names) == cwes_sasts:
                     cwes_found_by_all_sasts += 1
 
             defect_locations = {}
@@ -158,7 +158,7 @@ class AllSASTAnalysisResult:
             defects_same_location = 0
             defects_same_location_same_cwe = 0
             for _, defects_ in defect_locations.items():
-                if set(defect.sast for defect in defects_) == set(self.sasts):
+                if set(defect.sast for defect in defects_) == set(self.sast_names):
                     defects_same_location += 1
                     defects_by_cwe = {}
                     for defect in defects_:
@@ -167,7 +167,9 @@ class AllSASTAnalysisResult:
                         defects_by_cwe[defect.cwe].append(defect)
 
                     for _, defects_ in defects_by_cwe.items():
-                        if set(defect.sast for defect in defects_) == set(self.sasts):
+                        if set(defect.sast for defect in defects_) == set(
+                            self.sast_names
+                        ):
                             defects_same_location_same_cwe += 1
 
             stats[defect_file] = {

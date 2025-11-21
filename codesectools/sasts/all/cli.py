@@ -293,7 +293,7 @@ def build_cli() -> typer.Typer:
     </html>
     """
         template = template.replace(
-            "[sasts]", ", ".join(sast.name for sast in all_sast.sasts)
+            "[sasts]", ", ".join(sast_name for sast_name in result.sast_names)
         )
 
         home_page = Console(record=True, file=io.StringIO())
