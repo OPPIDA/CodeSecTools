@@ -300,7 +300,11 @@ def build_cli() -> typer.Typer:
         home_page = Console(record=True, file=io.StringIO())
 
         main_table = Table(title="")
-        main_table.add_column("Files (sorted by defect number)")
+        main_table.add_column("Files")
+        for key in list(report_data["defects"].values())[0]["score"].keys():
+            main_table.add_column(
+                key.replace("_", " ").title(), justify="center", no_wrap=True
+            )
 
         for defect_data in track(
             report_data["defects"].values(),
@@ -332,7 +336,8 @@ def build_cli() -> typer.Typer:
                 shorten_path(defect_data["source_path"], 60),
                 style=Style(link=defect_report_name),
             )
-            main_table.add_row(defect_report_redirect)
+
+            main_table.add_row(defect_report_redirect, *rendered_scores)
 
             # Defect table
             defect_table = Table(title="", show_lines=True)
