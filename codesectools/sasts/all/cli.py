@@ -15,7 +15,7 @@ from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
-from codesectools.utils import group_successive
+from codesectools.utils import group_successive, shorten_path
 
 
 def build_cli() -> typer.Typer:
@@ -230,6 +230,7 @@ def build_cli() -> typer.Typer:
     ) -> None:
         """Generate an HTML report for a project's aggregated analysis results."""
         from rich.console import Console
+        from rich.progress import track
         from rich.style import Style
         from rich.syntax import Syntax
         from rich.table import Table
@@ -293,15 +294,22 @@ def build_cli() -> typer.Typer:
     </html>
     """
         template = template.replace(
-            "[sasts]", ", ".join(sast.name for sast in all_sast.sasts)
+            "[sasts]", ", ".join(sast_name for sast_name in result.sast_names)
         )
 
         home_page = Console(record=True, file=io.StringIO())
 
         main_table = Table(title="")
-        main_table.add_column("Files (sorted by defect number)")
+        main_table.add_column("Files")
+        for key in list(report_data["defects"].values())[0]["score"].keys():
+            main_table.add_column(
+                key.replace("_", " ").title(), justify="center", no_wrap=True
+            )
 
-        for defect_data in report_data["defects"].values():
+        for defect_data in track(
+            report_data["defects"].values(),
+            description="Generating report for source file with defects...",
+        ):
             defect_report_name = (
                 f"{sha256(defect_data['source_path'].encode()).hexdigest()}.html"
             )
@@ -313,13 +321,23 @@ def build_cli() -> typer.Typer:
                 defect_stats_table.add_column(
                     key.replace("_", " ").title(), justify="center"
                 )
-            defect_stats_table.add_row(*[str(v) for v in defect_data["score"].values()])
+
+            rendered_scores = []
+            for v in defect_data["score"].values():
+                if isinstance(v, float):
+                    rendered_scores.append(f"~{v}")
+                else:
+                    rendered_scores.append(str(v))
+
+            defect_stats_table.add_row(*rendered_scores)
             defect_page.print(defect_stats_table)
 
             defect_report_redirect = Text(
-                defect_data["source_path"], style=Style(link=defect_report_name)
+                shorten_path(defect_data["source_path"], 60),
+                style=Style(link=defect_report_name),
             )
-            main_table.add_row(defect_report_redirect)
+
+            main_table.add_row(defect_report_redirect, *rendered_scores)
 
             # Defect table
             defect_table = Table(title="", show_lines=True)

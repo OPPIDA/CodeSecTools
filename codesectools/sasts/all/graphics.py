@@ -201,7 +201,7 @@ class ProjectGraphics(Graphics):
                 X_files,
                 key_values,
                 bottom=bottoms,
-                label=key.replace("_", " ").title(),
+                label=f"{key.replace('_', ' ').title()} (x{2**i})",
                 color=score_colors(i),
             )
             bottoms = [b + v for b, v in zip(bottoms, key_values, strict=False)]
