@@ -192,6 +192,12 @@ class AllSASTAnalysisResult:
                     "defects_same_location_same_cwe": defects_same_location_same_cwe
                     * 8,
                 },
+                "count": {
+                    "defect_number": len(defects),
+                    "defects_same_cwe": defects_same_cwe,
+                    "defects_same_location": defects_same_location,
+                    "defects_same_location_same_cwe": defects_same_location_same_cwe,
+                },
             }
 
         return stats
@@ -223,6 +229,7 @@ class AllSASTAnalysisResult:
 
             report["defects"][defect_file] = {
                 "score": scores[defect_file]["score"],
+                "count": scores[defect_file]["count"],
                 "source_path": str(self.source_path / defect.filepath),
                 "locations": locations,
                 "raw": defects,
