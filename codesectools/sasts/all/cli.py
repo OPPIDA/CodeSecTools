@@ -1,8 +1,6 @@
 """Defines the command-line interface for running all available SAST tools."""
 
-import io
 import shutil
-from hashlib import sha256
 from pathlib import Path
 
 import typer
@@ -13,9 +11,9 @@ from typing_extensions import Annotated, Literal
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
+from codesectools.sasts.all.report import ReportEngine
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
-from codesectools.utils import group_successive, shorten_path
 
 
 def build_cli() -> typer.Typer:
@@ -85,7 +83,14 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Run analysis on the current project with all available SAST tools."""
+        """Run analysis on the current project with all available SAST tools.
+
+        Args:
+            lang: The source code language to analyze.
+            artifacts: The path to pre-built artifacts (for PrebuiltSAST only).
+            overwrite: If True, overwrite existing analysis results for the current project.
+
+        """
         for sast in all_sast.sasts_by_lang.get(lang, []):
             if isinstance(sast, PrebuiltBuildlessSAST) and artifacts is None:
                 print(
@@ -140,7 +145,14 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Run a benchmark on a dataset using all available SAST tools."""
+        """Run a benchmark on a dataset using all available SAST tools.
+
+        Args:
+            dataset: The name of the dataset to benchmark.
+            overwrite: If True, overwrite existing results.
+            testing: If True, run benchmark over a single dataset unit for testing.
+
+        """
         dataset_name, lang = dataset.split("_")
         for sast in all_sast.sasts_by_dataset.get(DATASETS_ALL[dataset_name], []):
             dataset = DATASETS_ALL[dataset_name](lang)
@@ -205,7 +217,14 @@ def build_cli() -> typer.Typer:
             typer.Option("--format", help="Figures export format"),
         ] = "png",
     ) -> None:
-        """Generate and display plots for a project's aggregated analysis results."""
+        """Generate and display plots for a project's aggregated analysis results.
+
+        Args:
+            project: The name of the project to visualize.
+            overwrite: If True, overwrite existing figures.
+            format: The export format for the figures.
+
+        """
         from codesectools.sasts.all.graphics import ProjectGraphics
 
         project_graphics = ProjectGraphics(project_name=project)
@@ -228,14 +247,13 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Generate an HTML report for a project's aggregated analysis results."""
-        from rich.console import Console
-        from rich.progress import track
-        from rich.style import Style
-        from rich.syntax import Syntax
-        from rich.table import Table
-        from rich.text import Text
+        """Generate an HTML report for a project's aggregated analysis results.
 
+        Args:
+            project: The name of the project to report on.
+            overwrite: If True, overwrite existing results.
+
+        """
         report_dir = all_sast.output_dir / project / "report"
         if report_dir.is_dir():
             if overwrite:
@@ -247,197 +265,8 @@ def build_cli() -> typer.Typer:
 
         report_dir.mkdir(parents=True)
 
-        result = all_sast.parser.load_from_output_dir(project_name=project)
-        report_data = result.prepare_report_data()
-
-        template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="UTF-8">
-    <style>
-    {stylesheet}
-    body {{
-        color: {foreground};
-        background-color: {background};
-        font-family: Menlo, 'DejaVu Sans Mono', consolas, 'Courier New', monospace;
-    }}
-    .tippy-box {{
-        background-color: white;
-        color: black;
-    }}
-    img {{
-        display: block;
-        margin: auto;
-        border: solid black 1px;
-    }}
-    #top {{
-        position: fixed;
-        bottom: 20px;
-        right: 30px;
-        background-color: white;
-        padding: 10px;
-        border: solid black 5px;
-    }}
-    </style>
-    </head>
-    <body>
-        <a href="./home.html"><h1>CodeSecTools All SAST Tools Report</h1></a>
-        <h3>SAST Tools used: [sasts]</h3>
-        <h2>[name]</h2>
-        <pre style="font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><code style="font-family:inherit">{code}</code></pre>
-        <script src="https://unpkg.com/@popperjs/core@2"></script>
-        <script src="https://unpkg.com/tippy.js@6"></script>
-        <script>[tippy_calls]</script>
-        <a href="#" id="top">^</a>
-    </body>
-    </html>
-    """
-        template = template.replace(
-            "[sasts]", ", ".join(sast_name for sast_name in result.sast_names)
-        )
-
-        home_page = Console(record=True, file=io.StringIO())
-
-        main_table = Table(title="")
-        main_table.add_column("Files")
-        for key in list(report_data["defects"].values())[0]["score"].keys():
-            main_table.add_column(
-                key.replace("_", " ").title(), justify="center", no_wrap=True
-            )
-
-        for defect_data in track(
-            report_data["defects"].values(),
-            description="Generating report for source file with defects...",
-        ):
-            defect_report_name = (
-                f"{sha256(defect_data['source_path'].encode()).hexdigest()}.html"
-            )
-            defect_page = Console(record=True, file=io.StringIO())
-
-            # Defect stat table
-            defect_stats_table = Table(title="")
-            for key in list(report_data["defects"].values())[0]["score"].keys():
-                defect_stats_table.add_column(
-                    key.replace("_", " ").title(), justify="center"
-                )
-
-            rendered_scores = []
-            for v in defect_data["score"].values():
-                if isinstance(v, float):
-                    rendered_scores.append(f"~{v}")
-                else:
-                    rendered_scores.append(str(v))
-
-            defect_stats_table.add_row(*rendered_scores)
-            defect_page.print(defect_stats_table)
-
-            defect_report_redirect = Text(
-                shorten_path(defect_data["source_path"], 60),
-                style=Style(link=defect_report_name),
-            )
-
-            main_table.add_row(defect_report_redirect, *rendered_scores)
-
-            # Defect table
-            defect_table = Table(title="", show_lines=True)
-            defect_table.add_column("Location", justify="center")
-            defect_table.add_column("SAST", justify="center")
-            defect_table.add_column("CWE", justify="center")
-            defect_table.add_column("Message")
-            rows = []
-            for defect in defect_data["raw"]:
-                groups = group_successive(defect.lines)
-                if groups:
-                    for group in groups:
-                        start, end = group[0], group[-1]
-                        shortcut = Text(f"{start}", style=Style(link=f"#L{start}"))
-                        cwe_link = (
-                            Text(
-                                f"CWE-{defect.cwe.id}",
-                                style=Style(
-                                    link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
-                                ),
-                            )
-                            if defect.cwe.id != -1
-                            else "None"
-                        )
-                        rows.append(
-                            (start, shortcut, defect.sast, cwe_link, defect.message)
-                        )
-                else:
-                    cwe_link = (
-                        Text(
-                            f"CWE-{defect.cwe.id}",
-                            style=Style(
-                                link=f"https://cwe.mitre.org/data/definitions/{defect.cwe.id}.html"
-                            ),
-                        )
-                        if defect.cwe.id != -1
-                        else "None"
-                    )
-                    rows.append(
-                        (float("inf"), "None", defect.sast, cwe_link, defect.message)
-                    )
-
-            for row in sorted(rows, key=lambda r: r[0]):
-                defect_table.add_row(*row[1:])
-            defect_page.print(defect_table)
-
-            # Syntax
-            if not Path(defect_data["source_path"]).is_file():
-                tippy_calls = ""
-                print(
-                    f"Source file {defect_data['source_path']} not found, skipping it..."
-                )
-            else:
-                syntax = Syntax.from_path(defect_data["source_path"], line_numbers=True)
-                tooltips = {}
-                highlights = {}
-                for location in defect_data["locations"]:
-                    sast, cwe, message, (start, end) = location
-                    for i in range(start, end + 1):
-                        text = (
-                            f"<b>{sast}</b>: <i>{message} (CWE-{cwe.id})</i>"
-                            if cwe.id != -1
-                            else f"<b>{sast}</b>: <i>{message}</i>"
-                        )
-                        if highlights.get(i):
-                            highlights[i].add(text)
-                        else:
-                            highlights[i] = {text}
-
-                for line, texts in highlights.items():
-                    element_id = f"L{line}"
-                    bgcolor = "red" if len(texts) > 1 else "yellow"
-                    syntax.stylize_range(
-                        Style(bgcolor=bgcolor, link=f"HACK{element_id}"),
-                        start=(line, 0),
-                        end=(line + 1, 0),
-                    )
-                    tooltips[element_id] = "<hr>".join(text for text in texts)
-
-                tippy_calls = ""
-                for element_id, content in tooltips.items():
-                    tippy_calls += f"""tippy('#{element_id}', {{ content: `{content.replace("`", "\\`")}`, allowHTML: true, interactive: true }});\n"""
-
-                defect_page.print(syntax)
-
-            html_content = defect_page.export_html(code_format=template)
-            html_content = html_content.replace('href="HACK', 'id="')
-            html_content = html_content.replace("[name]", defect_data["source_path"])
-            html_content = html_content.replace("[tippy_calls]", tippy_calls)
-
-            report_defect_file = report_dir / defect_report_name
-            report_defect_file.write_text(html_content)
-
-        home_page.print(main_table)
-        html_content = home_page.export_html(code_format=template)
-        html_content = html_content.replace("[name]", f"Project: {project}")
-
-        report_home_file = report_dir / "home.html"
-        report_home_file.write_text(html_content)
-
+        report_engine = ReportEngine(project=project, all_sast=all_sast)
+        report_engine.generate()
         print(f"Report generated at {report_dir.resolve()}")
 
     return cli
