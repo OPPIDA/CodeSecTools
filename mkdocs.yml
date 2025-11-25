@@ -76,6 +76,8 @@ plugins:
       nav_file: SUMMARY.md
   - include-markdown:
       rewrite_relative_urls: true
+      start: <!--start-include-->
+      end: <!--end-include-->
   - mkdocstrings:
       handlers:
         python:

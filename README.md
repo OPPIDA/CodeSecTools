@@ -1,11 +1,23 @@
-# CodeSecTools
+<!--start-include-->
+# CodeSecTools <!-- omit in toc -->
 
 <div align="center">
   <img src="docs/assets/logo.svg" alt="Logo" style="width: 200px; height: auto;" />
 </div>
 
 A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
+<!--end-include-->
 
+## Table Of Contents <!-- omit in toc -->
+- [Overview](#overview)
+- [Features](#features)
+- [SAST Tool Integration Status](#sast-tool-integration-status)
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Command-line interface](#command-line-interface)
+    - [Python API](#python-api)
+
+<!--start-include-->
 ## Overview
 
 **CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
@@ -123,13 +135,4 @@ for plot_function in graphics.plot_functions:
     fig = plot_function()
     fig.show()
 ```
-
-## Documentation
-
-The documentation is available [online](https://oppida.github.io/CodeSecTools/).
-
-Or, you can serve it locally:
-```bash
-pip install .[docs]
-mkdocs serve
-```
+<!--end-include-->
