@@ -5,13 +5,18 @@ the XML output from a Cppcheck scan, converting it into the standardized
 format used by CodeSecTools.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
 from codesectools.shared.cwe import CWE, CWEs
 from codesectools.utils import MissingFile
+
+if TYPE_CHECKING:
+    from lxml.etree import ElementTree
 
 
 class CppcheckError(Defect):
@@ -46,8 +51,6 @@ class CppcheckError(Defect):
 
 class CppcheckAnalysisResult(AnalysisResult):
     """Represent the complete result of a Cppcheck analysis."""
-
-    from lxml.etree import ElementTree
 
     def __init__(self, output_dir: Path, xml_tree: ElementTree, cmdout: dict) -> None:
         """Initialize a CppcheckAnalysisResult instance.
