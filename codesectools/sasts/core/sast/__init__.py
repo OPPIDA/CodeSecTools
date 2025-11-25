@@ -366,7 +366,7 @@ class PrebuiltSAST(SAST):
 Please build [b]{dataset.name}[/b] before running the benchmark
 Build command: \t\t[b]{dataset.build_command}[/b]
 Full command: \t\t[b](cd {dataset.directory} && {dataset.build_command})[/b]
-Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}[/b]""",
+Expected artifacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}[/b]""",
                 title=f"[b]{self.name} - PrebuiltSAST[/b]",
             )
             print(panel)
@@ -387,7 +387,7 @@ Expected artefacts: \t[b]{str(dataset.directory / prebuilt_dir / prebuilt_glob)}
             dataset.lang,
             dataset.directory,
             result_path,
-            artifacts=dataset.artefacts_arg,
+            artifacts=dataset.artifacts_arg,
         )
 
 
