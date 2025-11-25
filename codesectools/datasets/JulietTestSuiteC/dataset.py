@@ -56,7 +56,7 @@ class JulietTestSuiteC(PrebuiltFileDataset):
 
     build_command = f"bear -- make -C ./C individuals -j{CPU_COUNT}"
     prebuilt_expected = (Path("."), "compile_commands.json")
-    artefacts_arg = "compile_commands.json"
+    artifacts_arg = "compile_commands.json"
 
     def __init__(self, lang: None | str = None) -> None:
         """Initialize the JulietTestSuiteC dataset.
