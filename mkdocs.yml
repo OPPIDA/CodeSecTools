@@ -19,6 +19,7 @@ nav:
   - API Reference:
     - api/index.md 
     - SAST Tools: api/sast.md 
+    - All SAST: api/allsast.md
     - Datasets: api/dataset.md
     - Shared: api/shared.md
 
