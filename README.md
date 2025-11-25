@@ -22,6 +22,8 @@ A framework for code security that provides abstractions for static analysis too
 
 **CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
 
+For more details on the design and integration of SAST tools and datasets in CodeSecTools, please refer to the [documentation](https://oppida.github.io/CodeSecTools). 
+
 <div align="center">
   <img src="docs/assets/overview.svg" alt="CodeSecTools Overview" style="width: 75%; height: auto;" />
 </div>
