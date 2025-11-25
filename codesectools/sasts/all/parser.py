@@ -192,13 +192,19 @@ class AllSASTAnalysisResult:
                     "defects_same_location_same_cwe": defects_same_location_same_cwe
                     * 8,
                 },
+                "count": {
+                    "defect_number": len(defects),
+                    "defects_same_cwe": defects_same_cwe,
+                    "defects_same_location": defects_same_location,
+                    "defects_same_location_same_cwe": defects_same_location_same_cwe,
+                },
             }
 
         return stats
 
     def prepare_report_data(self) -> dict:
         """Prepare data needed to generate a report."""
-        report = {"score": {}, "defects": {}}
+        report = {"score": {}, "files": {}}
         scores = self.stats_by_scores()
 
         report["score"] = {k: 0 for k, _ in list(scores.values())[0]["score"].items()}
@@ -221,17 +227,18 @@ class AllSASTAnalysisResult:
                         (defect.sast, defect.cwe, defect.message, (start, end))
                     )
 
-            report["defects"][defect_file] = {
+            report["files"][defect_file] = {
                 "score": scores[defect_file]["score"],
+                "count": scores[defect_file]["count"],
                 "source_path": str(self.source_path / defect.filepath),
                 "locations": locations,
-                "raw": defects,
+                "defects": defects,
             }
 
-        report["defects"] = {
+        report["files"] = {
             k: v
             for k, v in sorted(
-                report["defects"].items(),
+                report["files"].items(),
                 key=lambda item: (sum(v for v in item[1]["score"].values())),
                 reverse=True,
             )
