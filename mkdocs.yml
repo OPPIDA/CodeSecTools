@@ -19,6 +19,7 @@ nav:
   - API Reference:
     - api/index.md 
     - SAST Tools: api/sast.md 
+    - All SAST: api/allsast.md
     - Datasets: api/dataset.md
     - Shared: api/shared.md
 
@@ -75,6 +76,8 @@ plugins:
       nav_file: SUMMARY.md
   - include-markdown:
       rewrite_relative_urls: true
+      start: <!--start-include-->
+      end: <!--end-include-->
   - mkdocstrings:
       handlers:
         python:
