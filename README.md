@@ -37,7 +37,7 @@ For more details on the design and integration of SAST tools and datasets in Cod
 - **Automated Reporting and Visualization**: The framework can generate detailed reports in HTML format and create graphs to visualize analysis results, helping to identify trends such as the most common CWEs or the files with the highest number of defects.
 
 > [!WARNING]
-> This project provides wrappers and scripts to integrate with various third-party static analysis security testing (SAST) tools and datasets. It is important to note that this project **does not include** these third-party tools or datasets, unless otherwise specified. When a tool or dataset is included, its associated license file is also provided.
+> This project provides wrappers and scripts to integrate with various third-party static analysis security testing (SAST) tools and datasets. By default, this project **does not include third-party tools or datasets**. In the few instances where they are included, their associated license files are provided.
 > 
 > Users of this project are solely responsible for reviewing, understanding, and complying with the licenses and terms of use associated with any third-party tools or datasets they choose to use through this framework. The respective licenses and terms can be found on the official websites or in the documentation of each tool or dataset.
 
