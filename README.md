@@ -12,7 +12,6 @@ A framework for code security that provides abstractions for static analysis too
 - [Overview](#overview)
 - [Features](#features)
 - [SAST Tool Integration Status](#sast-tool-integration-status)
-- [Installation](#installation)
 - [Usage](#usage)
     - [Command-line interface](#command-line-interface)
     - [Python API](#python-api)
@@ -22,11 +21,13 @@ A framework for code security that provides abstractions for static analysis too
 
 **CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
 
-For more details on the design and integration of SAST tools and datasets in CodeSecTools, please refer to the [documentation](https://oppida.github.io/CodeSecTools). 
-
 <div align="center">
   <img src="docs/assets/overview.svg" alt="CodeSecTools Overview" style="width: 75%; height: auto;" />
 </div>
+
+For step-by-step instructions on installation, configuration, and basic usage, please refer to the [quick start guide](https://oppida.github.io/CodeSecTools/home/quick_start_guide.html).
+
+For more details on the design and integration of SAST tools and datasets in CodeSecTools, please refer to the [documentation](https://oppida.github.io/CodeSecTools). 
 
 ## Features
 
@@ -51,40 +52,6 @@ For more details on the design and integration of SAST tools and datasets in Cod
 |Bearer|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 |SpotBugs|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 |Cppcheck|C/C++|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
-
-## Installation
-
-- Clone the repository:
-```bash
-git clone https://github.com/OPPIDA/CodeSecTools.git
-cd CodeSecTools
-```
-
-- Install the project:
-
-    - Using [uv](https://github.com/astral-sh/uv):
-      ```bash
-      uv tool install .
-      ```
-
-    - Using [pipx](https://github.com/pypa/pipx):
-      ```bash
-      pipx install .
-      ```
-
-    - Using pip (not recommended, as it can break your system packages):
-      ```bash
-      pip install .
-      ```
-
-- Update the project:
-    
-    - Pull the latest changes:
-      ```bash
-      git pull
-      ```
-
-    - Reinstall (in case dependencies changed)
 
 ## Usage
 
