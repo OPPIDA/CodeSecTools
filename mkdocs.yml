@@ -4,7 +4,9 @@ repo_url: https://github.com/OPPIDA/CodeSecTools
 repo_name: OPPIDA/CodeSecTools
 
 nav:
-  - Home: index.md
+  - Home: 
+    - index.md
+    - home/quick_start_guide.md
   - SAST: 
     - sast/index.md
     - Supported SAST Tools:
