@@ -164,13 +164,13 @@ class PrebuiltDatasetMixin:
         build_command (str): The command required to build the dataset.
         prebuilt_expected (tuple[Path, str]): A tuple containing the path and glob pattern
             to find the built artifacts.
-        artefacts_arg (str): The argument to pass to the SAST tool command template.
+        artifacts_arg (str): The argument to pass to the SAST tool command template.
 
     """
 
     build_command: str
     prebuilt_expected: tuple[Path, str]
-    artefacts_arg: str
+    artifacts_arg: str
 
     def is_built(self) -> bool:
         """Check if the dataset has been built."""
