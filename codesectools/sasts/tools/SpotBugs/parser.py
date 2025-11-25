@@ -84,10 +84,11 @@ class SpotBugsAnalysisResult(AnalysisResult):
                     ]
                 )
                 if partial_filepath.parent not in partial_parents:
-                    filepath = next(
-                        self.source_path.rglob(str(partial_filepath))
-                    ).relative_to(self.source_path)
-                    partial_parents[partial_filepath.parent] = filepath.parent
+                    if next(self.source_path.rglob(str(partial_filepath)), None):
+                        filepath = next(
+                            self.source_path.rglob(str(partial_filepath))
+                        ).relative_to(self.source_path)
+                        partial_parents[partial_filepath.parent] = filepath.parent
                 else:
                     filepath = (
                         partial_parents[partial_filepath.parent] / partial_filepath.name
