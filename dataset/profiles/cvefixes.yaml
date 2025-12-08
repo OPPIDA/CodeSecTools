@@ -1,0 +1,116 @@
+name: CVEfixes
+description: CVEfixes is a comprehensive vulnerability dataset that is automatically collected and curated from Common Vulnerabilities and Exposures (CVE) records in the public U.S. National Vulnerability Database (NVD). The goal is to support data-driven security research based on source code and source code metrics related to fixes for CVEs in the NVD by providing detailed information at different interlinked levels of abstraction, such as the commit-, file-, and method level, as well as the repository- and CVE level.
+type: GitRepo
+url: https://github.com/secureIT-project/CVEfixes
+supported_version: v1.0.8
+supported_languages:
+  - Java
+legal:
+  license: CC BY 4.0
+  license_type: Permissive
+  license_url: https://creativecommons.org/licenses/by/4.0/
+requirements:
+  - None
+extra: |
+    !!! info "Dataset content"
+
+        - `CVEfixes_java.csv`
+
+        *Included and pre-extracted from the original dataset available at [Zenodo](https://zenodo.org/records/13118970).*
+
+    !!! warning "Large Original Dataset"
+        The full CVEfixes dataset is a SQLite database of approximately 50GB. To keep it manageable for SAST tools, we provide a pre-processed version with minimal data for specific languages.
+
+        We extracted the following columns to create language-specific CSV files (e.g., `CVEfixes_java.csv`):
+
+        - `cve_id`
+        - `cwe_ids`
+        - `repo_url`
+        - `parents` (vulnerable commit)
+        - `filenames`
+
+        We also added `repo_size` for each repository, fetched using the GitHub API.
+
+    ??? config "Extract a minimal version for a specific programming language"
+
+        **Requirements:**
+
+        1.  Download `CVEfixes.db` from [Zenodo](https://zenodo.org/records/13118970).
+        2.  Modify the script variables `LANG`, `LANG_EXT`, and `TOKEN` to match your needs.
+
+        **GitHub API Token:**
+
+        A GitHub Personal Access Token (PAT) is required to query repository sizes due to API rate limits.
+
+        1.  Generate a new token at [github.com/settings/tokens/new](https://github.com/settings/tokens/new) with the `public_repo` scope.
+        2.  Paste the token into the `TOKEN` variable in the script.
+        3.  Remember to delete the token after use.
+
+          ```python
+          import csv
+          import sqlite3
+          import sys
+
+          import requests
+
+          LANG = "<your_language_name>"
+          LANG_EXT = [<your_language_ext>]
+          TOKEN = "YOUR_GITHUB_TOKEN"
+
+          def get_size(repo_url: str) -> int | None:
+              """Get the size of a GitHub repository."""
+              headers = {"Authorization": f"Bearer {TOKEN}"}
+              r = requests.get(
+                  repo_url.replace("github.com", "api.github.com/repos"), headers=headers
+              )
+              size_kb = r.json().get("size", None)
+              if size_kb:
+                  return size_kb * 1000
+
+          headers = {"Authorization": f"Bearer {TOKEN}"}
+          r = requests.get("https://api.github.com", headers=headers)
+          if r.status_code == 401:
+              print(r.json())
+              sys.exit(1)
+
+          conn = sqlite3.connect("CVEfixes.db")
+          cursor = conn.cursor()
+          query = f"""
+          SELECT
+              cve.cve_id,
+              REPLACE(GROUP_CONCAT(DISTINCT cwe.cwe_id), ',', ';') AS cwe_ids,
+              REPLACE(GROUP_CONCAT(DISTINCT cwe.description), ',', ';') AS cwe_descriptions,
+              repository.repo_url,
+              commits.parents,
+              REPLACE(GROUP_CONCAT(DISTINCT file_change.filename), ',', ';') AS filenames
+          FROM cve
+          JOIN fixes ON fixes.cve_id = cve.cve_id
+          JOIN commits ON commits.hash = fixes.hash AND commits.repo_url = fixes.repo_url
+          JOIN file_change ON file_change.hash = commits.hash
+          JOIN repository ON repository.repo_url = commits.repo_url
+          JOIN cwe_classification ON cwe_classification.cve_id = cve.cve_id
+          JOIN cwe ON cwe.cwe_id = cwe_classification.cwe_id
+          WHERE LOWER(repository.repo_language) = '{LANG}'
+              AND cwe.cwe_id GLOB 'CWE-[0-9]*'"""
+
+          for ext in LANG_EXT:
+              query += f"""
+          AND file_change.filename GLOB '*.{ext}'"""
+
+          query += """
+          AND file_change.filename NOT GLOB '*[Tt]est*'
+          GROUP BY cve.cve_id;"""
+          cursor.execute(query)
+          rows = cursor.fetchall()
+
+          with open(f"CVEfixes_{LANG}.csv", "w", newline="", encoding="utf-8") as csvfile:
+              writer = csv.writer(csvfile)
+              headers = [desc[0] for desc in cursor.description] + ["repo_size"]
+              writer.writerow(headers)
+
+              for row in rows:
+                  repo_url = row[3]
+                  size = get_size(repo_url)
+                  writer.writerow(list(row) + [size])
+
+          conn.close()
