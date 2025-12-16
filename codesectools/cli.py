@@ -5,9 +5,11 @@ It dynamically discovers and adds CLI commands from all available SAST tools.
 """
 
 import os
+from pathlib import Path
 from typing import Optional
 
 import typer
+import typer.completion
 import typer.core
 from click import Choice
 from rich import print
@@ -19,7 +21,22 @@ from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.cli import build_cli as build_all_sast_cli
 from codesectools.sasts.core.sast.requirements import DownloadableRequirement
 
-cli = typer.Typer(name="cstools", no_args_is_help=True)
+typer.completion.completion_init()
+
+CLI_NAME = "cstools"
+
+COMPLETION_FILE = [
+    Path.home() / ".bash_completions" / f"{CLI_NAME}.sh",
+    Path.home() / f".zfunc/_{CLI_NAME}",
+    Path.home() / f".config/fish/completions/{CLI_NAME}.fish",
+]
+
+cli = typer.Typer(
+    name=CLI_NAME,
+    no_args_is_help=True,
+    add_help_option=False,
+    add_completion=not any(f.is_file() for f in COMPLETION_FILE),
+)
 
 
 def version_callback(value: bool) -> None:
@@ -51,7 +68,7 @@ def main(
         ),
     ] = None,
 ) -> None:
-    """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
+    """CodeSecTools CLI."""
     if debug:
         os.environ["DEBUG"] = "1"
         os.environ["_TYPER_STANDARD_TRACEBACK"] = "1"

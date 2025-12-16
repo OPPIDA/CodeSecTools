@@ -18,7 +18,7 @@ from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
 
 def build_cli() -> typer.Typer:
     """Build the Typer CLI for running all SAST tools."""
-    cli = typer.Typer(name="allsast", no_args_is_help=True)
+    cli = typer.Typer(name="allsast", no_args_is_help=True, add_help_option=False)
     all_sast = AllSAST()
 
     @cli.callback()

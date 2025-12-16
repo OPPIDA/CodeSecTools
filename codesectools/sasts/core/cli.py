@@ -51,7 +51,9 @@ class CLIFactory:
 
     def build_cli(self) -> typer.Typer:
         """Build and return the Typer CLI application for the SAST tool."""
-        self.cli = typer.Typer(name=self.sast.name.lower(), no_args_is_help=True)
+        self.cli = typer.Typer(
+            name=self.sast.name.lower(), no_args_is_help=True, add_help_option=False
+        )
         self._add_minimal()
         return self.cli
 
