@@ -89,7 +89,7 @@ def test_sasts() -> None | AssertionError:
     for sast_name, sast_data in SASTS_ALL.items():
         logging.info(f"Checking {sast_name} commands")
         sast_cli = sast_data["cli_factory"].build_cli()
-        result = runner.invoke(sast_cli, ["--help"])
+        result = runner.invoke(sast_cli)
         if sast_data["status"] == "full":
             assert result.exit_code == 0
             assert all(

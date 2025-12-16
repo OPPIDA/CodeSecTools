@@ -13,7 +13,7 @@ runner = CliRunner(env={"COLUMNS": "200"})
 
 def test_help() -> None | AssertionError:
     """Test the '--help' option."""
-    result = runner.invoke(cli, ["--help"])
+    result = runner.invoke(cli)
     assert result.exit_code == 0
     assert "version" in result.output
     assert "status" in result.output
