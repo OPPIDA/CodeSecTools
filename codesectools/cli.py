@@ -67,7 +67,7 @@ def main(
         ),
     ] = None,
 ) -> None:
-    """CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."""
+    """CodeSecTools CLI."""
     if debug:
         os.environ["DEBUG"] = "1"
         os.environ["_TYPER_STANDARD_TRACEBACK"] = "1"
