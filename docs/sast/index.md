@@ -45,8 +45,8 @@ classDiagram
     }
 
     class PrebuiltBuildlessSAST {
-        +artefact_name: str
-        +artefact_type: str
+        +artifact_name: str
+        +artifact_type: str
     }
 
     SAST <|-- BuildlessSAST

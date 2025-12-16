@@ -332,13 +332,13 @@ class PrebuiltSAST(SAST):
     """Represent a SAST tool that requires pre-built artifacts for analysis.
 
     Attributes:
-        artefact_name (str): The name of the expected artifact (e.g., 'Java Bytecode').
-        artefact_type (Literal["file", "directory"]): The type of artifact expected.
+        artifact_name (str): The name of the expected artifact (e.g., 'Java Bytecode').
+        artifact_type (Literal["file", "directory"]): The type of artifact expected.
 
     """
 
-    artefact_name: str
-    artefact_type: Literal["file", "directory"]
+    artifact_name: str
+    artifact_type: Literal["file", "directory"]
 
     def analyze_files(
         self,

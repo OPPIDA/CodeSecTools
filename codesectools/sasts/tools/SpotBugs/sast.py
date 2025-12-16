@@ -78,5 +78,5 @@ class SpotBugsSAST(PrebuiltSAST):
     }
 
     # PrebuiltSAST
-    artefact_name = "Java Bytecode"
-    artefact_type = "directory"
+    artifact_name = "Java Bytecode"
+    artifact_type = "directory"
