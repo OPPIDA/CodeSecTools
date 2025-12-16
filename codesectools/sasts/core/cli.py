@@ -137,12 +137,12 @@ class CLIFactory:
         if isinstance(self.sast, PrebuiltBuildlessSAST):
             artifacts_default = typer.Option(
                 default=None,
-                help=f"Pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type}) for more accurate analysis",
+                help=f"Pre-built artifacts ({self.sast.artifact_name} {self.sast.artifact_type}) for more accurate analysis",
                 metavar="ARTIFACTS",
             )
         elif isinstance(self.sast, PrebuiltSAST):
             artifacts_default = typer.Option(
-                help=f"Pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type})",
+                help=f"Pre-built artifacts ({self.sast.artifact_name} {self.sast.artifact_type})",
                 metavar="ARTIFACTS",
             )
         else:
@@ -184,7 +184,7 @@ class CLIFactory:
             """
             if isinstance(self.sast, PrebuiltBuildlessSAST) and artifacts is None:
                 print(
-                    f"[i]{self.sast.name} can use pre-built artifacts ({self.sast.artefact_name} {self.sast.artefact_type}) for more accurate analysis"
+                    f"[i]{self.sast.name} can use pre-built artifacts ({self.sast.artifact_name} {self.sast.artifact_type}) for more accurate analysis"
                 )
                 print("[i]Use the flag --artifacts to provide the artifacts")
 

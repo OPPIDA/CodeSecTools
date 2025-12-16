@@ -209,7 +209,7 @@ cstools spotbugs benchmark BenchmarkJava_java
 │ Build command:          mvn clean compile                               │
 │ Full command:           (cd                                             │
 │ /home/michel/.codesectools/cache/BenchmarkJava && mvn clean compile)    │
-│ Expected arteficts:                                                     │
+│ Expected artifacts:                                                     │
 │ /home/michel/.codesectools/cache/BenchmarkJava/target/classes/org/owasp │
 │ /benchmark/testcode/*.class                                             │
 ╰─────────────────────────────────────────────────────────────────────────╯

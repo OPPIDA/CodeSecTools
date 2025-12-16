@@ -94,12 +94,12 @@ def build_cli() -> typer.Typer:
         for sast in all_sast.sasts_by_lang.get(lang, []):
             if isinstance(sast, PrebuiltBuildlessSAST) and artifacts is None:
                 print(
-                    f"[i]{sast.name} can use pre-built artifacts ({sast.artefact_name} {sast.artefact_type}) for more accurate analysis"
+                    f"[i]{sast.name} can use pre-built artifacts ({sast.artifact_name} {sast.artifact_type}) for more accurate analysis"
                 )
                 print("[i]Use the flag --artifacts to provide the artifacts")
             elif isinstance(sast, PrebuiltSAST) and artifacts is None:
                 print(
-                    f"[b]Skipping {sast.name} because it requires pre-built artifacts ({sast.artefact_name} {sast.artefact_type})"
+                    f"[b]Skipping {sast.name} because it requires pre-built artifacts ({sast.artifact_name} {sast.artifact_type})"
                 )
                 print("[b]Use the flag --artifacts to provide the artifacts")
                 continue

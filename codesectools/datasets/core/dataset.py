@@ -185,7 +185,7 @@ class PrebuiltDatasetMixin:
         return True
 
     def list_prebuilt_files(self) -> list[Path]:
-        """List the pre-built artefact files."""
+        """List the pre-built artifact files."""
         prebuilt_dir, prebuilt_glob = self.prebuilt_expected
         prebuilt_path = USER_CACHE_DIR / self.name / prebuilt_dir
         return list(prebuilt_path.glob(prebuilt_glob))

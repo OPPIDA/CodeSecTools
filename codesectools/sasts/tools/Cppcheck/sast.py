@@ -67,5 +67,5 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
     }
 
     # PrebuiltSAST
-    artefact_name = "Compilation database"
-    artefact_type = "file"
+    artifact_name = "Compilation database"
+    artifact_type = "file"
