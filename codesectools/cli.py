@@ -34,6 +34,7 @@ COMPLETION_FILE = [
 cli = typer.Typer(
     name=CLI_NAME,
     no_args_is_help=True,
+    add_help_option=False,
     add_completion=not any(f.is_file() for f in COMPLETION_FILE),
 )
 
