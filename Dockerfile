@@ -55,7 +55,8 @@ RUN curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/insta
 
 # SpotBugs
 RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.8/spotbugs-4.9.8.tgz | tar -xzvf - && \
-    mv spotbugs-* /home/codesectools/sasts/spotbugs
+    mv spotbugs-* /home/codesectools/sasts/spotbugs && \
+    curl -sL https://search.maven.org/remotecontent?filepath=com/h3xstream/findsecbugs/findsecbugs-plugin/1.14.0/findsecbugs-plugin-1.14.0.jar > /home/codesectools/sasts/spotbugs/plugin/findsecbugs-plugin-1.14.0.jar
 ENV PATH="/home/codesectools/sasts/spotbugs/bin:$PATH"
 
 # Cppcheck
