@@ -1,7 +1,6 @@
 """Test SAST integration functionalities."""
 
 import logging
-import os
 import tempfile
 from pathlib import Path
 from types import GeneratorType
@@ -18,11 +17,6 @@ from codesectools.datasets.core.dataset import (
 )
 from codesectools.sasts import SASTS_ALL
 from codesectools.utils import run_command
-
-if os.environ.get("TEST_TYPE") == "no-sast":
-    pytest.skip(
-        "Skipping SAST tools testing in no-sast environment", allow_module_level=True
-    )
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -44,7 +38,7 @@ def update_sast_module_state() -> GeneratorType:
 
 runner = CliRunner(env={"COLUMNS": "200"})
 
-TEST_CODES_DIR = Path("tests/testcodes").resolve()
+TEST_CODES_DIR = Path("/tmp/tests/testcodes").resolve()
 TEST_CODES = {
     "java": {"build_command": "javac {filename}"},
     "c": {"build_command": "bear -- g++ {filename}"},
