@@ -73,7 +73,7 @@ class SemgrepCEAnalysisResult(AnalysisResult):
             files=result_data["paths"]["scanned"],
             defects=[],
             time=result_data["time"]["profiling_times"]["total_time"],
-            loc=None,
+            loc=0,
             data=(result_data, cmdout),
         )
 

@@ -12,7 +12,7 @@ Attributes:
 """
 
 import importlib
-from typing import Any
+from typing import Any, Type
 
 from codesectools.datasets.core.dataset import Dataset
 from codesectools.utils import DATASETS_DIR
@@ -37,7 +37,7 @@ class LazyDatasetLoader:
             self.dataset_module = importlib.import_module(
                 f"codesectools.datasets.{self.name}.dataset"
             )
-            self.dataset: Dataset = getattr(self.dataset_module, self.name)
+            self.dataset: Type[Dataset] = getattr(self.dataset_module, self.name)
 
             self.loaded = True
 

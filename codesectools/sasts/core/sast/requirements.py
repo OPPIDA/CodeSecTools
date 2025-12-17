@@ -1,14 +1,18 @@
 """Define requirements for SAST tools and their fulfillment status."""
 
+from __future__ import annotations
+
 import shutil
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal
 
 import typer
 from rich import print
 
 from codesectools.utils import USER_CACHE_DIR, USER_CONFIG_DIR
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class SASTRequirement(ABC):
@@ -17,7 +21,7 @@ class SASTRequirement(ABC):
     def __init__(
         self,
         name: str,
-        depends_on: list[Self] | None = None,
+        depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -94,6 +98,7 @@ class Config(SASTRequirement):
     def __init__(
         self,
         name: str,
+        sast_name: str,
         depends_on: list[SASTRequirement] | None = None,
         instruction: str | None = None,
         url: str | None = None,
@@ -103,19 +108,21 @@ class Config(SASTRequirement):
 
         Args:
             name: The name of the requirement.
+            sast_name: The name of the SAST tool this config belongs to.
             depends_on: A list of other requirements that must be fulfilled first.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
             doc: A flag indicating if the instruction is available in the documentation.
 
         """
+        self.sast_name = sast_name
         super().__init__(
             name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
         )
 
-    def is_fulfilled(self, sast_name: str, **kwargs: Any) -> bool:
+    def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the configuration file exists for the given SAST tool."""
-        return (USER_CONFIG_DIR / sast_name / self.name).is_file()
+        return (USER_CONFIG_DIR / self.sast_name / self.name).is_file()
 
 
 class Binary(SASTRequirement):

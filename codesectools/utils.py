@@ -15,7 +15,7 @@ from pathlib import Path
 import click
 
 # Package internal files
-PACKAGE_DIR = Path(files("codesectools.utils"))
+PACKAGE_DIR = Path(str(files("codesectools.utils")))
 DATA_DIR = PACKAGE_DIR / "data"
 SHARED_DIR = PACKAGE_DIR / "shared"
 SASTS_DIR = PACKAGE_DIR / "sasts"

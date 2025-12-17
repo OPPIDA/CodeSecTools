@@ -41,7 +41,7 @@ class SnykCodeSAST(BuildlessSAST):
                 "snyk",
                 url="https://docs.snyk.io/developer-tools/snyk-cli/install-or-update-the-snyk-cli",
             ),
-            Config("auth_token.txt", doc=True),
+            Config("auth_token.txt", doc=True, sast_name=name),
         ],
         partial_reqs=[],
     )

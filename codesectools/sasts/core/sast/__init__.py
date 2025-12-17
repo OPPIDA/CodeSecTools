@@ -342,7 +342,7 @@ class PrebuiltSAST(SAST):
 
     def analyze_files(
         self,
-        dataset: PrebuiltFileDataset,
+        dataset: FileDataset,
         overwrite: bool = False,
         testing: bool = False,
     ) -> None:
@@ -358,6 +358,8 @@ class PrebuiltSAST(SAST):
 
         """
         from rich.panel import Panel
+
+        assert isinstance(dataset, PrebuiltFileDataset)
 
         if not dataset.is_built():
             prebuilt_dir, prebuilt_glob = dataset.prebuilt_expected

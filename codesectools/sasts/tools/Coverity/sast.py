@@ -49,8 +49,8 @@ class CoveritySAST(BuildlessSAST):
             ),
         ],
         partial_reqs=[
-            Config("issueTypes.json", doc=True),
-            Config("config.json", doc=True),
+            Config("issueTypes.json", doc=True, sast_name=name),
+            Config("config.json", doc=True, sast_name=name),
         ],
     )
     commands = [

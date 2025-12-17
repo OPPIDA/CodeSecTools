@@ -75,11 +75,13 @@ class AnalysisEnvironment:
 
         if containers := self.docker.ps(
             all=True,
-            filters=[
-                ("name", "codesectools-*"),
-                ("label", f"target={str(target.resolve())}"),
-                ("label", f"isolation={self.isolation}"),
-            ],
+            filters={
+                "name": "codesectools-*",
+                "label": [
+                    f"target={target.resolve()}",
+                    f"isolation={self.isolation}",
+                ],
+            },
         ):
             container = containers[0]
             if not container.state.running:

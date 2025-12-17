@@ -24,7 +24,7 @@ class TestCode(File):
     def __init__(
         self,
         filepath: Path,
-        content: str | bytes,
+        content: bytes,
         cwes: list[CWE],
         has_vuln: bool,
     ) -> None:
@@ -32,7 +32,7 @@ class TestCode(File):
 
         Args:
             filepath: The path to the file.
-            content: The content of the file, as a string or bytes.
+            content: The content of the file, as bytes.
             cwes: A list of CWEs associated with the file.
             has_vuln: A boolean indicating if the vulnerability is real or a false positive test case.
 
@@ -58,7 +58,7 @@ class JulietTestSuiteC(PrebuiltFileDataset):
     prebuilt_expected = (Path("."), "compile_commands.json")
     artifacts_arg = "compile_commands.json"
 
-    def __init__(self, lang: None | str = None) -> None:
+    def __init__(self, lang: str = "") -> None:
         """Initialize the JulietTestSuiteC dataset.
 
         Args:
@@ -68,7 +68,7 @@ class JulietTestSuiteC(PrebuiltFileDataset):
         """
         super().__init__(lang)
 
-    def __eq__(self, other: str | Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare this dataset with another object for equality.
 
         Args:
@@ -118,7 +118,7 @@ class JulietTestSuiteC(PrebuiltFileDataset):
                 if not cwe_dir.name.startswith("CWE835"):
                     shutil.rmtree(cwe_dir)
 
-    def load_dataset(self) -> list[TestCode]:
+    def load_dataset(self) -> list[File]:
         """Load the JulietTestSuiteC dataset from the source files.
 
         Parses the `manifest.xml` file to identify vulnerabilities in the C/C++
