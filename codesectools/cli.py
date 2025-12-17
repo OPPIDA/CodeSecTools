@@ -206,8 +206,15 @@ if shutil.which("docker"):
 
     @cli.command()
     def docker(
-        target: Annotated[Path, typer.Option()] = Path("."),
-        isolation: Annotated[bool, typer.Option()] = False,
+        target: Annotated[
+            Path, typer.Option(help="The directory to mount inside the container.")
+        ] = Path("."),
+        isolation: Annotated[
+            bool,
+            typer.Option(
+                help="Enable network isolation for the container (disables host network sharing)."
+            ),
+        ] = False,
     ) -> None:
         """Start the Docker environment for the specified target (current directory by default)."""
         from codesectools.shared.docker import AnalysisEnvironment
