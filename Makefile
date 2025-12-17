@@ -1,3 +1,7 @@
+# Export variables
+export UID := $(shell id -u)
+export GID := $(shell id -g)
+
 # Add a help target to a Makefile that will allow all targets to be self documenting
 # https://gist.github.com/prwhite/8168133
 all:
