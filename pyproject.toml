@@ -1,6 +1,6 @@
 [project]
 name = "CodeSecTools"
-version = "0.13.8"
+version = "0.14.0"
 description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -15,6 +15,7 @@ dependencies = [
     "lxml>=6.0.2",
     "matplotlib>=3.10.3",
     "numpy>=2.3.1",
+    "python-on-whales>=0.79.0",
     "pyyaml>=6.0.2",
     "requests>=2.32.4",
     "tqdm>=4.67.1",

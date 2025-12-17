@@ -1,38 +1,42 @@
 services:
-  no-sast:
-    image: cstools_no-sast
+  main:
+    image: codesectools
     build:
       context: .
-      dockerfile: tests/Dockerfile
-      target: no-sast
+      dockerfile: Dockerfile
+
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
 
     tty: true
     stdin_open: true
 
-    volumes:      
-      - pytest-cache:/app/.pytest_cache
-      - cstools-cache:/root/.codesectools/cache
+    working_dir: /home/codesectools
     
-    environment:
-      _TYPER_STANDARD_TRACEBACK: 1
-
-  with-sast:
-    image: cstools_with-sast
+    command: /bin/bash
+  test:
+    image: codesectools
     build:
       context: .
-      dockerfile: tests/Dockerfile
-      target: with-sast
+      dockerfile: Dockerfile
+
+      args:
+        UID: "${UID:-1000}"
+        GID: "${GID:-1000}"
 
     tty: true
     stdin_open: true
 
-    volumes:      
-      - pytest-cache:/app/.pytest_cache
-      - cstools-cache:/root/.codesectools/cache
+    volumes:
+      - ./tests:/app/tests:ro
       
+    working_dir: /app
+
     environment:
       _TYPER_STANDARD_TRACEBACK: 1
+    
+    command: pytest
 
 volumes:
-  pytest-cache:
   cstools-cache:

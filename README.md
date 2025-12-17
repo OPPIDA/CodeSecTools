@@ -14,6 +14,7 @@ A framework for code security that provides abstractions for static analysis too
 - [SAST Tool Integration Status](#sast-tool-integration-status)
 - [Usage](#usage)
     - [Command-line interface](#command-line-interface)
+    - [Docker](#docker)
     - [Python API](#python-api)
 
 <!--start-include-->
@@ -59,28 +60,58 @@ For more details on the design and integration of SAST tools and datasets in Cod
 
 ```bash
 $ cstools
-                                                                                                                                                   
- Usage: cstools [OPTIONS] COMMAND [ARGS]...                                                                                                        
-                                                                                                                                                   
- CodeSecTools: A framework for code security that provides abstractions for static analysis tools and datasets to support their integration,       
- testing, and evaluation.                                                                                                                          
-                                                                                                                                                   
-╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ --debug               -d        Show debugging messages and disable pretty exceptions.                                                          │
-│ --version             -v        Show the tool's version.                                                                                        │
-│ --install-completion            Install completion for the current shell.                                                                       │
-│ --show-completion               Show completion for the current shell, to copy it or customize the installation.                                │
-│ --help                          Show this message and exit.                                                                                     │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ status      Display the availability of SAST tools and datasets.                                                                                │
-│ allsast     Run all available SAST tools together.                                                                                              │
-│ bearer      Bearer SAST                                                                                                                         │
-│ coverity    Coverity Static Analysis                                                                                                            │
-│ semgrepce   Semgrep Community Edition Engine                                                                                                    │
-│ snykcode    Snyk Code                                                                                                                           │
-│ spotbugs    SpotBugs                                                                                                                            │
-╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+                                                                                                                                                                   
+ Usage: cstools [OPTIONS] COMMAND [ARGS]...                                                                                                                        
+                                                                                                                                                                   
+ CodeSecTools CLI.                                                                                                                                                 
+                                                                                                                                                                   
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --debug               -d        Show debugging messages and disable pretty exceptions.                                                                          │
+│ --version             -v        Show the tool's version.                                                                                                        │
+│ --install-completion            Install completion for the current shell.                                                                                       │
+│ --show-completion               Show completion for the current shell, to copy it or customize the installation.                                                │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ status      Display the availability of SAST tools and datasets.                                                                                                │
+│ allsast     Run all available SAST tools together.                                                                                                              │
+│ bearer      Bearer SAST                                                                                                                                         │
+│ coverity    Coverity Static Analysis                                                                                                                            │
+│ cppcheck    Cppcheck                                                                                                                                            │
+│ semgrepce   Semgrep Community Edition Engine                                                                                                                    │
+│ snykcode    Snyk Code                                                                                                                                           │
+│ spotbugs    SpotBugs                                                                                                                                            │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+#### Docker
+
+A Docker image is available with only free and offline SAST tools pre-installed.
+
+```bash
+UID=$(id -u) GID=$(id -g) docker compose build main
+docker run -it -v $HOME/.codesectools:/home/codesectools/.codesectools codesectools /bin/bash
+```
+
+Mount necessary directories if you want to include:
+
+- a target (`-v ./myproject:/home/codesectools/myproject`)
+- existing CodeSecTools data (`-v $HOME/.codesectools:/home/codesectools/.codesectools`) 
+
+A better way is to use the CLI:
+
+```bash
+$ cstools -d docker --help
+                                                                                                                                                                   
+ Usage: cstools docker [OPTIONS]                                                                                                                                   
+                                                                                                                                                                   
+ Start the Docker environment for the specified target (current directory by default).                                                                             
+                                                                                                                                                                   
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --target                         PATH  The directory to mount inside the container. [default: .]                                                                │
+│ --isolation    --no-isolation          Enable network isolation for the container (disables host network sharing). [default: no-isolation]                      │
+│ --help                                 Show this message and exit.                                                                                              │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
 ```
 
 #### Python API

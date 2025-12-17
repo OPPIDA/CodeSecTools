@@ -1,3 +1,7 @@
+# Export variables
+export UID := $(shell id -u)
+export GID := $(shell id -g)
+
 # Add a help target to a Makefile that will allow all targets to be self documenting
 # https://gist.github.com/prwhite/8168133
 all:
@@ -17,19 +21,17 @@ profile: 	## Run profiling
 
 test:		## Run tests in a Docker container
 	@docker compose build 1>/dev/null
-	@docker compose run --rm no-sast
-	@docker compose run --rm with-sast
+	@docker compose run --rm test
 
 test-force:	## Run tests in a Docker container while ignoring any stored state
 	@docker volume rm codesectools_pytest-cache 2>&1 1>/dev/null || true
 	@docker volume rm codesectools_cstools-cache 2>&1 1>/dev/null || true
 	@docker compose build 1>/dev/null
-	@docker compose run --rm no-sast
-	@docker compose run --rm with-sast
+	@docker compose run --rm test
 
 test-debug:	## Spawn an interactive shell in the test container to debug
 	@docker compose build
-	@docker compose run --rm with-sast /bin/bash
+	@docker compose run --rm test /bin/bash
 
 docs-serve:	## Serve the documentation locally
 	@mkdocs serve --livereload

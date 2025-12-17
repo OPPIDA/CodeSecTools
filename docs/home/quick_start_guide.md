@@ -8,7 +8,7 @@ This guide mainly used the tool on Java projects, it is perfectly possible to ru
 
 For this guide, there are two ways to install the tool:
 
-!!! cube "Normal installation"
+!!! cube "Local installation"
     - You will need to install the following packages:
 
         - `git`
@@ -23,13 +23,8 @@ For this guide, there are two ways to install the tool:
         - [SpotBugs](/sast/supported/spotbugs.j2.html){:target="_blank"}
 
 !!! docker "Docker image"
-    A Docker image used to run tests is available with the prerequisites installed.
-    You can use it to test CodeSecTools without installing extra packages on your system.
-
-    ⚠️ However, this container is intended for running tests, not for normal usage.
-    Therefore, any data and results inside the container will be deleted when you exit.
-
-    Please perform a normal installation if you want to keep your results.
+    A Docker image is available with the prerequisites installed.
+    You can use it to run CodeSecTools without installing extra packages on your system.
 
 
 ## 2. Installation
@@ -60,17 +55,26 @@ For this guide, there are two ways to install the tool:
           ```
 
 !!! docker "Docker image"
-    To start the Docker container, run the command:
+    Create a new directory which will be mounted in the docker container and start the container:
     ```bash
-    make test-debug
+    mkdir codesectools_quick_start_guide
+    cd codesectools_quick_start_guide
+    cstools docker
     ```
 
-    ⚠️ The container will be deleted when you exit.
+    Then inside the container:
+    ```bash
+    cd codesectools_quick_start_guide
+    ```
+
+    Only data inside `./codesectools_quick_start_guide` are saved.
 
 
 ## 3. First run
 
 !!! abstract  "Install completion (optional)"
+    *Completion is already installed in the Docker container.*
+    
     ```bash
     cstools --install-completion 
     # For bash
