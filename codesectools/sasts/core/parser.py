@@ -8,7 +8,7 @@ subclass of `AnalysisResult` to parse its specific output format.
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Self
+from typing import Self
 
 from codesectools.shared.cwe import CWE
 
@@ -26,7 +26,7 @@ class Defect:
         cwe (CWE): The CWE associated with the defect.
         message (str): The description of the defect.
         location (tuple[int, int] | None): A tuple with the start and end line numbers of the defect.
-        data (tuple[Any]): Raw data from the SAST tool for this defect.
+        data (dict): Raw data from the SAST tool for this defect.
 
     """
 
@@ -40,7 +40,7 @@ class Defect:
         cwe: CWE,
         message: str,
         lines: list[int] | None,
-        data: tuple[Any],
+        data: dict,
     ) -> None:
         """Initialize a Defect instance.
 
@@ -90,7 +90,7 @@ class AnalysisResult(ABC):
         defects (list[Defect]): A list of `Defect` objects found.
         time (float): The duration of the analysis in seconds.
         loc (int): The number of lines of code analyzed.
-        data (tuple[Any]): Raw data from the SAST tool's output.
+        data (tuple): Raw data from the SAST tool's output.
 
     """
 
@@ -103,7 +103,7 @@ class AnalysisResult(ABC):
         defects: list[Defect],
         time: float,
         loc: int,
-        data: tuple[Any],
+        data: tuple,
     ) -> None:
         """Initialize an AnalysisResult instance.
 
@@ -161,7 +161,7 @@ class AnalysisResult(ABC):
         pass
 
     @classmethod
-    def load_from_output_dirs(cls, output_dirs: list[str]) -> list[Self]:
+    def load_from_output_dirs(cls, output_dirs: list[Path]) -> list[Self]:
         """Load and parse analysis results from multiple directories.
 
         Args:

@@ -1,6 +1,6 @@
 [project]
 name = "CodeSecTools"
-version = "0.14.0"
+version = "0.14.1"
 description = "A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation."
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -33,7 +33,7 @@ dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.12.8",
     "tuna>=0.5.11",
-    "ty>=0.0.1a17",
+    "ty>=0.0.2",
     "types-lxml>=2025.8.25",
 ]
 docs = [

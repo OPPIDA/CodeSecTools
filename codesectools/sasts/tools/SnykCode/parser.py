@@ -150,6 +150,6 @@ class SnykCodeAnalysisResult(AnalysisResult):
         if analysis_output_path.is_file():
             analysis_output = json.load(analysis_output_path.open("r"))
         else:
-            analysis_output = None
+            analysis_output = {}
 
         return cls(output_dir, analysis_output, cmdout)

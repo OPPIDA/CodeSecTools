@@ -109,14 +109,14 @@ class CoverityDefect(Defect):
         super().__init__(
             filepath=Path(defect_data["file"]),
             checker=defect_data["checker"],
-            category=None,
+            category="",
             cwe=CWEs.from_id(CoverityConfig().type_to_cwe.get(defect_data["type"], -1)),
             message="",  # TODO
             lines=[defect_data["line"]],
             data=defect_data,
         )
 
-        self.lang = self.data["lang"].lower()
+        self.lang = defect_data["lang"].lower()
 
         if self.checker.startswith("SIGMA"):
             self.category = "SIGMA"
@@ -132,7 +132,7 @@ class CoverityDefect(Defect):
                         break
 
         # Extra
-        self.function = self.data["function"]
+        self.function = defect_data["function"]
 
 
 class CoverityAnalysisResult(AnalysisResult):
@@ -174,10 +174,10 @@ class CoverityAnalysisResult(AnalysisResult):
             name=output_dir.name,
             source_path=Path(cmdout["project_dir"]),
             lang=cmdout["lang"],
-            files=None,
+            files=[],
             defects=defects,
-            time=None,
-            loc=None,
+            time=0,
+            loc=0,
             data=(result_data, config_data, captured_list, cmdout),
         )
 
@@ -245,7 +245,7 @@ class CoverityAnalysisResult(AnalysisResult):
         if filepath.is_file():
             config_data = yaml.load(filepath.open("r"), Loader=yaml.Loader)
         else:
-            config_data = None
+            config_data = ""
 
         # Captured source file list
         captured_list = ""

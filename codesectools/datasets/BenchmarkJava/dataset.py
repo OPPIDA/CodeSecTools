@@ -25,7 +25,7 @@ class TestCode(File):
     def __init__(
         self,
         filepath: Path,
-        content: str | bytes,
+        content: bytes,
         cwes: list[CWE],
         has_vuln: bool,
     ) -> None:
@@ -33,7 +33,7 @@ class TestCode(File):
 
         Args:
             filepath: The path to the file.
-            content: The content of the file, as a string or bytes.
+            content: The content of the file, as bytes.
             cwes: A list of CWEs associated with the file.
             has_vuln: A boolean indicating if the vulnerability is real or a false positive test case.
 
@@ -69,7 +69,7 @@ class BenchmarkJava(PrebuiltFileDataset):
     prebuilt_expected = (Path("target/classes/org/owasp/benchmark/testcode"), "*.class")
     artifacts_arg = "."
 
-    def __init__(self, lang: None | str = None) -> None:
+    def __init__(self, lang: str = "") -> None:
         """Initialize the BenchmarkJava dataset.
 
         Args:
@@ -79,7 +79,7 @@ class BenchmarkJava(PrebuiltFileDataset):
         """
         super().__init__(lang)
 
-    def __eq__(self, other: str | Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare this dataset with another object for equality.
 
         Args:
@@ -121,7 +121,7 @@ class BenchmarkJava(PrebuiltFileDataset):
             for to_delete_testcode in random.sample(testcodes, k=len(testcodes) - 50):
                 to_delete_testcode.unlink()
 
-    def load_dataset(self) -> list[TestCode]:
+    def load_dataset(self) -> list[File]:
         """Load the BenchmarkJava dataset from its source files.
 
         Reads a CSV file for vulnerability metadata and the corresponding Java
@@ -149,7 +149,7 @@ class BenchmarkJava(PrebuiltFileDataset):
             filename = f"{row[0]}.java"
             filepath = testcode_dir / filename
             if filepath.is_file():
-                content = filepath.read_text()
+                content = filepath.read_bytes()
                 cwes = [CWEs.from_id(int(row[3]))]
                 has_vuln = True if row[2] == "true" else False
                 files.append(

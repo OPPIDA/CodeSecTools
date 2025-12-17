@@ -19,8 +19,6 @@ from rich import print
 from codesectools.utils import USER_CACHE_DIR
 
 if TYPE_CHECKING:
-    from typing import Self
-
     from codesectools.sasts.core.parser import AnalysisResult, Defect
     from codesectools.shared.cwe import CWE
 
@@ -44,7 +42,7 @@ class Dataset(ABC):
     license: str
     license_url: str
 
-    def __init__(self, lang: str | None = None) -> None:
+    def __init__(self, lang: str = "") -> None:
         """Initialize the Dataset instance.
 
         Set up paths and load the dataset if a language is specified.
@@ -168,6 +166,7 @@ class PrebuiltDatasetMixin:
 
     """
 
+    name: str
     build_command: str
     prebuilt_expected: tuple[Path, str]
     artifacts_arg: str
@@ -223,14 +222,13 @@ class File(DatasetUnit):
     """
 
     def __init__(
-        self, filepath: Path, content: str | bytes, cwes: list[CWE], has_vuln: bool
+        self, filepath: Path, content: bytes, cwes: list[CWE], has_vuln: bool
     ) -> None:
         """Initialize a File instance.
 
         Args:
             filepath: The relative path of the file.
-            content: The content of the file, as a string or bytes. It will be
-                converted to bytes if provided as a string.
+            content: The content of the file, as bytes.
             cwes: A list of CWEs associated with the file.
             has_vuln: True if the vulnerability is real, False if it's
                 intended to be a false positive test case.
@@ -241,9 +239,6 @@ class File(DatasetUnit):
         self.content = content
         self.cwes = cwes
         self.has_vuln = has_vuln
-
-        if isinstance(content, str):
-            self.content = content.encode()
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the File.
@@ -257,7 +252,7 @@ class File(DatasetUnit):
     cwes: \t{self.cwes}
 )"""
 
-    def __eq__(self, other: str | Path | Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare this File with another object for equality based on filepath.
 
         Args:
@@ -515,7 +510,7 @@ class GitRepo(DatasetUnit):
     files: \t{self.files}
 )"""
 
-    def __eq__(self, other: str | Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare this GitRepo with another object for equality based on name.
 
         Args:
@@ -589,7 +584,7 @@ class GitRepoDataset(Dataset):
         validated_repos = []
 
         for analysis_result in analysis_results:
-            repo = self.repos[self.repos.index(analysis_result.name)]
+            repo = self.repos[self.repos.index(analysis_result.name)]  # ty:ignore[invalid-argument-type]
 
             # 1. Process reported defects to get unique (file, cwe) pairs
             # and keep one original Defect object for each to retain metadata.
@@ -663,8 +658,7 @@ class GitRepoDatasetData(BenchmarkData):
 
     Attributes:
         dataset (GitRepoDataset): The dataset used for the benchmark.
-        validated_repos (list[dict]): A list of dictionaries, each containing
-            the validation results for a single repository.
+        validated_repos (list[dict]): A list of validation results per repository.
         total_repo_number (int): The total number of repositories in the dataset.
         defect_numbers (int): The total number of defects found across all repos.
 

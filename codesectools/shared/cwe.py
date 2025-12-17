@@ -56,7 +56,7 @@ class CWE:
         self.parent = parent
         self.children = children or set()
 
-    def __eq__(self, other: Self | int) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare this CWE with another object for equality.
 
         Args:
@@ -101,7 +101,7 @@ class CWE:
             A set of CWE objects including the self and related weaknesses.
 
         """
-        cwes: set[Self] = set([self])
+        cwes = set([self])
         for _ in range(distance):
             new_cwes = cwes.copy()
             for cwe in cwes:
@@ -143,7 +143,7 @@ class CWEsCollection:
             self.download()
 
     @property
-    def cwes(self) -> list[CWE]:
+    def cwes(self) -> dict[int, CWE]:
         """Get the list of all CWEs, loading them if necessary."""
         if not self._cwes:
             self._cwes = self.load()

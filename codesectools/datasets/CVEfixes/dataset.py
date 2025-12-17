@@ -8,7 +8,7 @@ It reads repository information from a CSV file.
 import csv
 from typing import Self
 
-from codesectools.datasets.core.dataset import GitRepo, GitRepoDataset
+from codesectools.datasets.core.dataset import File, GitRepo, GitRepoDataset
 from codesectools.shared.cwe import CWEs
 from codesectools.utils import DATA_DIR
 
@@ -32,14 +32,14 @@ class CVEfixes(GitRepoDataset):
     license = "CC BY 4.0"
     license_url = "https://creativecommons.org/licenses/by/4.0/"
 
-    def __init__(self, lang: str | None = None) -> None:
+    def __init__(self, lang: str = "") -> None:
         """Initialize the CVEfixes dataset.
 
         Args:
             lang: The programming language of the dataset to load.
 
         """
-        self.max_repo_size = 100e6
+        self.max_repo_size = 100 * 10**6
         super().__init__(lang)
 
     def download_files(self: Self, test: bool = False) -> None:
@@ -53,7 +53,7 @@ class CVEfixes(GitRepoDataset):
 
     def load_dataset(
         self,
-    ) -> list[GitRepo]:
+    ) -> list[File]:
         """Load the CVEfixes dataset from its source CSV file.
 
         Parses a CSV file containing information about CVEs, repositories,
