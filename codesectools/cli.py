@@ -5,6 +5,7 @@ It dynamically discovers and adds CLI commands from all available SAST tools.
 """
 
 import os
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -200,6 +201,20 @@ def download(
 
 
 cli.add_typer(build_all_sast_cli())
+
+if shutil.which("docker"):
+
+    @cli.command()
+    def docker(
+        target: Annotated[Path, typer.Option()] = Path("."),
+        isolation: Annotated[bool, typer.Option()] = False,
+    ) -> None:
+        """Start the Docker environment for the specified target (current directory by default)."""
+        from codesectools.shared.docker import AnalysisEnvironment
+
+        env = AnalysisEnvironment(isolation=isolation)
+        env.start(target=target.resolve())
+
 
 for _, sast_data in SASTS_ALL.items():
     cli.add_typer(sast_data["cli_factory"].build_cli())
