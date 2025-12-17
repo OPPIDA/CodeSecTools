@@ -1,6 +1,6 @@
 services:
   main:
-    image: codesectools-main
+    image: codesectools
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,7 +16,7 @@ services:
     
     command: /bin/bash
   test:
-    image: codesectools-test
+    image: codesectools
     build:
       context: .
       dockerfile: Dockerfile
