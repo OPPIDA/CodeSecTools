@@ -28,8 +28,7 @@ RUN apt update -qq && \
         cloc \
         openjdk-17-jdk-headless maven \
         build-essential bear \
-    -y -qq --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+    -y -qq --no-install-recommends
 
 RUN groupadd -g $GID codesectools && \
     useradd -l -u $UID -g codesectools -m codesectools -s /bin/bash && \
@@ -60,9 +59,11 @@ RUN curl -sL https://github.com/spotbugs/spotbugs/releases/download/4.9.8/spotbu
 ENV PATH="/home/codesectools/sasts/spotbugs/bin:$PATH"
 
 # Cppcheck
-RUN sudo apt update -qq && \
-    DEBIAN_FRONTEND=noninteractive sudo apt install cppcheck -y -qq --no-install-recommends && \
-    sudo rm -rf /var/lib/apt/lists/*
+RUN sudo apt install -y -qq --no-install-recommends libpcre3-dev && \
+    curl -sL https://github.com/danmar/cppcheck/archive/refs/tags/2.19.0.tar.gz | tar -xzvf - && \
+    mv cppcheck-* /home/codesectools/sasts/cppcheck && \
+    (cd /home/codesectools/sasts/cppcheck && make -j$(nproc) MATCHCOMPILER=yes HAVE_RULES=yes CXXOPTS="-O2" CPPOPTS="-DNDEBUG")
+ENV PATH="/home/codesectools/sasts/cppcheck:$PATH"
 
 # =========================== CodeSecTools ===========================
 COPY --from=builder --chown=codesectools:codesectools /app /app

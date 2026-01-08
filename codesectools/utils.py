@@ -104,7 +104,7 @@ def render_command(command: list, mapping: dict[str, str]) -> list[str]:
 
 
 def run_command(
-    command: Sequence[str], cwd: Path, env: dict[str, str] | None = None
+    command: Sequence[str], cwd: Path | None = None, env: dict[str, str] | None = None
 ) -> tuple[int | None, str]:
     """Execute a command in a subprocess and capture its output.
 
@@ -118,6 +118,8 @@ def run_command(
         stdout/stderr output as a string.
 
     """
+    if cwd is None:
+        cwd = Path.cwd()
     modified_env = {**os.environ, **env} if env else os.environ
 
     process = subprocess.Popen(

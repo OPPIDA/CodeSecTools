@@ -10,6 +10,7 @@ from codesectools.sasts.core.sast import PrebuiltBuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
 from codesectools.sasts.core.sast.requirements import (
     Binary,
+    BinaryVersion,
     SASTRequirements,
 )
 from codesectools.sasts.tools.Cppcheck.parser import CppcheckAnalysisResult
@@ -40,7 +41,11 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(
         full_reqs=[
-            Binary("cppcheck", url="https://cppcheck.sourceforge.io/"),
+            Binary(
+                "cppcheck",
+                url="https://cppcheck.sourceforge.io/",
+                version=BinaryVersion("--version", r"(\d+\.\d+\.\d+)", "2.16.0"),
+            ),
         ],
         partial_reqs=[],
     )
