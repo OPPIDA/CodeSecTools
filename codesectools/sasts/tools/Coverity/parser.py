@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Self
 
 from codesectools.sasts.core.parser import AnalysisResult, Defect
+from codesectools.sasts.core.sast import AnalysisInfo
 from codesectools.shared.cwe import CWEs
 from codesectools.utils import USER_CONFIG_DIR, MissingFile
 
@@ -157,7 +158,7 @@ class CoverityAnalysisResult(AnalysisResult):
         config_data: str,
         captured_list: str,
         defects: list[Defect],
-        cmdout: dict,
+        analysis_info: AnalysisInfo,
     ) -> None:
         """Initialize a CoverityAnalysisResult instance.
 
@@ -167,18 +168,17 @@ class CoverityAnalysisResult(AnalysisResult):
             config_data: Parsed data from coverity.yaml.
             captured_list: A string containing the list of captured source files.
             defects: A list of `CoverityDefect` objects.
-            cmdout: A dictionary with metadata from the command execution.
+            analysis_info: An object containing metadata from the analysis execution.
 
         """
         super().__init__(
             name=output_dir.name,
-            source_path=Path(cmdout["project_dir"]),
-            lang=cmdout["lang"],
+            source_path=Path(analysis_info.project_dir),
+            lang=analysis_info.lang,
             files=[],
             defects=defects,
             time=0,
-            loc=0,
-            data=(result_data, config_data, captured_list, cmdout),
+            lines_of_codes=0,
         )
 
         self.metrics = {}
@@ -231,8 +231,10 @@ class CoverityAnalysisResult(AnalysisResult):
         import xmltodict
         import yaml
 
-        cmdout = json.load((output_dir / "cstools_output.json").open())
-
+        # Analysis Info
+        analysis_info = AnalysisInfo.model_validate_json(
+            (output_dir / "codesectools.json").read_text()
+        )
         # Analysis metrics
         filepath = output_dir / "ANALYSIS.metrics.xml"
         if filepath.is_file():
@@ -270,5 +272,10 @@ class CoverityAnalysisResult(AnalysisResult):
                 defects.append(CoverityDefect(errors))
 
         return cls(
-            output_dir, analysis_data, config_data, captured_list, defects, cmdout
+            output_dir,
+            analysis_data,
+            config_data,
+            captured_list,
+            defects,
+            analysis_info,
         )

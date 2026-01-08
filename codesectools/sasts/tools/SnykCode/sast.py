@@ -27,7 +27,6 @@ class SnykCodeSAST(BuildlessSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SnykCodeAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
@@ -45,21 +44,15 @@ class SnykCodeSAST(BuildlessSAST):
         ],
         partial_reqs=[],
     )
-    commands = [["snyk", "code", "test", "--json-file-output=snyk_results.json"]]
+    commands = [["snyk", "code", "test", "--sarif-file-output=snykcode.sarif"]]
     valid_codes = [
         0,
         1,
     ]  # https://docs.snyk.io/developer-tools/snyk-cli/commands/code-test#exit-codes
     output_files = [
-        (Path("snyk_results.json"), False),
+        (Path("snykcode.sarif"), False),
     ]
     parser = SnykCodeAnalysisResult
-    color_mapping = {
-        "error": "red",
-        "warning": "orange",
-        "note": "yellow",
-        "info": "yellow",
-    }
 
     def __init__(self) -> None:
         """Initialize the SnykCodeSAST instance.

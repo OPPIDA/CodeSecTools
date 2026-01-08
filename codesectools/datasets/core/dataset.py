@@ -641,7 +641,7 @@ class GitRepoDataset(Dataset):
                 "fp_cwes": fp_cwes,
                 "fn_cwes": fn_cwes,
                 "time": analysis_result.time,
-                "loc": analysis_result.loc,
+                "lines_of_codes": analysis_result.lines_of_codes,
             }
             validated_repos.append(result)
 

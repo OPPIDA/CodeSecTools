@@ -36,7 +36,6 @@ class SpotBugsSAST(PrebuiltSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SpotBugsAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
@@ -64,21 +63,15 @@ class SpotBugsSAST(PrebuiltSAST):
             "-textui",
             "-nested:true",
             "-progress",
-            "-sarif=spotbugs_output.json",
+            "-sarif=spotbugs.sarif",
             "{artifacts}",
         ]
     ]
     valid_codes = [0]
     output_files = [
-        (Path("spotbugs_output.json"), True),
+        (Path("spotbugs.sarif"), True),
     ]
     parser = SpotBugsAnalysisResult
-    # Based on: spotbugs/spotbugs/etc/bugrank.txt
-    color_mapping = {
-        "SECURITY": "red",
-        "CORRECTNESS": "orange",
-        "MT_CORRECTNESS": "yellow",
-    }
 
     # PrebuiltSAST
     artifact_name = "Java Bytecode"

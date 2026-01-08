@@ -506,8 +506,8 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
         for result in b.validated_repos:
             defect_number = sum(len(result[name]) for name in set_names)
-            if result["loc"]:
-                X.append(result["loc"])
+            if result["lines_of_codes"]:
+                X.append(result["lines_of_codes"])
                 Y.append(defect_number)
 
         ax.set_xscale("log")
@@ -541,8 +541,8 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
 
         for result in b.validated_repos:
-            if result["loc"]:
-                X.append(result["loc"])
+            if result["lines_of_codes"]:
+                X.append(result["lines_of_codes"])
                 Y.append(result["time"] / 60)
 
         ax.set_xscale("log")

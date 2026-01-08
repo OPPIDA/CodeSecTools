@@ -5,113 +5,82 @@ the JSON output from a Semgrep scan, converting it into the standardized
 format used by CodeSecTools.
 """
 
-import json
+import os
 import re
-from pathlib import Path
-from typing import Self
+from itertools import chain
+from typing import Any
 
-from codesectools.sasts.core.parser import AnalysisResult, Defect
-from codesectools.shared.cwe import CWEs
-from codesectools.utils import MissingFile
+import yaml
 
+from codesectools.sasts.core.parser.format.SARIF import Result
+from codesectools.sasts.core.parser.format.SARIF.parser import SARIFAnalysisResult
+from codesectools.shared.cwe import CWE, CWEs
+from codesectools.utils import USER_CACHE_DIR
 
-class SemgrepCEFinding(Defect):
-    """Represents a single finding reported by Semgrep Community Edition.
-
-    Parses defect data from the Semgrep JSON output to extract file, checker,
-    category, CWE, and line information.
-    """
-
-    sast = "SemgrepCE"
-
-    def __init__(self, defect_data: dict) -> None:
-        """Initialize a SemgrepCEFinding instance from raw defect data.
-
-        Args:
-            defect_data: A dictionary representing a single finding, parsed
-                from Semgrep Community Edition's JSON output.
-
-        """
-        super().__init__(
-            filepath=Path(defect_data["path"]),
-            checker=defect_data["check_id"].split(".")[-1],
-            category=defect_data["extra"]["metadata"].get("impact", "NONE"),
-            cwe=CWEs.from_string(defect_data["extra"]["metadata"].get("cwe", [""])[0]),
-            message=defect_data["extra"]["message"],
-            lines=list(
-                range(defect_data["start"]["line"], defect_data["end"]["line"] + 1)
-            ),
-            data=defect_data,
-        )
+SEMGREP_RULES_DIR = USER_CACHE_DIR / "semgrep-rules"
 
 
-class SemgrepCEAnalysisResult(AnalysisResult):
-    """Represents the complete result of a Semgrep Community Edition analysis.
+class SemgrepCEAnalysisResult(SARIFAnalysisResult):
+    """Represent the complete result of a SemgrepCE analysis from a SARIF file."""
 
-    Parses the main JSON output and command output logs to populate analysis
-    metadata, including timings, file lists, defects, and code coverage.
+    sast_name = "SemgrepCE"
+    rule_categories = [
+        "best-practice",
+        "correctness",
+        "maintainability",
+        "performance",
+        "portability",
+        "security",
+    ]
 
-    Attributes:
-        checker_category (dict): A mapping from checker names to their categories.
-        coverage (float): The parsing coverage reported by Semgrep.
+    # Rule id is using full path:
+    # home.michel..codesectools.cache.semgrep-rules.java.android.best-practice.manifest-usesCleartextTraffic-true
+    # Removing the path to rules to keep only the real rule id:
+    # java.android.best-practice.manifest-usesCleartextTraffic-true
+    def patch_dict(self, sarif_dict: dict) -> dict:
+        """Patch the SARIF dictionary to shorten rule IDs."""
+        rule_path_pattern = str(SEMGREP_RULES_DIR).replace(os.sep, ".")[1:] + "."
 
-    """
+        def recursive_patch(data: Any) -> None:  # noqa: ANN401
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    if isinstance(value, str) and rule_path_pattern in value:
+                        data[key] = value.replace(rule_path_pattern, "")
+                    else:
+                        recursive_patch(value)
+            elif isinstance(data, list):
+                for item in data:
+                    recursive_patch(item)
 
-    def __init__(self, output_dir: Path, result_data: dict, cmdout: dict) -> None:
-        """Initialize a SemgrepCEAnalysisResult instance.
+        recursive_patch(sarif_dict)
+        self.save_patched_dict(sarif_dict)
+        return sarif_dict
 
-        Args:
-            output_dir: The directory where the results are stored.
-            result_data: Parsed data from the main Semgrep Community Edition JSON output.
-            cmdout: A dictionary with metadata from the command execution.
+    @staticmethod
+    # @Cache(SEMGREP_RULES_DIR / ".cstools_cache").memoize(expire=None)
+    def get_raw_rules() -> dict:
+        """Load and return all Semgrep rules from the cached YAML files."""
+        raw_rules = {}
+        if SEMGREP_RULES_DIR.is_dir():
+            rule_paths = chain(
+                SEMGREP_RULES_DIR.rglob("*.yml"), SEMGREP_RULES_DIR.rglob("*.yaml")
+            )
+            for rule_path in rule_paths:
+                try:
+                    data = yaml.safe_load(rule_path.open("r"))
+                    for rule in data.get("rules"):
+                        rule_id = rule["id"]
+                        raw_rules[rule_id] = rule
+                except (TypeError, KeyError, yaml.composer.ComposerError):  # ty:ignore[possibly-missing-attribute]
+                    pass
+        return raw_rules
 
-        """
-        super().__init__(
-            name=output_dir.name,
-            source_path=Path(cmdout["project_dir"]),
-            lang=cmdout["lang"],
-            files=result_data["paths"]["scanned"],
-            defects=[],
-            time=result_data["time"]["profiling_times"]["total_time"],
-            loc=0,
-            data=(result_data, cmdout),
-        )
-
-        self.checker_category = {}
-        for defect_data in result_data["results"]:
-            defect = SemgrepCEFinding(defect_data)
-            self.defects.append(defect)
-            self.checker_category[defect.checker] = defect.category
-
-        if match := re.search(r"Parsed lines:[^\d]*([\d\.]+)%", cmdout["logs"]):
-            self.coverage = float(match.groups()[0]) / 100
-            self.loc = int(self.coverage * cmdout["loc"])
-
-    @classmethod
-    def load_from_output_dir(cls, output_dir: Path) -> Self:
-        """Load and parse Semgrep Community Edition analysis results from a directory.
-
-        Read `semgrepce_output.json` and `cstools_output.json` to construct a complete
-        analysis result object.
-
-        Args:
-            output_dir: The directory containing the Semgrep Community Edition output files.
-
-        Returns:
-            An instance of `SemgrepCEAnalysisResult`.
-
-        Raises:
-            MissingFile: If a required result file is not found.
-
-        """
-        # Cmdout
-        cmdout = json.load((output_dir / "cstools_output.json").open())
-
-        # Analysis outputs
-        analysis_output_path = output_dir / "semgrepce_output.json"
-        if analysis_output_path.is_file():
-            analysis_output = json.load(analysis_output_path.open("r"))
-        else:
-            raise MissingFile(["semgrepce_output.json"])
-
-        return cls(output_dir, analysis_output, cmdout)
+    def get_cwe(self, result: Result, rule_id: str) -> CWE:
+        """Get the CWE for a given rule ID."""
+        if rule_properties := self.get_rule_properties(rule_id):
+            if tags := rule_properties.tags:
+                for tag in tags:
+                    if m := re.search(r"cwe-(\d+)", tag.lower()):
+                        cwe_id = int(m.group(1))
+                        return CWEs.from_id(cwe_id)
+        return CWEs.NOCWE
