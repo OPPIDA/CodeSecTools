@@ -45,14 +45,14 @@ For more details on the design and integration of SAST tools and datasets in Cod
 
 ## SAST Tool Integration Status
 
-|SAST Tool|Languages|Maintained|Continuous Testing|Last Test Date|
-|:---:|:---:|:---:|:---:|:---:|
-|Coverity|Java|⚠️<br>(Deprioritized)|❌<br>(Proprietary)|October 2025|
-|Semgrep Community Edition|C/C++, Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
-|Snyk Code|C/C++, Java|✅|❌<br>(Rate limited)|November 2025|
-|Bearer|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
-|SpotBugs|Java|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
-|Cppcheck|C/C++|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|SAST Tool|Languages|Maintained|Included in Docker|Continuous Testing|Last Test Date|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Coverity|Java|⚠️<br>(Deprioritized)|❌|❌<br>(Proprietary)|October 2025|
+|Semgrep Community Edition|C/C++, Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|Snyk Code|C/C++, Java|✅|❌|❌<br>(Rate limited)|November 2025|
+|Bearer|Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|SpotBugs|Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
+|Cppcheck|C/C++|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 
 ## Usage
 
