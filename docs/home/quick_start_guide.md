@@ -6,8 +6,6 @@ This guide mainly used the tool on Java projects, it is perfectly possible to ru
 
 ## 1. Prerequisites
 
-For this guide, there are two ways to install the tool:
-
 !!! cube "Local installation"
     - You will need to install the following packages:
 
@@ -22,55 +20,57 @@ For this guide, there are two ways to install the tool:
         - [Semgrep Community Edition](/sast/supported/semgrepce.j2.html){:target="_blank"}
         - [SpotBugs](/sast/supported/spotbugs.j2.html){:target="_blank"}
 
-!!! docker "Docker image"
-    A Docker image is available with the prerequisites installed.
-    You can use it to run CodeSecTools without installing extra packages on your system.
+!!! docker "Docker container"
+    CodeSecTools can start a Docker container with some SAST tools (free and open-source) and packages installed.
 
+    You still need to install CodeSecTools normally and then invoke the CLI command to start the Docker container.
+    There is no a Docker image that you can pull and run directly for the following reasons:
+
+    - CodeSecTools source code is copied **locally** and then installed in the Docker image
+    - UID and GID of the current user is gathered at build time to **fix mounted volume permission issues**
 
 ## 2. Installation
 
-!!! cube "Normal installation"
+- Clone the repository:
+```bash
+git clone https://github.com/OPPIDA/CodeSecTools.git
+cd CodeSecTools
+```
 
-    - Clone the repository:
+- Install the project:
+
+    - Using [uv](https://github.com/astral-sh/uv):
     ```bash
-    git clone https://github.com/OPPIDA/CodeSecTools.git
-    cd CodeSecTools
+    uv tool install .
     ```
 
-      - Install the project:
-
-        - Using [uv](https://github.com/astral-sh/uv):
-          ```bash
-          uv tool install .
-          ```
-
-        - Using [pipx](https://github.com/pypa/pipx):
-          ```bash
-          pipx install .
-          ```
-
-        - Using pip (not recommended, as it can break your system packages):
-          ```bash
-          pip install .
-          ```
-
-!!! docker "Docker image"
-    Create a new directory which will be mounted in the docker container and start the container:
+    - Using [pipx](https://github.com/pypa/pipx):
     ```bash
-    mkdir codesectools_quick_start_guide
-    cd codesectools_quick_start_guide
-    cstools docker
+    pipx install .
     ```
 
-    Then inside the container:
+    - Using pip (not recommended, as it can break your system packages):
     ```bash
-    cd codesectools_quick_start_guide
+    pip install .
     ```
-
-    Only data inside `./codesectools_quick_start_guide` are saved.
-
 
 ## 3. First run
+
+??? docker "Docker container"
+    You can start a Docker container to run CodeSecTools to analyze the current directory:
+    ```bash
+    cd $TARGET_DIR
+    cstools docker
+    # Or
+    cstools docker --target $TARGET_DIR
+    ```
+
+    Use `--isolation` flag to start Docker container without networking, make sure to download external resources on the host (which has internet connexion) before. 
+
+    Only the following directories are mounted in the Docker container:
+
+    - `$TARGET_DIR` (your source code directory)
+    - `~/.codesectools` (your CodeSecTools data, in particular storing the analysis result)
 
 !!! abstract  "Install completion (optional)"
     *Completion is already installed in the Docker container.*
