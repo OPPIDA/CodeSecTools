@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Literal
 
 import typer
+from packaging import version
 from rich import print
 
-from codesectools.utils import USER_CACHE_DIR, USER_CONFIG_DIR
+from codesectools.utils import USER_CACHE_DIR, USER_CONFIG_DIR, run_command
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -125,6 +127,39 @@ class Config(SASTRequirement):
         return (USER_CONFIG_DIR / self.sast_name / self.name).is_file()
 
 
+class BinaryVersion:
+    """Represent a version requirement for a binary."""
+
+    def __init__(self, command_flag: str, pattern: str, expected: str) -> None:
+        """Initialize a Version instance.
+
+        Args:
+            command_flag: The command line flag to get the version string (e.g., '--version').
+            pattern: A regex pattern to extract the version number from the output.
+            expected: The minimum expected version string.
+
+        """
+        self.command_flag = command_flag
+        self.pattern = pattern
+        self.expected = version.parse(expected)
+
+    def check(self, binary: Binary) -> bool:
+        """Check if the binary's version meets the requirement.
+
+        Args:
+            binary: The Binary requirement object to check.
+
+        Returns:
+            True if the version is sufficient, False otherwise.
+
+        """
+        retcode, output = run_command([binary.name, self.command_flag])
+        if m := re.search(self.pattern, output):
+            detected_version = version.parse(m.group(1))
+            return detected_version >= self.expected
+        return False
+
+
 class Binary(SASTRequirement):
     """Represent a binary executable requirement for a SAST tool."""
 
@@ -132,6 +167,7 @@ class Binary(SASTRequirement):
         self,
         name: str,
         depends_on: list[SASTRequirement] | None = None,
+        version: BinaryVersion | None = None,
         instruction: str | None = None,
         url: str | None = None,
         doc: bool = False,
@@ -141,6 +177,7 @@ class Binary(SASTRequirement):
         Args:
             name: The name of the requirement.
             depends_on: A list of other requirements that must be fulfilled first.
+            version: An optional BinaryVersion object to check for a minimum version.
             instruction: A short instruction on how to download the requirement.
             url: A URL for more detailed instructions.
             doc: A flag indicating if the instruction is available in the documentation.
@@ -149,10 +186,23 @@ class Binary(SASTRequirement):
         super().__init__(
             name=name, depends_on=depends_on, instruction=instruction, url=url, doc=doc
         )
+        self.version = version
+
+    def __repr__(self) -> str:
+        """Return a developer-friendly string representation of the requirement."""
+        if self.version:
+            return f"{self.__class__.__name__}({self.name}>={self.version.expected})"
+        else:
+            return super().__repr__()
 
     def is_fulfilled(self, **kwargs: Any) -> bool:
         """Check if the binary is available in the system's PATH."""
-        return bool(shutil.which(self.name))
+        if bool(shutil.which(self.name)):
+            if self.version:
+                return self.version.check(self)
+            return True
+        else:
+            return False
 
 
 class GitRepo(DownloadableRequirement):
