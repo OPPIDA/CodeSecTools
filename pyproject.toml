@@ -20,6 +20,7 @@ dependencies = [
     "requests>=2.32.4",
     "tqdm>=4.67.1",
     "typer>=0.16.1",
+    "urllib3>=2.6.3",
     "xmltodict>=0.14.2",
 ]
 
