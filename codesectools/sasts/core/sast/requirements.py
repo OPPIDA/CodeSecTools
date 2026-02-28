@@ -153,7 +153,7 @@ class BinaryVersion:
             True if the version is sufficient, False otherwise.
 
         """
-        retcode, output = run_command([binary.name, self.command_flag])
+        retcode, output = run_command([binary.name, self.command_flag], silent=True)
         if m := re.search(self.pattern, output):
             detected_version = version.parse(m.group(1))
             return detected_version >= self.expected
@@ -369,10 +369,16 @@ class SASTRequirements:
         self.all = full_reqs + partial_reqs
 
     def get_status(self) -> Literal["full"] | Literal["partial"] | Literal["none"]:
-        """Determine the operational status (full, partial, none) based on fulfilled requirements."""
-        # full: can run sast analysis and result parsing
-        # partial: can run result parsing
-        # none: nothing
+        """Determine the operational status based on fulfilled requirements.
+
+        - 'full': All requirements met; can run analysis and parse results.
+        - 'partial': Only partial requirements met; can only parse existing results.
+        - 'none': Core requirements not met; the tool is not usable.
+
+        Returns:
+            The operational status as a string: "full", "partial", or "none".
+
+        """
         status = "none"
         if all(req.is_fulfilled(sast_name=self.name) for req in self.partial):
             status = "partial"
