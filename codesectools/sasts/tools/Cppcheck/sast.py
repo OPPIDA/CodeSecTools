@@ -31,7 +31,6 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[CppcheckAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
@@ -54,22 +53,17 @@ class CppcheckSAST(PrebuiltBuildlessSAST):
             "cppcheck",
             (".", "--project={artifacts}"),
             "--enable=all",
-            "--xml",
-            "--output-file=cppcheck_output.xml",
+            "--output-format=sarif",
+            "--output-file=cppcheck.sarif",
             "--cppcheck-build-dir={tempdir}",
             f"-j{CPU_COUNT}",
         ]
     ]
     valid_codes = [0]
     output_files = [
-        (Path("cppcheck_output.xml"), True),
+        (Path("cppcheck.sarif"), True),
     ]
     parser = CppcheckAnalysisResult
-    color_mapping = {
-        "error": "red",
-        "warning": "orange",
-        "style": "yellow",
-    }
 
     # PrebuiltSAST
     artifact_name = "Compilation database"

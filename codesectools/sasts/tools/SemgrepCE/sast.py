@@ -13,8 +13,10 @@ from codesectools.sasts.core.sast.requirements import (
     GitRepo,
     SASTRequirements,
 )
-from codesectools.sasts.tools.SemgrepCE.parser import SemgrepCEAnalysisResult
-from codesectools.utils import USER_CACHE_DIR
+from codesectools.sasts.tools.SemgrepCE.parser import (
+    SEMGREP_RULES_DIR,
+    SemgrepCEAnalysisResult,
+)
 
 
 class SemgrepCESAST(BuildlessSAST):
@@ -31,7 +33,6 @@ class SemgrepCESAST(BuildlessSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[SemgrepCEAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
@@ -56,18 +57,14 @@ class SemgrepCESAST(BuildlessSAST):
         [
             "semgrep",
             "scan",
-            f"--config={str(USER_CACHE_DIR / 'semgrep-rules' / '{lang}')}",
+            f"--config={str(SEMGREP_RULES_DIR / '{lang}')}",
             "--metrics=off",
-            "--json-output=semgrepce_output.json",
+            "--sarif",
+            "--sarif-output=semgrepce.sarif",
         ]
     ]
     valid_codes = [0, 1]  # https://semgrep.dev/docs/cli-reference#exit-codes
     output_files = [
-        (Path("semgrepce_output.json"), True),
+        (Path("semgrepce.sarif"), True),
     ]
     parser = SemgrepCEAnalysisResult
-    color_mapping = {
-        "HIGH": "RED",
-        "MEDIUM": "ORANGE",
-        "LOW": "YELLOW",
-    }

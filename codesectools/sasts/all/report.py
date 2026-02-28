@@ -139,7 +139,7 @@ class ReportEngine:
                         else "None"
                     )
                     rows.append(
-                        (start, shortcut, defect.sast, cwe_link, defect.message)
+                        (start, shortcut, defect.sast_name, cwe_link, defect.message)
                     )
             else:
                 cwe_link = (

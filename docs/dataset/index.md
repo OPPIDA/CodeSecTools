@@ -36,6 +36,7 @@ classDiagram
         +validate(analysis_results) GitRepoDatasetData
     }
     class File {
+        +filepath: Path
         +filename: str
         +content: bytes
         +cwes: list~CWE~

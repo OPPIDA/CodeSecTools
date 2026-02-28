@@ -26,7 +26,7 @@ class Graphics:
         filetypes (dict[str, str]): A mapping of file extensions to matplotlib backends.
         sast (SAST): The SAST tool instance associated with the graphics.
         output_dir (Path): The directory where the analysis results are stored.
-        color_mapping (dict): A dictionary mapping categories to colors for plots.
+        level_color_map (dict): A dictionary mapping levels to colors for plots.
         plot_functions (list): A list of methods responsible for generating plots.
 
     """
@@ -45,8 +45,7 @@ class Graphics:
         """
         self.sast = sast
         self.output_dir = sast.output_dir / project_name
-        self.color_mapping = sast.color_mapping
-        self.color_mapping["NONE"] = "BLACK"
+        self.level_color_map = sast.parser.level_color_map
         self.plot_functions = []
 
     def export(self, overwrite: bool, format: str) -> None:
@@ -104,20 +103,20 @@ class ProjectGraphics(Graphics):
         self.result = sast.parser.load_from_output_dir(self.output_dir)
         self.plot_functions.extend([self.plot_overview])
 
-    def checker_to_category(self, checker: str) -> str:
-        """Map a checker name to its category.
+    def checker_to_level(self, checker: str) -> str:
+        """Map a checker name to its level.
 
         Args:
             checker: The name of the checker.
 
         Returns:
-            The category string for the checker, or "NONE" if not found.
+            The level string for the checker.
 
         """
-        return self.result.checker_to_category(checker)
+        return self.result.checker_to_level(checker)
 
     def plot_overview(self) -> Figure:
-        """Generate an overview plot with stats by files, checkers, and categories.
+        """Generate an overview plot with stats by files, checkers, and levels.
 
         Returns:
             A Matplotlib Figure object containing the plots.
@@ -128,7 +127,7 @@ class ProjectGraphics(Graphics):
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
         by_files = self.result.stats_by_files()
         by_checkers = self.result.stats_by_checkers()
-        by_categories = self.result.stats_by_categories()
+        by_levels = self.result.stats_by_levels()
 
         # Plot by files
         X_files, Y_files = [], []
@@ -139,11 +138,11 @@ class ProjectGraphics(Graphics):
             X_files.append(shorten_path(k))
             Y_files.append(v["count"])
 
-            COLORS_COUNT = {v: 0 for k, v in self.color_mapping.items()}
+            COLORS_COUNT = {v: 0 for k, v in self.level_color_map.items()}
 
             for checker in v["checkers"]:
-                category = self.checker_to_category(checker)
-                color = self.color_mapping[category]
+                level = self.checker_to_level(checker)
+                color = self.level_color_map[level]
                 COLORS_COUNT[color] += 1
 
             bars = []
@@ -171,36 +170,36 @@ class ProjectGraphics(Graphics):
         ax2.bar(
             X_checkers,
             Y_checkers,
-            color=[self.color_mapping[self.checker_to_category(c)] for c in X_checkers],
+            color=[self.level_color_map[self.checker_to_level(c)] for c in X_checkers],
         )
         ax2.set_xticks(X_checkers, X_checkers, rotation=45, ha="right")
         ax2.set_title(f"Stats by checkers (limit to {self.limit})")
 
-        # Plot by categories
-        X_categories, Y_categories = [], []
-        sorted_categories = sorted(
-            list(by_categories.items()),
-            key=lambda e: list(self.sast.color_mapping.keys()).index(e[0]),
+        # Plot by levels
+        X_levels, Y_levels = [], []
+        sorted_levels = sorted(
+            list(by_levels.items()),
+            key=lambda e: list(self.level_color_map.keys()).index(e[0]),
         )
-        for k, v in sorted_categories[: self.limit]:
-            X_categories.append(k)
-            Y_categories.append(v["count"])
+        for k, v in sorted_levels[: self.limit]:
+            X_levels.append(k)
+            Y_levels.append(v["count"])
 
         ax3.bar(
-            X_categories,
-            Y_categories,
-            color=[self.color_mapping[c] for c in X_categories],
+            X_levels,
+            Y_levels,
+            color=[self.level_color_map[c] for c in X_levels],
         )
-        ax3.set_xticks(X_categories, X_categories, rotation=45, ha="right")
-        ax3.set_title(f"Stats by categories (limit to {self.limit})")
+        ax3.set_xticks(X_levels, X_levels, rotation=45, ha="right")
+        ax3.set_title(f"Stats by levels (limit to {self.limit})")
 
         fig.suptitle(
             f"Project {project_name}, {len(self.result.files)} files analyzed, {len(self.result.defects)} defects raised",
             fontsize=16,
         )
-        labels = list(self.color_mapping.keys())
+        labels = list(self.level_color_map.keys())
         handles = [
-            plt.Rectangle((0, 0), 1, 1, color=self.color_mapping[label])
+            plt.Rectangle((0, 0), 1, 1, color=self.level_color_map[label])
             for label in labels
         ]
         plt.legend(handles, labels)
@@ -344,17 +343,17 @@ class GitRepoDatasetGraphics(Graphics):
             ]
         )
 
-    def checker_to_category(self, checker: str) -> str:
-        """Map a checker name to its category.
+    def checker_to_level(self, checker: str) -> str:
+        """Map a checker name to its level.
 
         Args:
             checker: The name of the checker.
 
         Returns:
-            The category string for the checker, or "NONE" if not found.
+            The level string for the checker, or "none" if not found.
 
         """
-        return self.results[0].checker_to_category(checker)
+        return self.results[0].checker_to_level(checker)
 
     def plot_overview(self) -> Figure:
         """Generate an overview plot classifying defects.
@@ -368,13 +367,14 @@ class GitRepoDatasetGraphics(Graphics):
         set_names = ["tp_defects", "fp_defects"]
         X, Y = ["True Positives", "False Positives"], [0, 0]
         COLORS_COUNT = [
-            {v: 0 for k, v in self.color_mapping.items()} for _ in range(len(set_names))
+            {v: 0 for k, v in self.level_color_map.items()}
+            for _ in range(len(set_names))
         ]
         for result in b.validated_repos:
             for i, name in enumerate(set_names):
                 for defect in result[name]:
                     Y[i] += 1
-                    color = self.color_mapping[defect.category]
+                    color = self.level_color_map[defect.level]
                     COLORS_COUNT[i][color] += 1
 
                 bars = []
@@ -399,14 +399,14 @@ class GitRepoDatasetGraphics(Graphics):
                 )
 
         ax.set_yscale("log")
-        ax.set_title("Classification by checkers category")
+        ax.set_title("Classification by checkers level")
         fig.suptitle(
             f"Benchmark against {self.dataset.name} dataset",
             fontsize=16,
         )
-        labels = list(self.color_mapping.keys())
+        labels = list(self.level_color_map.keys())
         handles = [
-            plt.Rectangle((0, 0), 1, 1, color=self.color_mapping[label])
+            plt.Rectangle((0, 0), 1, 1, color=self.level_color_map[label])
             for label in labels
         ]
         plt.legend(handles, labels)
@@ -506,8 +506,8 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
         for result in b.validated_repos:
             defect_number = sum(len(result[name]) for name in set_names)
-            if result["loc"]:
-                X.append(result["loc"])
+            if result["lines_of_codes"]:
+                X.append(result["lines_of_codes"])
                 Y.append(defect_number)
 
         ax.set_xscale("log")
@@ -541,8 +541,8 @@ class GitRepoDatasetGraphics(Graphics):
         X, Y = [], []
 
         for result in b.validated_repos:
-            if result["loc"]:
-                X.append(result["loc"])
+            if result["lines_of_codes"]:
+                X.append(result["lines_of_codes"])
                 Y.append(result["time"] / 60)
 
         ax.set_xscale("log")

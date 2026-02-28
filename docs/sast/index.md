@@ -32,7 +32,7 @@ classDiagram
         +output_files: list~tuple~Path, bool~~
         +parser: type~AnalysisResult~
         +run_analysis(lang, project_dir, output_dir) void
-        +save_results(project_dir, output_dir, extra) void
+        +save_results(project_dir, output_dir, analysis_info) void
         +analyze_files(dataset, overwrite, testing) void
         +analyze_repos(dataset, overwrite, testing) void
         +list_results(project, dataset, limit) list~str~
@@ -42,11 +42,11 @@ classDiagram
     }
 
     class PrebuiltSAST {
+        +artifact_name: str
+        +artifact_type: str
     }
 
     class PrebuiltBuildlessSAST {
-        +artifact_name: str
-        +artifact_type: str
     }
 
     SAST <|-- BuildlessSAST
@@ -61,24 +61,24 @@ classDiagram
         +files: list~str~
         +defects: list~Defect~
         +time: float
-        +loc: int
+        +lines_of_codes: int
         +load_from_output_dir(output_dir)* Self
         +load_from_output_dirs(output_dirs) list~Self~
         +stats_by_checkers() dict
-        +stats_by_categories() dict
+        +stats_by_levels() dict
         +stats_by_files() dict
         +stats_by_cwes() dict
     }
 
     class Defect {
-        +sast: str
+        +sast_name: str
         +filepath: Path
         +filename: str
         +checker: str
-        +category: str
+        +level: str
         +cwe: CWE
         +message: str
-        +location: tuple~int, int~
+        +lines: list~int~
     }
 
     AnalysisResult --> Defect : contains

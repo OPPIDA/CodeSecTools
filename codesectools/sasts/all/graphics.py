@@ -15,7 +15,7 @@ class Graphics(CoreGraphics):
         project_name (str): The name of the project being visualized.
         all_sast (AllSAST): The instance managing all SAST tools.
         output_dir (Path): The directory containing the aggregated results.
-        color_mapping (dict): A dictionary mapping SAST tool names to colors.
+        sast_color (dict): A dictionary mapping SAST tool names to colors.
         sast_names (list[str]): A list of names of the SAST tools involved in the analysis.
         plot_functions (list): A list of methods responsible for generating plots.
 
@@ -26,12 +26,12 @@ class Graphics(CoreGraphics):
         self.project_name = project_name
         self.all_sast = AllSAST()
         self.output_dir = self.all_sast.output_dir / project_name
-        self.color_mapping = {}
+        self.sast_color = {}
         cmap = plt.get_cmap("Set2")
         self.sast_names = []
-        for i, sast in enumerate(self.all_sast.sasts):
+        for i, sast in enumerate(self.all_sast.partial_sasts):
             if self.project_name in sast.list_results(project=True):
-                self.color_mapping[sast.name] = cmap(i)
+                self.sast_color[sast.name] = cmap(i)
                 self.sast_names.append(sast.name)
         self.plot_functions = []
 
@@ -49,11 +49,11 @@ class ProjectGraphics(Graphics):
         )
 
     def plot_overview(self) -> Figure:
-        """Generate an overview plot with stats by files, SAST tools, and categories."""
+        """Generate an overview plot with stats by files, SAST tools, and levels."""
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, layout="constrained")
         by_files = self.result.stats_by_files()
         by_sasts = self.result.stats_by_sasts()
-        by_categories = self.result.stats_by_categories()
+        by_levels = self.result.stats_by_levels()
 
         # Plot by files
         X_files, Y_files = [], []
@@ -64,10 +64,10 @@ class ProjectGraphics(Graphics):
             X_files.append(shorten_path(k))
             Y_files.append(v["count"])
 
-            COLORS_COUNT = {v: 0 for k, v in self.color_mapping.items()}
+            COLORS_COUNT = {v: 0 for k, v in self.sast_color.items()}
 
-            for sast in v["sasts"]:
-                color = self.color_mapping[sast]
+            for sast_name in v["sasts"]:
+                color = self.sast_color[sast_name]
                 COLORS_COUNT[color] += 1
 
             bars = []
@@ -95,41 +95,41 @@ class ProjectGraphics(Graphics):
         ax2.bar(
             X_sasts,
             Y_checkers,
-            color=[self.color_mapping[s] for s in X_sasts],
+            color=[self.sast_color[s] for s in X_sasts],
         )
         ax2.set_xticks(X_sasts, X_sasts, rotation=45, ha="right")
         ax2.set_title("Stats by SAST tools")
 
-        # Plot by categories
-        X_categories = ["HIGH", "MEDIUM", "LOW"]
-        for category in X_categories:
-            if not by_categories.get(category):
+        # Plot by levels
+        X_levels = ["error", "warning", "note", "none"]
+        for level in X_levels:
+            if not by_levels.get(level):
                 continue
 
-            sast_counts = by_categories[category]["sast_counts"]
+            sast_counts = by_levels[level]["sast_counts"]
 
             bars = []
             current_height = 0
             for sast_name, count in sorted(sast_counts.items()):
-                color = self.color_mapping[sast_name]
+                color = self.sast_color[sast_name]
                 height = count
                 if height > 0:
-                    bars.append((category, current_height + height, color))
+                    bars.append((level, current_height + height, color))
                     current_height += height
 
-            for category_name, height, color in bars[::-1]:
-                ax3.bar(category_name, height, color=color)
+            for level_name, height, color in bars[::-1]:
+                ax3.bar(level_name, height, color=color)
 
-        ax3.set_xticks(X_categories, X_categories, rotation=45, ha="right")
-        ax3.set_title("Stats by categories")
+        ax3.set_xticks(X_levels, X_levels, rotation=45, ha="right")
+        ax3.set_title("Stats by levels")
 
         fig.suptitle(
             f"Project {self.project_name}, {len(self.result.files)} files analyzed, {len(self.result.defects)} defects raised",
             fontsize=16,
         )
-        labels = list(self.color_mapping.keys())
+        labels = list(self.sast_color.keys())
         handles = [
-            plt.Rectangle((0, 0), 1, 1, color=self.color_mapping[label])
+            plt.Rectangle((0, 0), 1, 1, color=self.sast_color[label])
             for label in labels
         ]
         plt.legend(handles, labels)
@@ -160,7 +160,7 @@ class ProjectGraphics(Graphics):
                 sast_counts,
                 bottom=bottoms,
                 label=sast_name,
-                color=self.color_mapping.get(sast_name),
+                color=self.sast_color.get(sast_name),
             )
             bottoms = [b + c for b, c in zip(bottoms, sast_counts, strict=False)]
 

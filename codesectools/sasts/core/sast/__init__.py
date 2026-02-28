@@ -5,7 +5,6 @@ common interface for running a static analysis tool, saving its results, and
 performing benchmarks against datasets.
 """
 
-import json
 import os
 import random
 import shutil
@@ -15,6 +14,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Any, Literal, Union
 
+from pydantic import BaseModel
 from rich import print
 
 from codesectools.datasets import DATASETS_ALL
@@ -37,6 +37,26 @@ from codesectools.utils import (
 )
 
 
+class AnalysisInfo(BaseModel):
+    """Represents metadata from a SAST analysis.
+
+    Attributes:
+        project_dir: The absolute path to the project directory that was analyzed.
+        lang: The programming language of the project.
+        command_lines: The command lines that were executed for the analysis.
+        duration: The duration of the analysis in seconds.
+        lines_of_codes: The number of lines of code in the project for the given language.
+
+    """
+
+    project_dir: str
+    lang: str
+    command_lines: list[str]
+    logs: str
+    duration: float
+    lines_of_codes: int
+
+
 class SAST(ABC):
     """Abstract base class for a SAST tool integration.
 
@@ -56,7 +76,7 @@ class SAST(ABC):
         output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
+        level_color_map (dict): A mapping of result levels to colors for plotting.
         install_help (str | None): An optional string with installation help.
         output_dir (Path): (Instance attribute) The base directory for storing
             analysis results.
@@ -78,7 +98,7 @@ class SAST(ABC):
     environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
-    color_mapping: dict
+    level_color_map: dict
     install_help: str | None = None
 
     def __init__(self) -> None:
@@ -139,26 +159,31 @@ class SAST(ABC):
 
             command_output = ""
             start = time.time()
-            for command in self.commands:
-                rendered_command = render_command(command, render_variables)
+            rendered_commands = [
+                render_command(command, render_variables) for command in self.commands
+            ]
+            for rendered_command in rendered_commands:
                 retcode, out = run_command(rendered_command, project_dir, self.environ)
                 command_output += out
                 if retcode not in self.valid_codes:
                     raise NonZeroExit(rendered_command, command_output)
             end = time.time()
 
-            loc = Cloc(project_dir, lang).get_loc()
+            lines_of_codes = Cloc(project_dir, lang).get_loc()
 
-            extra = {
-                "lang": lang,
-                "logs": command_output,
-                "duration": end - start,
-                "loc": loc,
-                "project_dir": str(project_dir.resolve()),
-            }
-            self.save_results(project_dir, output_dir, extra)
+            analysis_info = AnalysisInfo(
+                command_lines=[" ".join(c) for c in rendered_commands],
+                logs=command_output,
+                lang=lang,
+                duration=end - start,
+                lines_of_codes=lines_of_codes,
+                project_dir=str(project_dir.resolve()),
+            )
+            self.save_results(project_dir, output_dir, analysis_info)
 
-    def save_results(self, project_dir: Path, output_dir: Path, extra: dict) -> None:
+    def save_results(
+        self, project_dir: Path, output_dir: Path, analysis_info: AnalysisInfo
+    ) -> None:
         """Save the results of a SAST analysis.
 
         Copy the tool's output files and save any extra metadata to the result directory.
@@ -166,11 +191,13 @@ class SAST(ABC):
         Args:
             project_dir: The directory where the analysis was run.
             output_dir: The directory where results should be saved.
-            extra: A dictionary of extra metadata to save as JSON.
+            analysis_info: An `AnalysisInfo` object containing metadata about the analysis.
 
         """
         output_dir.mkdir(exist_ok=True, parents=True)
-        json.dump(extra, (output_dir / "cstools_output.json").open("w"), indent=4)
+        (output_dir / "codesectools.json").write_text(
+            analysis_info.model_dump_json(indent=4)
+        )
 
         missing_files = []
         for path_from_root, required in self.output_files:

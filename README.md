@@ -23,10 +23,11 @@ A framework for code security that provides abstractions for static analysis too
 **CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
 
 <div align="center">
-  <img src="docs/assets/overview.svg" alt="CodeSecTools Overview" style="width: 75%; height: auto;" />
+  <img src="docs/assets/workflow.svg" alt="Workflow" style="width: 85%; height: auto;" />
+  <img src="docs/assets/workflow_example.svg" alt="Workflow" style="width: 85%; height: auto;" />
 </div>
 
-For step-by-step instructions on installation, configuration, and basic usage, please refer to the [quick start guide](https://oppida.github.io/CodeSecTools/home/quick_start_guide.html).
+For step-by-step instructions on installation, configuration, and basic usage, please refer to the [**quick start guide**](https://oppida.github.io/CodeSecTools/home/quick_start_guide.html).
 
 For more details on the design and integration of SAST tools and datasets in CodeSecTools, please refer to the [documentation](https://oppida.github.io/CodeSecTools). 
 
@@ -47,9 +48,9 @@ For more details on the design and integration of SAST tools and datasets in Cod
 
 |SAST Tool|Languages|Maintained|Included in Docker|Continuous Testing|Last Test Date|
 |:---:|:---:|:---:|:---:|:---:|:---:|
-|Coverity|Java|⚠️<br>(Deprioritized)|❌|❌<br>(Proprietary)|October 2025|
+|Coverity|C/C++, Java|✅|❌|❌<br>(Proprietary)|February 2026|
 |Semgrep Community Edition|C/C++, Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
-|Snyk Code|C/C++, Java|✅|❌|❌<br>(Rate limited)|November 2025|
+|Snyk Code|C/C++, Java|✅|❌|❌<br>(Rate limited)|February 2026|
 |Bearer|Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 |SpotBugs|Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 |Cppcheck|C/C++|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
@@ -97,10 +98,10 @@ Mount necessary directories if you want to include:
 - a target (`-v ./myproject:/home/codesectools/myproject`)
 - existing CodeSecTools data (`-v $HOME/.codesectools:/home/codesectools/.codesectools`) 
 
-A better way is to use the CLI:
+A simpler way is to use the CLI:
 
 ```bash
-$ cstools -d docker --help
+$ cstools docker --help
                                                                                                                                                                    
  Usage: cstools docker [OPTIONS]                                                                                                                                   
                                                                                                                                                                    

@@ -13,8 +13,10 @@ from codesectools.sasts.core.sast.requirements import (
     GitRepo,
     SASTRequirements,
 )
-from codesectools.sasts.tools.Bearer.parser import BearerAnalysisResult
-from codesectools.utils import USER_CACHE_DIR
+from codesectools.sasts.tools.Bearer.parser import (
+    BEARER_RULES_DIR,
+    BearerAnalysisResult,
+)
 
 
 class BearerSAST(BuildlessSAST):
@@ -31,7 +33,7 @@ class BearerSAST(BuildlessSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[BearerAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
+        level_color_map (dict): A mapping of result levels to colors for plotting.
 
     """
 
@@ -57,23 +59,16 @@ class BearerSAST(BuildlessSAST):
             ".",
             "--force",
             "--disable-default-rules",
-            f"--external-rule-dir={str(USER_CACHE_DIR / 'bearer-rules' / 'rules' / '{lang}')}",
+            f"--external-rule-dir={str(BEARER_RULES_DIR / '{lang}')}",
             "--scanner=sast",
-            "--format=json",
-            "--output=bearer_output.json",
+            "--format=sarif",
+            "--output=bearer.sarif",
             "--disable-version-check",
             "--exit-code=0",
         ]
     ]
     valid_codes = [0]
     output_files = [
-        (Path("bearer_output.json"), True),
+        (Path("bearer.sarif"), True),
     ]
     parser = BearerAnalysisResult
-    color_mapping = {
-        "critical": "red",
-        "high": "red",
-        "medium": "orange",
-        "low": "yellow",
-        "warning": "yellow",
-    }

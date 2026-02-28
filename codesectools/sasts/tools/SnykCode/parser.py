@@ -5,151 +5,25 @@ the SARIF JSON output from a Snyk Code scan, converting it into the standardized
 format used by CodeSecTools.
 """
 
-import json
-from pathlib import Path
-from typing import Self
+import re
 
-from codesectools.sasts.core.parser import AnalysisResult, Defect
+from codesectools.sasts.core.parser.format.SARIF import Result
+from codesectools.sasts.core.parser.format.SARIF.parser import SARIFAnalysisResult
 from codesectools.shared.cwe import CWE, CWEs
 
 
-class SnykCodeIssue(Defect):
-    """Represents a single issue reported by Snyk Code.
+class SnykCodeAnalysisResult(SARIFAnalysisResult):
+    """Represent the complete result of a Snyk Code analysis from a SARIF file."""
 
-    Parses defect data from the Snyk Code JSON output to extract file, checker,
-    category, and CWE information.
-    """
+    sast_name = "SnykCode"
+    rule_categories = []
 
-    sast = "SnykCode"
-
-    def __init__(
-        self,
-        filepath: Path,
-        checker: str,
-        category: str,
-        cwe: CWE,
-        message: str,
-        lines: list[int] | None,
-        data: dict,
-    ) -> None:
-        """Initialize a SnykCodeIssue instance.
-
-        Args:
-            filepath: The file path of the defect.
-            checker: The name of the rule/checker.
-            category: The category of the checker.
-            cwe: The CWE associated with the defect.
-            message: The description of the defect.
-            lines: A list of line numbers where the defect is located, or None.
-            data: Raw data from the SAST tool for this defect.
-
-        """
-        super().__init__(filepath, checker, category, cwe, message, lines, data)
-
-
-class SnykCodeAnalysisResult(AnalysisResult):
-    """Represents the complete result of a Snyk Code analysis.
-
-    Parses the main JSON output and command output logs to populate analysis
-    metadata, including timings, file lists, and defects.
-    """
-
-    normalize_lang_names = {"java": ["java"], "cpp": ["c", "cpp"]}
-
-    def __init__(self, output_dir: Path, result_data: dict, cmdout: dict) -> None:
-        """Initialize a SnykCodeAnalysisResult instance.
-
-        Args:
-            output_dir: The directory where the results are stored.
-            result_data: Parsed data from the main Snyk Code JSON output.
-            cmdout: A dictionary with metadata from the command execution.
-
-        """
-        super().__init__(
-            name=output_dir.name,
-            source_path=Path(cmdout["project_dir"]),
-            lang=cmdout["lang"],
-            files=[],
-            defects=[],
-            time=cmdout["duration"],
-            loc=cmdout["loc"],
-            data=(result_data, cmdout),
-        )
-
-        if not result_data:
-            return
-
-        for run in result_data["runs"]:
-            for result in run["results"]:
-                rule_index = result["ruleIndex"]
-                lang, *_, checker = result["ruleId"].split("/")
-                if self.lang not in self.normalize_lang_names.get(lang, []):
-                    continue
-
-                start = (
-                    result["locations"][0]["physicalLocation"]
-                    .get("region", {})
-                    .get("startLine", None)
-                )
-                end = (
-                    result["locations"][0]["physicalLocation"]
-                    .get("region", {})
-                    .get("endLine", None)
-                )
-                if start and end:
-                    lines = list(range(start, end + 1))
-                elif start:
-                    lines = [start]
-                elif end:
-                    lines = [end]
-                else:
-                    lines = None
-
-                defect = SnykCodeIssue(
-                    filepath=Path(
-                        result["locations"][0]["physicalLocation"]["artifactLocation"][
-                            "uri"
-                        ]
-                    ),
-                    checker=checker,
-                    category=run["tool"]["driver"]["rules"][rule_index][
-                        "defaultConfiguration"
-                    ]["level"],
-                    cwe=CWEs.from_string(
-                        run["tool"]["driver"]["rules"][rule_index]["properties"]["cwe"][
-                            0
-                        ]
-                    ),
-                    message=result["message"]["text"],
-                    lines=lines,
-                    data=result,
-                )
-                self.defects.append(defect)
-
-        self.files = list(set(d.filepath_str for d in self.defects))
-
-    @classmethod
-    def load_from_output_dir(cls, output_dir: Path) -> Self:
-        """Load and parse Snyk Code analysis results from a directory.
-
-        Read `snyk_results.json` and `cstools_output.json` to construct a complete
-        analysis result object.
-
-        Args:
-            output_dir: The directory containing the Snyk Code output files.
-
-        Returns:
-            An instance of `SnykCodeAnalysisResult`.
-
-        """
-        # Cmdout
-        cmdout = json.load((output_dir / "cstools_output.json").open())
-
-        # Analysis outputs
-        analysis_output_path = output_dir / "snyk_results.json"
-        if analysis_output_path.is_file():
-            analysis_output = json.load(analysis_output_path.open("r"))
-        else:
-            analysis_output = {}
-
-        return cls(output_dir, analysis_output, cmdout)
+    def get_cwe(self, result: Result, rule_id: str) -> CWE:
+        """Get the CWE for a given rule ID."""
+        if rule_properties := self.get_rule_properties(rule_id):
+            if extra := rule_properties.__pydantic_extra__:
+                if cwe := extra.get("cwe"):
+                    if m := re.search(r"cwe-(\d+)", cwe[0].lower()):
+                        cwe_id = int(m.group(1))
+                        return CWEs.from_id(cwe_id)
+        return CWEs.NOCWE
