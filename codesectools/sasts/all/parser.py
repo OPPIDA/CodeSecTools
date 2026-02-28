@@ -132,15 +132,15 @@ class AllSASTAnalysisResult:
         for defect_file, defects in defect_files.items():
             defects_cwes = {d.cwe for d in defects if d.cwe.id != -1}
 
-            defects_same_cwe = 0
+            same_cwe = 0
             for cwe in defects_cwes:
                 cwes_sasts = {d.sast_name for d in defects if d.cwe == cwe}
                 if set(self.sast_names) == cwes_sasts:
-                    defects_same_cwe += 1
+                    same_cwe += 1
                 else:
-                    defects_same_cwe += (
-                        len(set(self.sast_names) & cwes_sasts) - 1
-                    ) / len(self.sast_names)
+                    same_cwe += (len(set(self.sast_names) & cwes_sasts) - 1) / len(
+                        self.sast_names
+                    )
 
             defects_severity = []
             defect_locations = {}
@@ -156,56 +156,60 @@ class AllSASTAnalysisResult:
                         defect_locations[line] = []
                     defect_locations[line].append(defect)
 
-            defects_same_location = 0
-            defects_same_location_same_cwe = 0
+            same_location = 0
+            same_location_same_cwe = 0
             for _, defects_ in defect_locations.items():
+                same_location_coeff = 0
                 if set(defect.sast_name for defect in defects_) == set(self.sast_names):
-                    defects_same_location += 1
-                    defects_by_cwe = {}
-                    for defect in defects_:
-                        if not defects_by_cwe.get(defect.cwe):
-                            defects_by_cwe[defect.cwe] = []
-                        defects_by_cwe[defect.cwe].append(defect)
+                    same_location_coeff = 1
+                else:
+                    same_location_coeff = (
+                        len(
+                            set(defect.sast_name for defect in defects_)
+                            & set(self.sast_names)
+                        )
+                        - 1
+                    ) / len(set(self.sast_names))
+                same_location += same_location_coeff
 
-                    for _, defects_ in defects_by_cwe.items():
-                        if set(defect.sast_name for defect in defects_) == set(
-                            self.sast_names
-                        ):
-                            defects_same_location_same_cwe += 1
-                        else:
-                            defects_same_location_same_cwe += (
+                defects_by_cwe = {}
+                for defect in defects_:
+                    if not defects_by_cwe.get(defect.cwe):
+                        defects_by_cwe[defect.cwe] = []
+                    defects_by_cwe[defect.cwe].append(defect)
+
+                for _, defects_ in defects_by_cwe.items():
+                    if set(defect.sast_name for defect in defects_) == set(
+                        self.sast_names
+                    ):
+                        same_location_same_cwe += same_location_coeff * 1
+                    else:
+                        same_location_same_cwe += (
+                            same_location_coeff
+                            * (
                                 len(
                                     set(defect.sast_name for defect in defects_)
                                     & set(self.sast_names)
                                 )
                                 - 1
-                            ) / len(self.sast_names)
+                            )
+                            / len(self.sast_names)
+                        )
 
             stats[defect_file] = {
                 "score": {
                     "severity": sum(defects_severity) / len(defects_severity),
-                    "defect_number": len(defects),
-                    "defects_same_cwe": defects_same_cwe * 2,
-                    "defects_same_location": defects_same_location * 4,
-                    "defects_same_location_same_cwe": defects_same_location_same_cwe
-                    * 8,
-                },
-                "count": {
-                    "defect_number": len(defects),
-                    "defects_same_cwe": defects_same_cwe,
-                    "defects_same_location": defects_same_location,
-                    "defects_same_location_same_cwe": defects_same_location_same_cwe,
+                    "same_cwe": same_cwe * 2,
+                    "same_location": same_location * 4,
+                    "same_location_same_cwe": same_location_same_cwe * 8,
                 },
             }
-
         return stats
 
     def prepare_report_data(self) -> dict:
         """Prepare data needed to generate a report."""
-        report = {"score": {}, "files": {}}
+        report = {}
         scores = self.stats_by_scores()
-
-        report["score"] = {k: 0 for k, _ in list(scores.values())[0]["score"].items()}
 
         defect_files = {}
         for defect in self.defects:
@@ -214,9 +218,6 @@ class AllSASTAnalysisResult:
             defect_files[defect.filepath_str].append(defect)
 
         for defect_file, defects in defect_files.items():
-            for k, v in scores[defect_file]["score"].items():
-                report["score"][k] += v
-
             locations = []
             for defect in defects:
                 for group in group_successive(defect.lines):
@@ -225,19 +226,18 @@ class AllSASTAnalysisResult:
                         (defect.sast_name, defect.cwe, defect.message, (start, end))
                     )
 
-            report["files"][defect_file] = {
-                "score": scores[defect_file]["score"],
-                "count": scores[defect_file]["count"],
+            report[defect_file] = {
+                "score": sum(v for v in scores[defect_file]["score"].values()),
                 "source_path": str(self.source_path / defect.filepath),
                 "locations": locations,
                 "defects": defects,
             }
 
-        report["files"] = {
+        report = {
             k: v
             for k, v in sorted(
-                report["files"].items(),
-                key=lambda item: sum(v for v in item[1]["score"].values()),
+                report.items(),
+                key=lambda item: item[1]["score"],
                 reverse=True,
             )
         }
