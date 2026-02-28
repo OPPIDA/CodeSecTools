@@ -142,8 +142,15 @@ class AllSASTAnalysisResult:
                         len(set(self.sast_names) & cwes_sasts) - 1
                     ) / len(self.sast_names)
 
+            defects_severity = []
             defect_locations = {}
             for defect in defects:
+                defects_severity.append(
+                    {"error": 1, "warning": 0.5, "note": 0.25, "none": 0.125}[
+                        defect.level
+                    ]
+                )
+
                 for line in defect.lines:
                     if not defect_locations.get(line):
                         defect_locations[line] = []
@@ -176,6 +183,7 @@ class AllSASTAnalysisResult:
 
             stats[defect_file] = {
                 "score": {
+                    "severity": sum(defects_severity) / len(defects_severity),
                     "defect_number": len(defects),
                     "defects_same_cwe": defects_same_cwe * 2,
                     "defects_same_location": defects_same_location * 4,
