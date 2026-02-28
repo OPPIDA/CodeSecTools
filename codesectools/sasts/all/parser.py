@@ -14,7 +14,13 @@ class AllSASTAnalysisResult:
     """Represent the aggregated results from multiple SAST analyses on a single project."""
 
     def __init__(self, name: str, analysis_results: dict[str, AnalysisResult]) -> None:
-        """Initialize an AllSASTAnalysisResult instance."""
+        """Initialize an AllSASTAnalysisResult instance.
+
+        Args:
+            name: The name of the project.
+            analysis_results: A dictionary of analysis results from various SAST tools.
+
+        """
         self.name = name
         self.source_path = None
         self.analysis_results = analysis_results
@@ -33,22 +39,6 @@ class AllSASTAnalysisResult:
             self.sast_names.append(sast_name)
             self.files |= set(analysis_result.files)
             self.defects += analysis_result.defects
-
-        self.category_mapping = {}
-        for sast_name in self.sast_names:
-            sast = SASTS_ALL[sast_name]["sast"]
-            for category_name, color in sast.color_mapping.items():
-                if color.lower() == "red":
-                    self.category_mapping[(sast_name, category_name)] = "HIGH"
-                elif color.lower() == "orange":
-                    self.category_mapping[(sast_name, category_name)] = "MEDIUM"
-                elif color.lower() == "yellow":
-                    self.category_mapping[(sast_name, category_name)] = "LOW"
-
-        for defect in self.defects:
-            defect.category = self.category_mapping.get(
-                (defect.sast, defect.category), "LOW"
-            )
 
     def __repr__(self) -> str:
         """Return a developer-friendly string representation of the aggregated result."""
@@ -78,9 +68,9 @@ class AllSASTAnalysisResult:
         stats = {}
         for defect in self.defects:
             if defect.filepath_str not in stats.keys():
-                stats[defect.filepath_str] = {"count": 1, "sasts": [defect.sast]}
+                stats[defect.filepath_str] = {"count": 1, "sasts": [defect.sast_name]}
             else:
-                stats[defect.filepath_str]["sasts"].append(defect.sast)
+                stats[defect.filepath_str]["sasts"].append(defect.sast_name)
                 stats[defect.filepath_str]["count"] += 1
 
         return stats
@@ -89,23 +79,23 @@ class AllSASTAnalysisResult:
         """Calculate statistics on defects, grouped by SAST tool."""
         stats = {}
         for defect in self.defects:
-            if defect.sast not in stats.keys():
-                stats[defect.sast] = {"count": 1}
+            if defect.sast_name not in stats.keys():
+                stats[defect.sast_name] = {"count": 1}
             else:
-                stats[defect.sast]["count"] += 1
+                stats[defect.sast_name]["count"] += 1
 
         return stats
 
-    def stats_by_categories(self) -> dict:
-        """Calculate statistics on defects, grouped by severity category."""
+    def stats_by_levels(self) -> dict:
+        """Calculate statistics on defects, grouped by severity level."""
         stats = {}
         for defect in self.defects:
-            if defect.category not in stats.keys():
-                stats[defect.category] = {"count": 0, "sast_counts": {}}
+            if defect.level not in stats.keys():
+                stats[defect.level] = {"count": 0, "sast_counts": {}}
 
-            stats[defect.category]["count"] += 1
-            sast_counts = stats[defect.category]["sast_counts"]
-            sast_counts[defect.sast] = sast_counts.get(defect.sast, 0) + 1
+            stats[defect.level]["count"] += 1
+            sast_counts = stats[defect.level]["sast_counts"]
+            sast_counts[defect.sast_name] = sast_counts.get(defect.sast_name, 0) + 1
         return stats
 
     def stats_by_cwes(self) -> dict:
@@ -119,14 +109,14 @@ class AllSASTAnalysisResult:
                 stats[defect.cwe] = {
                     "count": 1,
                     "files": [defect.filepath_str],
-                    "sast_counts": {defect.sast: 1},
+                    "sast_counts": {defect.sast_name: 1},
                 }
             else:
                 stats[defect.cwe]["count"] += 1
                 if defect.filepath_str not in stats[defect.cwe]["files"]:
                     stats[defect.cwe]["files"].append(defect.filepath_str)
-                stats[defect.cwe]["sast_counts"][defect.sast] = (
-                    stats[defect.cwe]["sast_counts"].get(defect.sast, 0) + 1
+                stats[defect.cwe]["sast_counts"][defect.sast_name] = (
+                    stats[defect.cwe]["sast_counts"].get(defect.sast_name, 0) + 1
                 )
         return stats
 
@@ -144,7 +134,7 @@ class AllSASTAnalysisResult:
 
             defects_same_cwe = 0
             for cwe in defects_cwes:
-                cwes_sasts = {d.sast for d in defects if d.cwe == cwe}
+                cwes_sasts = {d.sast_name for d in defects if d.cwe == cwe}
                 if set(self.sast_names) == cwes_sasts:
                     defects_same_cwe += 1
                 else:
@@ -162,7 +152,7 @@ class AllSASTAnalysisResult:
             defects_same_location = 0
             defects_same_location_same_cwe = 0
             for _, defects_ in defect_locations.items():
-                if set(defect.sast for defect in defects_) == set(self.sast_names):
+                if set(defect.sast_name for defect in defects_) == set(self.sast_names):
                     defects_same_location += 1
                     defects_by_cwe = {}
                     for defect in defects_:
@@ -171,14 +161,14 @@ class AllSASTAnalysisResult:
                         defects_by_cwe[defect.cwe].append(defect)
 
                     for _, defects_ in defects_by_cwe.items():
-                        if set(defect.sast for defect in defects_) == set(
+                        if set(defect.sast_name for defect in defects_) == set(
                             self.sast_names
                         ):
                             defects_same_location_same_cwe += 1
                         else:
                             defects_same_location_same_cwe += (
                                 len(
-                                    set(defect.sast for defect in defects_)
+                                    set(defect.sast_name for defect in defects_)
                                     & set(self.sast_names)
                                 )
                                 - 1
@@ -224,7 +214,7 @@ class AllSASTAnalysisResult:
                 for group in group_successive(defect.lines):
                     start, end = group[0], group[-1]
                     locations.append(
-                        (defect.sast, defect.cwe, defect.message, (start, end))
+                        (defect.sast_name, defect.cwe, defect.message, (start, end))
                     )
 
             report["files"][defect_file] = {
@@ -239,7 +229,7 @@ class AllSASTAnalysisResult:
             k: v
             for k, v in sorted(
                 report["files"].items(),
-                key=lambda item: (sum(v for v in item[1]["score"].values())),
+                key=lambda item: sum(v for v in item[1]["score"].values()),
                 reverse=True,
             )
         }

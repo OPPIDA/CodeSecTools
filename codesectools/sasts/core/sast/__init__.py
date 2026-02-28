@@ -76,7 +76,7 @@ class SAST(ABC):
         output_files (list[tuple[Path, bool]]): Expected output files and
             whether they are required.
         parser (type[AnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
+        level_color_map (dict): A mapping of result levels to colors for plotting.
         install_help (str | None): An optional string with installation help.
         output_dir (Path): (Instance attribute) The base directory for storing
             analysis results.
@@ -98,7 +98,7 @@ class SAST(ABC):
     environ: dict[str, str] = {}
     output_files: list[tuple[Path, bool]]
     parser: AnalysisResult
-    color_mapping: dict
+    level_color_map: dict
     install_help: str | None = None
 
     def __init__(self) -> None:
