@@ -177,7 +177,7 @@ def build_cli() -> typer.Typer:
                 "Dataset",
                 ", ".join(
                     f"[b]{sast.name}[/b]"
-                    for sast in all_sast.sasts
+                    for sast in all_sast.any_sasts
                     if dataset_full_name in sast.list_results(dataset=True)
                 ),
             )
@@ -187,7 +187,7 @@ def build_cli() -> typer.Typer:
                 "Project",
                 ", ".join(
                     f"[b]{sast.name}[/b]"
-                    for sast in all_sast.sasts
+                    for sast in all_sast.any_sasts
                     if project in sast.list_results(project=True)
                 ),
             )

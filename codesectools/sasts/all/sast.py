@@ -19,15 +19,24 @@ class AllSAST:
     def __init__(self) -> None:
         """Initialize the AllSAST instance."""
         self.output_dir = USER_OUTPUT_DIR / self.name
-        self.sasts: list[SAST] = []
+        self.full_sasts: list[SAST] = []
+        self.partial_sasts: list[SAST] = []
+        self.any_sasts: list[SAST] = []
         for _, sast_data in SASTS_ALL.items():
             if sast_data["status"] == "full":
-                self.sasts.append(sast_data["sast"]())
+                self.full_sasts.append(sast_data["sast"]())
+                self.partial_sasts.append(sast_data["sast"]())
+                self.any_sasts.append(sast_data["sast"]())
+            elif sast_data["status"] == "partial":
+                self.partial_sasts.append(sast_data["sast"]())
+                self.any_sasts.append(sast_data["sast"]())
+            else:
+                self.any_sasts.append(sast_data["sast"]())
 
         self.sasts_by_lang = {}
         self.sasts_by_dataset = {}
 
-        for sast in self.sasts:
+        for sast in self.full_sasts:
             for lang in sast.supported_languages:
                 if self.sasts_by_lang.get(lang):
                     self.sasts_by_lang[lang].append(sast)
@@ -45,7 +54,7 @@ class AllSAST:
     ) -> set[str]:
         """List the names of analysis results common to all enabled SAST tools."""
         output_dirs = set()
-        for sast in self.sasts:
+        for sast in self.partial_sasts:
             if not output_dirs:
                 output_dirs = set(
                     sast.list_results(project=project, dataset=dataset, limit=limit)
