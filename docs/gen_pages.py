@@ -15,7 +15,7 @@ from pathlib import Path
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
-from mkdocs_gen_files import open  # ty: ignore[unresolved-import]
+from mkdocs_gen_files import open
 
 DOCS_DIR = Path("docs")
 TEMPLATE_DIR = DOCS_DIR / "templates"
