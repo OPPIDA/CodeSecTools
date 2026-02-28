@@ -8,10 +8,9 @@ from pathlib import Path
 
 from codesectools.sasts.core.sast import BuildlessSAST
 from codesectools.sasts.core.sast.properties import SASTProperties
-from codesectools.sasts.core.sast.requirements import Binary, Config, SASTRequirements
+from codesectools.sasts.core.sast.requirements import Binary, SASTRequirements
 from codesectools.sasts.tools.Coverity.parser import (
     CoverityAnalysisResult,
-    CoverityConfig,
 )
 
 
@@ -29,12 +28,11 @@ class CoveritySAST(BuildlessSAST):
         output_files (list[tuple[Path, bool]]): A list of expected output files and
             whether they are required.
         parser (type[CoverityAnalysisResult]): The parser class for the tool's results.
-        color_mapping (dict): A mapping of result categories to colors for plotting.
 
     """
 
     name = "Coverity"
-    supported_languages = CoverityConfig().languages.keys()
+    supported_languages = ["c", "java"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=True)
     requirements = SASTRequirements(
@@ -47,33 +45,18 @@ class CoveritySAST(BuildlessSAST):
                 "cov-analyze",
                 url="https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html",
             ),
+            Binary(
+                "cov-format-errors",
+                url="https://documentation.blackduck.com/bundle/coverity-docs/page/deploy-install-guide/topics/installing_coverity_analysis_components.html",
+            ),
         ],
-        partial_reqs=[
-            Config("issueTypes.json", doc=True, sast_name=name),
-            Config("config.json", doc=True, sast_name=name),
-        ],
+        partial_reqs=[],
     )
     commands = [
-        [
-            "coverity",
-            "capture",
-            "--disable-build-command-inference",
-            "--language",
-            "{lang}",
-        ],
-        [
-            "cov-analyze",
-            "--dir",
-            "idir",
-            "--all-security",
-            "--enable-callgraph-metrics",
-        ],
+        ["coverity", "capture", "--disable-build-command-inference"],
+        ["cov-analyze", "--dir", "idir", "--all-security", "--disable-spotbugs"],
+        ["cov-format-errors", "--dir", "idir", "--json-output-v10", "coverity.json"],
     ]
     valid_codes = [0]
-    output_files = [
-        (Path("coverity.yaml"), False),
-        (Path("idir", "coverity-cli", "capture-files-src-list*"), True),
-        (Path("idir", "output", "*.xml"), False),
-    ]
+    output_files = [(Path("coverity.json"), True)]
     parser = CoverityAnalysisResult
-    color_mapping = CoverityConfig().color_mapping
