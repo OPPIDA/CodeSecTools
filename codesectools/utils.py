@@ -78,10 +78,20 @@ def render_command(command: list, mapping: dict[str, str]) -> list[str]:
         if isinstance(arg, tuple):
             default_arg, optional_arg = arg
 
-            if pattern := get_pattern(optional_arg, mapping):
-                _command[i] = optional_arg.replace(pattern, mapping[pattern])
-            elif pattern := get_pattern(default_arg, mapping):
-                _command[i] = default_arg.replace(pattern, mapping[pattern])
+            optional_pattern = get_pattern(optional_arg, mapping)
+            default_pattern = get_pattern(default_arg, mapping)
+
+            if optional_pattern and mapping.get(optional_pattern):
+                _command[i] = optional_arg.replace(
+                    optional_pattern, mapping[optional_pattern]
+                )
+            else:
+                if default_pattern and mapping.get(default_pattern):
+                    _command[i] = default_arg.replace(
+                        default_pattern, mapping[default_pattern]
+                    )
+                else:
+                    _command[i] = default_arg
         else:
             if pattern := get_pattern(arg, mapping):
                 value = mapping[pattern]
@@ -104,7 +114,10 @@ def render_command(command: list, mapping: dict[str, str]) -> list[str]:
 
 
 def run_command(
-    command: Sequence[str], cwd: Path | None = None, env: dict[str, str] | None = None
+    command: Sequence[str],
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+    silent: bool = False,
 ) -> tuple[int | None, str]:
     """Execute a command in a subprocess and capture its output.
 
@@ -112,6 +125,7 @@ def run_command(
         command: The command to execute, as a list of strings.
         cwd: The working directory for the command.
         env: Optional dictionary of environment variables to set for the command.
+        silent: If True, do not print command output in debug mode.
 
     Returns:
         A tuple containing the command's return code and its combined
@@ -137,7 +151,7 @@ def run_command(
     if process.stdout:
         for line in process.stdout:
             stdout += line
-            if DEBUG():
+            if DEBUG() and not silent:
                 click.echo(line, nl=False)
 
     process.wait()
