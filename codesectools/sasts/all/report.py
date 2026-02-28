@@ -4,10 +4,8 @@ import io
 from hashlib import sha256
 from pathlib import Path
 
-from rich import print
-
 from codesectools.sasts.all.sast import AllSAST
-from codesectools.utils import group_successive, shorten_path
+from codesectools.utils import group_successive
 
 
 class ReportEngine:
@@ -82,7 +80,7 @@ class ReportEngine:
         self.result = all_sast.parser.load_from_output_dir(project_name=project)
         self.report_data = self.result.prepare_report_data()
 
-    def generate_single_defect(self, file_data: dict) -> tuple:
+    def generate_single_defect(self, defect_file: dict) -> str:
         """Generate the HTML report for a single file with defects."""
         from rich.console import Console
         from rich.style import Style
@@ -90,30 +88,9 @@ class ReportEngine:
         from rich.table import Table
         from rich.text import Text
 
-        file_report_name = (
-            f"{sha256(file_data['source_path'].encode()).hexdigest()}.html"
-        )
         file_page = Console(record=True, file=io.StringIO())
 
-        # Defect stat table
-        file_stats_table = Table(title="")
-        for key in list(self.report_data["files"].values())[0]["count"].keys():
-            file_stats_table.add_column(key.replace("_", " ").title(), justify="center")
-
-        rendered_scores = []
-        for v in file_data["count"].values():
-            if isinstance(v, float):
-                rendered_scores.append(f"~{v}")
-            else:
-                rendered_scores.append(str(v))
-
-        file_stats_table.add_row(*rendered_scores)
-        file_page.print(file_stats_table)
-
-        file_report_redirect = Text(
-            shorten_path(file_data["source_path"], 60),
-            style=Style(link=file_report_name),
-        )
+        file_page.print(f"Score: {defect_file['score']:.2f}")
 
         # Defect table
         defect_table = Table(title="", show_lines=True)
@@ -122,7 +99,7 @@ class ReportEngine:
         defect_table.add_column("CWE", justify="center")
         defect_table.add_column("Message")
         rows = []
-        for defect in file_data["defects"]:
+        for defect in defect_file["defects"]:
             groups = group_successive(defect.lines)
             if groups:
                 for group in groups:
@@ -161,14 +138,14 @@ class ReportEngine:
         file_page.print(defect_table)
 
         # Syntax
-        if not Path(file_data["source_path"]).is_file():
+        if not Path(defect_file["source_path"]).is_file():
             tippy_calls = ""
-            print(f"Source file {file_data['source_path']} not found, skipping it...")
+            print(f"Source file {defect_file['source_path']} not found, skipping it...")
         else:
-            syntax = Syntax.from_path(file_data["source_path"], line_numbers=True)
+            syntax = Syntax.from_path(defect_file["source_path"], line_numbers=True)
             tooltips = {}
             highlights = {}
-            for location in file_data["locations"]:
+            for location in defect_file["locations"]:
                 sast, cwe, message, (start, end) = location
                 for i in range(start, end + 1):
                     text = (
@@ -199,13 +176,10 @@ class ReportEngine:
 
         html_content = file_page.export_html(code_format=self.TEMPLATE)
         html_content = html_content.replace('href="HACK', 'id="')
-        html_content = html_content.replace("[name]", file_data["source_path"])
+        html_content = html_content.replace("[name]", defect_file["source_path"])
         html_content = html_content.replace("[tippy_calls]", tippy_calls)
 
-        report_file = self.report_dir / file_report_name
-        report_file.write_text(html_content)
-
-        return file_report_redirect, rendered_scores
+        return html_content
 
     def generate(self) -> None:
         """Generate the HTML report.
@@ -215,7 +189,9 @@ class ReportEngine:
         """
         from rich.console import Console
         from rich.progress import track
+        from rich.style import Style
         from rich.table import Table
+        from rich.text import Text
 
         self.TEMPLATE = self.TEMPLATE.replace(
             "[sasts]", ", ".join(sast_name for sast_name in self.result.sast_names)
@@ -224,24 +200,38 @@ class ReportEngine:
         home_page = Console(record=True, file=io.StringIO())
 
         main_table = Table(title="")
+        main_table.add_column("Score", justify="center")
         main_table.add_column("Files")
-        for key in list(self.report_data["files"].values())[0]["score"].keys():
-            main_table.add_column(
-                key.replace("_", " ").title(), justify="center", no_wrap=True
-            )
 
-        for file_data in track(
-            self.report_data["files"].values(),
+        for defect_file in track(
+            self.report_data.values(),
             description="Generating report for source file with defects...",
         ):
-            file_report_redirect, rendered_scores = self.generate_single_defect(
-                file_data
+            html_content = self.generate_single_defect(defect_file)
+            file_report_name = (
+                f"{sha256(defect_file['source_path'].encode()).hexdigest()}.html"
             )
-            main_table.add_row(file_report_redirect, *rendered_scores)
+            file_report_redirect = Text(
+                str(
+                    Path(defect_file["source_path"]).relative_to(
+                        self.result.source_path
+                    )  # ty:ignore[no-matching-overload]
+                ),
+                style=Style(link=file_report_name),
+            )
+
+            report_file = self.report_dir / file_report_name
+            report_file.write_text(html_content)
+
+            main_table.add_row(
+                Text(f"{defect_file['score']:.2f}"), file_report_redirect
+            )
 
         home_page.print(main_table)
         html_content = home_page.export_html(code_format=self.TEMPLATE)
-        html_content = html_content.replace("[name]", f"Project: {self.project}")
+        html_content = html_content.replace(
+            "[name]", f"Project: {self.result.source_path}"
+        )
 
         report_home_file = self.report_dir / "home.html"
         report_home_file.write_text(html_content)
