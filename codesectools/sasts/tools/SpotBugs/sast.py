@@ -61,6 +61,8 @@ class SpotBugsSAST(PrebuiltSAST):
         [
             "spotbugs",
             "-textui",
+            "-maxHeap",
+            "4096",
             "-nested:true",
             "-progress",
             "-sarif=spotbugs.sarif",
