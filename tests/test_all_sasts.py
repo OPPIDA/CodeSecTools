@@ -11,7 +11,7 @@ from typer.testing import CliRunner
 from codesectools.sasts import SASTS_ALL
 from codesectools.sasts.all.cli import build_cli
 from codesectools.sasts.all.sast import AllSAST
-from codesectools.utils import run_command
+from codesectools.utils import CPU_COUNT, run_command
 
 all_sast = AllSAST()
 
@@ -46,7 +46,9 @@ def test_analyze(monkeypatch: pytest.MonkeyPatch) -> None:
     git.Repo.clone_from("https://github.com/appsecco/dvja.git", "/tmp/dvja")
     monkeypatch.chdir("/tmp/dvja")
 
-    retcode, stdout = run_command("mvn clean compile".split(" "), cwd=Path("/tmp/dvja"))
+    retcode, stdout = run_command(
+        f"mvn clean compile -T {CPU_COUNT // 2}".split(" "), cwd=Path("/tmp/dvja")
+    )
     assert retcode == 0
 
     result = runner.invoke(

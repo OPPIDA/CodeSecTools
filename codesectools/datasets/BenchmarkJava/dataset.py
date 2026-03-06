@@ -12,6 +12,7 @@ from typing import Self
 
 from codesectools.datasets.core.dataset import File, PrebuiltFileDataset
 from codesectools.shared.cwe import CWE, CWEs
+from codesectools.utils import CPU_COUNT
 
 
 class TestCode(File):
@@ -65,7 +66,7 @@ class BenchmarkJava(PrebuiltFileDataset):
     license = "GPL-2.0"
     license_url = "https://github.com/OWASP-Benchmark/BenchmarkJava/blob/master/LICENSE"
 
-    build_command = "mvn clean compile"
+    build_command = f"mvn clean compile -T {CPU_COUNT // 2}"
     prebuilt_expected = (Path("target/classes/org/owasp/benchmark/testcode"), "*.class")
     artifacts_arg = "."
 
