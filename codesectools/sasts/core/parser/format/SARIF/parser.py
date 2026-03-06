@@ -126,7 +126,7 @@ class SARIFAnalysisResult(AnalysisResult):
                 if root := physical_location.root:
                     if artifact_location := root.artifact_location:
                         if uri := artifact_location.uri:
-                            filepath = Path(uri)
+                            filepath = self.source_path / uri
 
                     if region := root.region:
                         lines = [
