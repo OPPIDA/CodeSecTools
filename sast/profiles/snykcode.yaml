@@ -1,0 +1,41 @@
+name: Snyk Code
+description: Snyk Code is a developer-first static application security testing (SAST) solution. By scanning code in real-time and providing actionable insights directly in the developer workflow across IDEs, repositories, and CI/CD pipelines, you can identify and address vulnerabilities early on. The AI-based engine results in fewer false positives for your developers, improving code quality and security.
+type: Data Flow Analysis (Source code)
+url: https://docs.snyk.io/scan-with-snyk/snyk-code
+supported_version: 1.1301.0
+supported_languages:
+  - C/C++
+  - Java
+legal:
+  terms: SNYK TERMS OF SERVICE
+  terms_url: https://snyk.io/policies/terms-of-service/
+requirements:
+  - A Snyk account (a free plan is sufficient).
+  - An existing Snyk CLI installation.
+  - An active internet connection.
+extra: |
+    !!! warning "Key Considerations"
+
+        - **Data retention policy** ([Snyk documentation](https://docs.snyk.io/snyk-data-and-governance/how-snyk-handles-your-data#snyk-code)):
+
+            - Snyk stores project metadata and analysis results (e.g., filenames and vulnerability locations).
+            - Snyk does not store your source code.
+        
+        - **Limited usage**:
+
+            - The free plan is limited to **100** Snyk Code tests per month.
+
+    !!! config "Snyk Auth Token"
+
+        Authentication via `snyk auth` (OAuth) creates a temporary session that will expire, requiring periodic re-authentication. 
+        
+        For persistent access, this integration requires a long-lived Auth Token:
+
+        - Navigate to your [Account settings > General > Auth Token](https://app.snyk.io/account) to obtain your token.
+
+        - Store the token in the tool's configuration directory:
+
+            ```bash
+            mkdir -p  ~/.codesectools/config/SnykCode
+            echo <your-auth-token-here> > ~/.codesectools/config/SnykCode/auth_token.txt
+            ```
