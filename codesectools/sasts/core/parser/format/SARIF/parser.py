@@ -54,6 +54,9 @@ class SARIFAnalysisResult(AnalysisResult):
         for result in self.results:
             filepath, lines = self.get_location(result)
 
+            if not filepath:
+                continue
+
             if rule_id := result.rule_id:
                 rule = self.rules[rule_id]
 
@@ -114,15 +117,16 @@ class SARIFAnalysisResult(AnalysisResult):
                 return properties
         return None
 
-    def get_location(self, result: Result) -> tuple[Path, list[int] | None]:
+    def get_location(self, result: Result) -> tuple[Path | None, list[int]]:
         """Extract the file path and line numbers from a SARIF result."""
-        lines = None
+        filepath = None
+        lines = []
         if result.locations:
             if physical_location := result.locations[0].physical_location:
                 if root := physical_location.root:
                     if artifact_location := root.artifact_location:
                         if uri := artifact_location.uri:
-                            filepath = Path(uri)
+                            filepath = self.source_path / uri
 
                     if region := root.region:
                         lines = [

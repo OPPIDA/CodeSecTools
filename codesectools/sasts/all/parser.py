@@ -151,10 +151,11 @@ class AllSASTAnalysisResult:
                     ]
                 )
 
-                for line in defect.lines:
-                    if not defect_locations.get(line):
-                        defect_locations[line] = []
-                    defect_locations[line].append(defect)
+                if defect.lines:
+                    for line in defect.lines:
+                        if not defect_locations.get(line):
+                            defect_locations[line] = []
+                        defect_locations[line].append(defect)
 
             same_location = 0
             same_location_same_cwe = 0

@@ -7,6 +7,7 @@ format used by CodeSecTools.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -29,30 +30,27 @@ class SpotBugsAnalysisResult(SARIFAnalysisResult):
     # /home/user/mypackage/src/main/java/org/mypackage/...
     def patch_dict(self, sarif_dict: dict) -> dict:
         """Patch the SARIF dictionary to resolve relative Java class paths."""
-        partial_parents = {}
+        file_index = defaultdict(list)
+        for file_path in self.source_path.rglob("*.java"):  # SpotBugs only support Java
+            file_index[file_path.name].append(file_path)
 
         def recursive_patch(data: Any) -> None:  # noqa: ANN401
             if isinstance(data, dict):
                 for key, value in data.items():
                     if key == "uri":
                         partial_filepath = Path(value)
-                        if partial_filepath.parent not in partial_parents:
-                            if next(
-                                self.source_path.rglob(str(partial_filepath)), None
-                            ):
-                                filepath = next(
-                                    self.source_path.rglob(str(partial_filepath))
-                                ).relative_to(self.source_path)
-                                partial_parents[partial_filepath.parent] = (
-                                    filepath.parent
-                                )
-                        else:
-                            filepath = (
-                                partial_parents[partial_filepath.parent]
-                                / partial_filepath.name
-                            )
+                        candidates = file_index.get(partial_filepath.name, [])
 
-                        data[key] = str(filepath)
+                        found = None
+                        for candidate in candidates:
+                            if (
+                                candidate.parts[-len(partial_filepath.parts) :]
+                                == partial_filepath.parts
+                            ):
+                                found = str(candidate.resolve())
+                                break
+
+                        data[key] = found if found else None
                     else:
                         recursive_patch(value)
 

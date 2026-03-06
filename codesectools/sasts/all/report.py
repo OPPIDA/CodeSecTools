@@ -130,7 +130,7 @@ class ReportEngine:
                     else "None"
                 )
                 rows.append(
-                    (float("inf"), "None", defect.sast, cwe_link, defect.message)
+                    (float("inf"), "None", defect.sast_name, cwe_link, defect.message)
                 )
 
         for row in sorted(rows, key=lambda r: r[0]):
@@ -176,7 +176,12 @@ class ReportEngine:
 
         html_content = file_page.export_html(code_format=self.TEMPLATE)
         html_content = html_content.replace('href="HACK', 'id="')
-        html_content = html_content.replace("[name]", defect_file["source_path"])
+        html_content = html_content.replace(
+            "[name]",
+            str(
+                Path(defect_file["source_path"]).relative_to(self.result.source_path)  # ty:ignore[no-matching-overload]
+            ),
+        )
         html_content = html_content.replace("[tippy_calls]", tippy_calls)
 
         return html_content

@@ -259,4 +259,4 @@ def shorten_path(path: str, max_len: int = 20) -> str:
     return str(shortened_path)
 
 
-CPU_COUNT = os.cpu_count()
+CPU_COUNT = os.cpu_count() or 2
