@@ -52,8 +52,10 @@ class Defect:
             lines: A list of line numbers where the defect is located.
 
         """
+        if not filepath.is_file():
+            raise FileNotFoundError(filepath.resolve())
         self.filepath = filepath
-        self.filepath_str = str(filepath)
+        self.filepath_str = str(filepath.resolve())
         self.filename = filepath.name
         self.sast_name = sast_name
         self.checker = checker
@@ -70,6 +72,7 @@ class Defect:
 
         """
         return f"""{self.__class__.__name__}(
+    sast: \t{self.sast_name}       
     filepath: \t{self.filepath}
     checker: \t{self.checker}
     level: \t{self.level}
