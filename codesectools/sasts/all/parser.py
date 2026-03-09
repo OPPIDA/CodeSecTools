@@ -207,8 +207,16 @@ class AllSASTAnalysisResult:
             }
         return stats
 
-    def prepare_report_data(self) -> dict:
-        """Prepare data needed to generate a report."""
+    def prepare_report_data(self, top: int | None = None) -> dict:
+        """Prepare data needed to generate a report.
+
+        Args:
+            top: The maximum number of files to include, ranked by score.
+
+        Returns:
+            A dictionary containing the prepared report data.
+
+        """
         report = {}
         scores = self.stats_by_scores()
 
@@ -234,6 +242,13 @@ class AllSASTAnalysisResult:
                 "defects": defects,
             }
 
+        if top:
+            min_score = sorted([v["score"] for v in report.values()], reverse=True)[
+                min(top, len(report) - 1)
+            ]
+        else:
+            min_score = 0
+
         report = {
             k: v
             for k, v in sorted(
@@ -241,6 +256,7 @@ class AllSASTAnalysisResult:
                 key=lambda item: item[1]["score"],
                 reverse=True,
             )
+            if v["score"] >= min_score
         }
 
         return report
