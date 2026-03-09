@@ -11,9 +11,12 @@ from typing_extensions import Annotated, Literal
 from codesectools.datasets import DATASETS_ALL
 from codesectools.datasets.core.dataset import FileDataset, GitRepoDataset
 from codesectools.sasts import SASTS_ALL
-from codesectools.sasts.all.report import ReportEngine
+from codesectools.sasts.all.report.HTML import HTMLReport
+from codesectools.sasts.all.report.SARIF import SARIFReport
 from codesectools.sasts.all.sast import AllSAST
 from codesectools.sasts.core.sast import PrebuiltBuildlessSAST, PrebuiltSAST
+
+REPORT_FORMATS = {"HTML": HTMLReport, "SARIF": SARIFReport}
 
 
 def build_cli() -> typer.Typer:
@@ -239,6 +242,21 @@ def build_cli() -> typer.Typer:
                 metavar="PROJECT",
             ),
         ],
+        format: Annotated[
+            str,
+            typer.Option(
+                "--format",
+                click_type=Choice(REPORT_FORMATS.keys()),
+                help="Report format",
+            ),
+        ] = "HTML",
+        top: Annotated[
+            int | None,
+            typer.Option(
+                "--top",
+                help="Limit to a number of files by score",
+            ),
+        ] = None,
         overwrite: Annotated[
             bool,
             typer.Option(
@@ -247,14 +265,16 @@ def build_cli() -> typer.Typer:
             ),
         ] = False,
     ) -> None:
-        """Generate an HTML report for a project's aggregated analysis results.
+        """Generate a report for a project's aggregated analysis results.
 
         Args:
             project: The name of the project to report on.
+            format: The format of the report to generate (e.g., HTML, SARIF).
+            top: The maximum number of files to include, ranked by score.
             overwrite: If True, overwrite existing results.
 
         """
-        report_dir = all_sast.output_dir / project / "report"
+        report_dir = all_sast.output_dir / project / "report" / format
         if report_dir.is_dir():
             if overwrite:
                 shutil.rmtree(report_dir)
@@ -265,7 +285,9 @@ def build_cli() -> typer.Typer:
 
         report_dir.mkdir(parents=True)
 
-        report_engine = ReportEngine(project=project, all_sast=all_sast)
+        report_engine = REPORT_FORMATS[format](
+            project=project, all_sast=all_sast, top=top
+        )
         report_engine.generate()
         print(f"Report generated at {report_dir.resolve()}")
 
