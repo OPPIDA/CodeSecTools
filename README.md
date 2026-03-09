@@ -6,6 +6,9 @@
 </div>
 
 A framework for code security that provides abstractions for static analysis tools and datasets to support their integration, testing, and evaluation.
+
+> [!WARNING]
+> This project is under active development. New versions may introduce breaking changes that can affect existing configurations or previously generated results. Use with caution.
 <!--end-include-->
 
 ## Table Of Contents <!-- omit in toc -->
