@@ -23,8 +23,8 @@ A framework for code security that provides abstractions for static analysis too
 **CodeSecTools** is a collection of scripts and wrappers that abstract external resources (such as SAST tools, datasets, and codebases), providing standardized interfaces to help them interact easily.
 
 <div align="center">
-  <img src="docs/assets/workflow.svg" alt="Workflow" style="width: 85%; height: auto;" />
-  <img src="docs/assets/workflow_example.svg" alt="Workflow" style="width: 85%; height: auto;" />
+  <img src="docs/assets/readme/overview/workflow.svg" alt="Workflow" style="width: 85%; height: auto;" />
+  <img src="docs/assets/readme/overview/workflow_example.svg" alt="Workflow example" style="width: 85%; height: auto;" />
 </div>
 
 For step-by-step instructions on installation, configuration, and basic usage, please refer to the [**quick start guide**](https://oppida.github.io/CodeSecTools/home/quick_start_guide.html).
