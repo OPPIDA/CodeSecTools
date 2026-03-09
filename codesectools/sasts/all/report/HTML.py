@@ -4,11 +4,11 @@ import io
 from hashlib import sha256
 from pathlib import Path
 
-from codesectools.sasts.all.sast import AllSAST
+from codesectools.sasts.all.report import Report
 from codesectools.utils import group_successive
 
 
-class ReportEngine:
+class HTMLReport(Report):
     """Generate interactive HTML reports for SAST analysis results.
 
     Attributes:
@@ -20,6 +20,8 @@ class ReportEngine:
         report_data (dict): The data prepared for rendering the report.
 
     """
+
+    format = "HTML"
 
     TEMPLATE = """
     <!DOCTYPE html>
@@ -64,21 +66,6 @@ class ReportEngine:
     </body>
     </html>
     """
-
-    def __init__(self, project: str, all_sast: AllSAST) -> None:
-        """Initialize the ReportEngine.
-
-        Args:
-            project: The name of the project.
-            all_sast: The AllSAST instance.
-
-        """
-        self.project = project
-        self.all_sast = all_sast
-        self.report_dir = all_sast.output_dir / project / "report"
-
-        self.result = all_sast.parser.load_from_output_dir(project_name=project)
-        self.report_data = self.result.prepare_report_data()
 
     def generate_single_defect(self, defect_file: dict) -> str:
         """Generate the HTML report for a single file with defects."""
@@ -187,11 +174,7 @@ class ReportEngine:
         return html_content
 
     def generate(self) -> None:
-        """Generate the HTML report.
-
-        Creates the report directory and generates HTML files for the main view
-        and for each file with defects.
-        """
+        """Generate the HTML report."""
         from rich.console import Console
         from rich.progress import track
         from rich.style import Style
