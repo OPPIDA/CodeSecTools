@@ -12,6 +12,7 @@ class PropertyBag(BaseModel):
 
     model_config = ConfigDict(
         extra="allow",
+        validate_by_name=True,
     )
     tags: Annotated[
         list[str] | None,
@@ -30,6 +31,7 @@ class ReportingConfiguration(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     enabled: Annotated[
         bool | None,
@@ -66,6 +68,7 @@ class ToolComponentReference(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     name: Annotated[
         str | None,
@@ -98,6 +101,7 @@ class Address(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     absolute_address: Annotated[
         int | None,
@@ -169,6 +173,7 @@ class LogicalLocation(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     name: Annotated[
         str | None,
@@ -221,6 +226,7 @@ class Message1(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     text: Annotated[str, Field(description="A plain text message string.")]
     markdown: Annotated[str | None, Field(description="A Markdown message string.")] = (
@@ -249,6 +255,7 @@ class Message2(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     text: Annotated[str | None, Field(description="A plain text message string.")] = (
         None
@@ -280,6 +287,7 @@ class MultiformatMessageString(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     text: Annotated[
         str, Field(description="A plain text message string or format string.")
@@ -300,6 +308,7 @@ class Rectangle(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     top: Annotated[
         float | None,
@@ -341,6 +350,7 @@ class ReportingDescriptorReference1(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[str | None, Field(description="The id of the descriptor.")] = None
     index: Annotated[
@@ -377,6 +387,7 @@ class ReportingDescriptorReference2(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[str | None, Field(description="The id of the descriptor.")] = None
     index: Annotated[
@@ -413,6 +424,7 @@ class ReportingDescriptorReference3(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[str, Field(description="The id of the descriptor.")]
     index: Annotated[
@@ -456,6 +468,7 @@ class ReportingDescriptorRelationship(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     target: Annotated[
         ReportingDescriptorReference,
@@ -484,6 +497,7 @@ class RunAutomationDetails(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     description: Annotated[
         Message | None,
@@ -525,6 +539,7 @@ class TranslationMetadata(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     name: Annotated[
         str, Field(description="The name associated with the translation metadata.")
@@ -577,6 +592,7 @@ class ArtifactContent(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     text: Annotated[
         str | None, Field(description="UTF-8-encoded content from a text artifact.")
@@ -606,6 +622,7 @@ class ArtifactLocation(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     uri: Annotated[
         str | None,
@@ -642,6 +659,7 @@ class ConfigurationOverride(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     configuration: Annotated[
         ReportingConfiguration,
@@ -668,6 +686,7 @@ class Edge(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[
         str,
@@ -705,6 +724,7 @@ class EdgeTraversal(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     edge_id: Annotated[
         str, Field(alias="edgeId", description="Identifies the edge being traversed.")
@@ -741,6 +761,7 @@ class ExternalPropertyFileReference1(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     location: Annotated[
         ArtifactLocation,
@@ -774,6 +795,7 @@ class ExternalPropertyFileReference2(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     location: Annotated[
         ArtifactLocation | None,
@@ -812,6 +834,7 @@ class ExternalPropertyFileReferences(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     conversion: Annotated[
         ExternalPropertyFileReference | None,
@@ -953,6 +976,7 @@ class GraphTraversal1(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     run_graph_index: Annotated[
         int,
@@ -1009,6 +1033,7 @@ class GraphTraversal2(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     run_graph_index: Annotated[
         int | None,
@@ -1068,6 +1093,7 @@ class LocationRelationship(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     target: Annotated[
         int, Field(description="A reference to the related location.", ge=0)
@@ -1094,6 +1120,7 @@ class Region(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     start_line: Annotated[
         int | None,
@@ -1186,6 +1213,7 @@ class Replacement(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     deleted_region: Annotated[
         Region,
@@ -1213,6 +1241,7 @@ class ReportingDescriptor(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[str, Field(description="A stable, opaque identifier for the report.")]
     deprecated_ids: Annotated[
@@ -1312,6 +1341,7 @@ class SpecialLocations(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     display_base: Annotated[
         ArtifactLocation | None,
@@ -1333,6 +1363,7 @@ class ToolComponent(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     guid: Annotated[
         str | None,
@@ -1529,6 +1560,7 @@ class VersionControlDetails(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     repository_uri: Annotated[
         AnyUrl,
@@ -1578,6 +1610,7 @@ class WebRequest(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     index: Annotated[
         int | None,
@@ -1623,6 +1656,7 @@ class WebResponse(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     index: Annotated[
         int | None,
@@ -1676,6 +1710,7 @@ class Artifact(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     description: Annotated[
         Message | None, Field(description="A short description of the artifact.")
@@ -1785,6 +1820,7 @@ class ArtifactChange(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     artifact_location: Annotated[
         ArtifactLocation,
@@ -1813,6 +1849,7 @@ class Attachment(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     description: Annotated[
         Message | None,
@@ -1851,6 +1888,7 @@ class Fix(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     description: Annotated[
         Message | None,
@@ -1879,6 +1917,7 @@ class PhysicalLocation1(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     address: Annotated[Address, Field(description="The address of the location.")]
     artifact_location: Annotated[
@@ -1908,6 +1947,7 @@ class PhysicalLocation2(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     address: Annotated[
         Address | None, Field(description="The address of the location.")
@@ -1942,6 +1982,7 @@ class ResultProvenance(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     first_detection_time_utc: Annotated[
         AwareDatetime | None,
@@ -2003,6 +2044,7 @@ class Tool(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     driver: Annotated[
         ToolComponent, Field(description="The analysis tool that was run.")
@@ -2028,6 +2070,7 @@ class Location(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[
         int | None,
@@ -2083,6 +2126,7 @@ class Node(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[
         str,
@@ -2113,6 +2157,7 @@ class StackFrame(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     location: Annotated[
         Location | None,
@@ -2149,6 +2194,7 @@ class Suppression(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     guid: Annotated[
         str | None,
@@ -2190,6 +2236,7 @@ class Graph(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     description: Annotated[
         Message | None, Field(description="A description of the graph.")
@@ -2223,6 +2270,7 @@ class Stack(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     message: Annotated[
         Message | None, Field(description="A message relevant to this call stack.")
@@ -2247,6 +2295,7 @@ class ThreadFlowLocation(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     index: Annotated[
         int | None,
@@ -2339,6 +2388,7 @@ class Exception(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     kind: Annotated[
         str | None,
@@ -2374,6 +2424,7 @@ class Notification(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     locations: Annotated[
         list[Location] | None,
@@ -2439,6 +2490,7 @@ class ThreadFlow(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     id: Annotated[
         str | None,
@@ -2483,6 +2535,7 @@ class CodeFlow(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     message: Annotated[
         Message | None, Field(description="A message relevant to the code flow.")
@@ -2508,6 +2561,7 @@ class Invocation(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     command_line: Annotated[
         str | None,
@@ -2688,6 +2742,7 @@ class Result(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     rule_id: Annotated[
         str | None,
@@ -2908,6 +2963,7 @@ class Conversion(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     tool: Annotated[
         Tool, Field(description="A tool object that describes the converter.")
@@ -2940,6 +2996,7 @@ class ExternalProperties(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     schema_: Annotated[
         AnyUrl | None,
@@ -3108,6 +3165,7 @@ class Run(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     tool: Annotated[
         Tool,
@@ -3330,6 +3388,7 @@ class StaticAnalysisResultsFormatSarifVersion210JsonSchema(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid",
+        validate_by_name=True,
     )
     field_schema: Annotated[
         AnyUrl | None,

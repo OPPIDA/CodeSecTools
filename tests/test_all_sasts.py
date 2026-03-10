@@ -76,7 +76,10 @@ def test_plot() -> None:
 def test_report() -> None:
     """Test the 'allsast report' command."""
     logging.info("Testing All SAST report command on Java code")
-    result = runner.invoke(build_cli(), ["report", "dvja"])
-    assert result.exit_code == 0
-    assert (all_sast.output_dir / "dvja" / "report").is_dir()
-    assert list((all_sast.output_dir / "dvja" / "report").glob("*.html"))
+    for format in ["HTML", "SARIF"]:
+        result = runner.invoke(build_cli(), ["report", "dvja", "--format", format])
+        assert result.exit_code == 0
+        assert (all_sast.output_dir / "dvja" / "report").is_dir()
+        assert (all_sast.output_dir / "dvja" / "report" / format).glob(
+            f"*.{format.lower()}"
+        )

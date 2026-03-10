@@ -19,6 +19,7 @@ datamodel-codegen \
   --use-union-operator \
   --target-python-version 3.12 \
   --enum-field-as-literal all \
+  --allow-population-by-field-name \
   --custom-file-header '"""Static Analysis Results Interchange Format (SARIF) Version 2.1.0 data model."""'
 
 ruff format SARIF.py
@@ -44,6 +45,7 @@ datamodel-codegen \
   --use-union-operator \
   --target-python-version 3.12 \
   --enum-field-as-literal all \
+  --allow-population-by-field-name \
   --class-name CoverityJsonOutputV10 \
   --custom-file-header '"""Coverity JSON Output V10 model."""'
 
