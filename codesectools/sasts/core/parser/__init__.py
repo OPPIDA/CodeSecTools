@@ -9,6 +9,7 @@ subclass of `AnalysisResult` to parse its specific output format.
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal, Self
+from urllib.parse import unquote
 
 from codesectools.shared.cwe import CWE
 
@@ -52,6 +53,8 @@ class Defect:
             lines: A list of line numbers where the defect is located.
 
         """
+        # URL decode
+        filepath = Path(unquote(str(filepath)))
         if not filepath.is_file():
             raise FileNotFoundError(filepath.resolve())
         self.filepath = filepath
