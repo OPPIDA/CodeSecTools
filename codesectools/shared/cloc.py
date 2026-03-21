@@ -46,7 +46,7 @@ class Cloc:
         from git import Repo
 
         self.dir = dir
-        self.lang = self.cloc_names[lang]
+        self.lang = self.cloc_names.get(lang)
         if shutil.which("cloc"):
             self.base_command = ["cloc", ".", "--json"]
         else:
@@ -85,18 +85,22 @@ class Cloc:
 
         Returns:
             The number of lines of code, or 0 if the language is not found
-            in the output.
+            in the output or -1 if the language is not supported by
+            CodeSecTools.
 
         Raises:
             NonZeroExit: If the cloc command fails.
 
         """
-        full_command = self.base_command + [f"--include-lang={self.lang}"]
-        retcode, out = run_command(full_command, self.dir)
-        if retcode != 0:
-            raise NonZeroExit(full_command, out)
-        json_out = json.loads(out)
-        if lang_stats := json_out.get(self.lang):
-            return lang_stats["code"]
+        if self.lang:
+            full_command = self.base_command + [f"--include-lang={self.lang}"]
+            retcode, out = run_command(full_command, self.dir)
+            if retcode != 0:
+                raise NonZeroExit(full_command, out)
+            json_out = json.loads(out)
+            if lang_stats := json_out.get(self.lang):
+                return lang_stats["code"]
+            else:
+                return 0
         else:
-            return 0
+            return -1

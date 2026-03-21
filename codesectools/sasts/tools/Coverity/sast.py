@@ -20,6 +20,7 @@ class CoveritySAST(BuildlessSAST):
     Attributes:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
+        extra_languages (list[str]): Languages supported by the tool itself but not codesectools.
         supported_dataset_names (list[str]): A list of names of compatible datasets.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
@@ -33,6 +34,20 @@ class CoveritySAST(BuildlessSAST):
 
     name = "Coverity"
     supported_languages = ["c", "java"]
+    extra_languages = [
+        "csharp",
+        "dart",
+        "go",
+        "javascript",
+        "kotlin",
+        "objective-c",
+        "php",
+        "python",
+        "ruby",
+        "apex",
+        "swift",
+        "typescript",
+    ]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=False, offline=True)
     requirements = SASTRequirements(

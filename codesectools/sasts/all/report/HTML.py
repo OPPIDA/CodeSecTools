@@ -57,11 +57,11 @@ class HTMLReport(Report):
     <body>
         <a href="./home.html"><h1>CodeSecTools All SAST Tools Report</h1></a>
         <h3>SAST Tools used: [sasts]</h3>
-        <h2>[name]</h2>
+        <h2>[cstools-name]</h2>
         <pre style="font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><code style="font-family:inherit">{code}</code></pre>
         <script src="https://unpkg.com/@popperjs/core@2"></script>
         <script src="https://unpkg.com/tippy.js@6"></script>
-        <script>[tippy_calls]</script>
+        <script>[cstools-tippy_calls]</script>
         <a href="#" id="top">^</a>
     </body>
     </html>
@@ -164,12 +164,12 @@ class HTMLReport(Report):
         html_content = file_page.export_html(code_format=self.TEMPLATE)
         html_content = html_content.replace('href="HACK', 'id="')
         html_content = html_content.replace(
-            "[name]",
+            "[cstools-name]",
             str(
                 Path(defect_file["source_path"]).relative_to(self.result.source_path)  # ty:ignore[no-matching-overload]
             ),
         )
-        html_content = html_content.replace("[tippy_calls]", tippy_calls)
+        html_content = html_content.replace("[cstools-tippy_calls]", tippy_calls)
 
         return html_content
 
@@ -218,7 +218,7 @@ class HTMLReport(Report):
         home_page.print(main_table)
         html_content = home_page.export_html(code_format=self.TEMPLATE)
         html_content = html_content.replace(
-            "[name]", f"Project: {self.result.source_path}"
+            "[cstools-name]", f"Project: {self.result.source_path}"
         )
 
         report_home_file = self.report_dir / "home.html"
