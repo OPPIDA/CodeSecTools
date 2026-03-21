@@ -62,6 +62,8 @@ For more details on the design and integration of SAST tools and datasets in Cod
 |SpotBugs|Java|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 |Cppcheck|C/C++|✅|✅|✅|[Latest PR](https://github.com/OPPIDA/CodeSecTools/actions/workflows/ci.yaml)|
 
+Languages supported by the SAST tool are also available, but they are not actively maintained (some features are disabled).
+
 ## Usage
 
 ### Running the Tool
