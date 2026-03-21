@@ -25,6 +25,7 @@ class BearerSAST(BuildlessSAST):
     Attributes:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
+        extra_languages (list[str]): Languages supported by the tool itself but not codesectools.
         supported_dataset_names (list[str]): A list of names of compatible datasets.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
@@ -39,6 +40,7 @@ class BearerSAST(BuildlessSAST):
 
     name = "Bearer"
     supported_languages = ["java"]
+    extra_languages = ["go", "javascript", "php", "python", "ruby"]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes"]
     properties = SASTProperties(free=True, offline=True)
     requirements = SASTRequirements(

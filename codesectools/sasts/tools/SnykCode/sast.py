@@ -19,6 +19,7 @@ class SnykCodeSAST(BuildlessSAST):
     Attributes:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
+        extra_languages (list[str]): Languages supported by the tool itself but not codesectools.
         supported_dataset_names (list[str]): A list of names of compatible datasets.
         properties (SASTProperties): The properties of the SAST tool.
         requirements (SASTRequirements): The requirements for the SAST tool.
@@ -32,6 +33,25 @@ class SnykCodeSAST(BuildlessSAST):
 
     name = "SnykCode"
     supported_languages = ["java", "c"]
+    extra_languages = [
+        "apex",
+        "dart",
+        "elixir",
+        "go",
+        "groovy",
+        "java",
+        "kotlin",
+        "javascript",
+        "csharp",
+        "php",
+        "python",
+        "ruby",
+        "rust",
+        "scala",
+        "swift",
+        "objective-c",
+        "typescript",
+    ]
     supported_dataset_names = ["BenchmarkJava", "CVEfixes", "JulietTestSuiteC"]
     properties = SASTProperties(free=False, offline=False)
     requirements = SASTRequirements(

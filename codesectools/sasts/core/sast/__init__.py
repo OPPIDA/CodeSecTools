@@ -44,6 +44,7 @@ class AnalysisInfo(BaseModel):
         project_dir: The absolute path to the project directory that was analyzed.
         lang: The programming language of the project.
         command_lines: The command lines that were executed for the analysis.
+        logs: The logs generated during the analysis.
         duration: The duration of the analysis in seconds.
         lines_of_codes: The number of lines of code in the project for the given language.
 
@@ -66,6 +67,7 @@ class SAST(ABC):
     Attributes:
         name (str): The name of the SAST tool.
         supported_languages (list[str]): A list of supported programming languages.
+        extra_languages (list[str]): Languages supported by the tool itself but not codesectools.
         supported_dataset_names (list[str]): Names of compatible datasets.
         supported_datasets (list[Dataset]): A list of supported dataset classes.
         properties (SASTProperties): The properties of the SAST tool.
@@ -89,6 +91,7 @@ class SAST(ABC):
 
     name: str
     supported_languages: list[str]
+    extra_languages: list[str] = []
     supported_dataset_names: list[str]
     supported_datasets: list[Dataset]
     properties: SASTProperties

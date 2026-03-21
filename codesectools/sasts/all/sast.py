@@ -37,7 +37,7 @@ class AllSAST:
         self.sasts_by_dataset = {}
 
         for sast in self.full_sasts:
-            for lang in sast.supported_languages:
+            for lang in sast.supported_languages + sast.extra_languages:
                 if self.sasts_by_lang.get(lang):
                     self.sasts_by_lang[lang].append(sast)
                 else:

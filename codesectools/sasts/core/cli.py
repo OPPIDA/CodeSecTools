@@ -160,7 +160,9 @@ class CLIFactory:
             lang: Annotated[
                 str,
                 typer.Argument(
-                    click_type=Choice(self.sast.supported_languages),
+                    click_type=Choice(
+                        self.sast.supported_languages + self.sast.extra_languages
+                    ),
                     help="Source code language (only one at the time)",
                     metavar="LANG",
                 ),
