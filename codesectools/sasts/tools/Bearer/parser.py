@@ -39,7 +39,7 @@ class BearerAnalysisResult(SARIFAnalysisResult):
 
                     for aux in data.get("auxiliary", []):
                         raw_rules[aux["id"]] = data
-                except (TypeError, KeyError, yaml.composer.ComposerError):  # ty:ignore[possibly-missing-attribute]
+                except (TypeError, KeyError, yaml.composer.ComposerError):  # ty:ignore[possibly-missing-submodule]
                     pass
         return raw_rules
 
