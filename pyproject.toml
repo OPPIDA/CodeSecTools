@@ -73,7 +73,7 @@ include = ["codesectools", "codesectools.*"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-codesectools = ["data/**/*"]
+codesectools = ["data/**/*", "../Dockerfile"]
 
 [tool.ruff.lint]
 select = [
