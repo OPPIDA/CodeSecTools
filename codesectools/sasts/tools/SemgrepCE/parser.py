@@ -71,7 +71,7 @@ class SemgrepCEAnalysisResult(SARIFAnalysisResult):
                     for rule in data.get("rules"):
                         rule_id = rule["id"]
                         raw_rules[rule_id] = rule
-                except (TypeError, KeyError, yaml.composer.ComposerError):  # ty:ignore[possibly-missing-attribute]
+                except (TypeError, KeyError, yaml.composer.ComposerError):  # ty:ignore[possibly-missing-submodule]
                     pass
         return raw_rules
 
