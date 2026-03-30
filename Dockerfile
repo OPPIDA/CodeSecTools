@@ -1,5 +1,5 @@
 # =========================== Build stage ===========================
-FROM astral/uv:python3.12-bookworm-slim AS builder
+FROM astral/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58 AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --extra test
 
 # =========================== Base ===========================
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim-bookworm@sha256:31c0807da611e2e377a2e9b566ad4eb038ac5a5838cbbbe6f2262259b5dc77a0
 
 ARG UID=1000
 ARG GID=1000
