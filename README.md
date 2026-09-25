@@ -16,6 +16,7 @@ A framework for code security that provides abstractions for static analysis too
 - [Features](#features)
 - [SAST Tool Integration Status](#sast-tool-integration-status)
 - [Usage](#usage)
+  - [Installation](#installation)
   - [Running the Tool](#running-the-tool)
     - [Command-line interface](#command-line-interface)
     - [Docker](#docker)
@@ -65,6 +66,14 @@ For more details on the design and integration of SAST tools and datasets in Cod
 Languages supported by the SAST tool are also available, but they are not actively maintained (some features are disabled).
 
 ## Usage
+
+### Installation
+
+```bash
+git clone git@github.com:OPPIDA/CodeSecTools.git --depth 1
+cd CodeSecTools
+uv tool install .
+```
 
 ### Running the Tool
 
