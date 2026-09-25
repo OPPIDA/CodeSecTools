@@ -258,6 +258,7 @@ name = "codesectools"
 version = "0.16.2"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "gitpython" },
     { name = "humanize" },
     { name = "lxml" },
@@ -304,6 +305,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.3.1" },
     { name = "gitpython", specifier = ">=3.1.44" },
     { name = "humanize", specifier = ">=4.12.3" },
     { name = "lxml", specifier = ">=6.0.2" },
