@@ -1,0 +1,55 @@
+name: Coverity Static Analysis
+description: Coverity® Static Analysis provides comprehensive code scanning that empowers developers and security teams to deliver high-quality software that complies with security, functional safety, and industry standards.
+type: Data Flow Analysis (Source code and compiled code)
+url: https://www.blackduck.com/static-analysis-tools-sast/coverity.html
+supported_version: 2024.12.1
+supported_languages:
+  - Java
+legal:
+  terms: Black Duck Terms of Service v2024.2
+  terms_url: https://www.blackduck.com/company/legal/terms-of-service.html
+requirements:
+  - An existing installation of Coverity and a commercial license.
+  - The `issueTypes.json` file (available in `idir/output`) to map checker types to CWE IDs.
+  - A `config.json` file for configuring supported languages and checker categories.
+extra: |
+    ??? config "User configuration (`config.json`)"
+
+        Checker categories are used for statistical purposes only and **do not** change the analysis behavior.
+        
+        Example:        
+        ```json
+        {
+            "color_mapping": {
+                "CRITICAL": "red",
+                "MODERATE": "orange",
+                "SIGMA": "gray",
+                "SPOTBUGS": "silver"
+            },
+            "languages": {
+                "c-family":
+                    "checker_sets": {
+                        "CRITICAL": [
+                            "CHECKER_NAME"
+                        ],
+                        "MODERATE": [
+                            "CHECKER_NAME"
+                        ]
+                    },
+                    "exclude": "/test/",
+                    "include": "\\.(c|cpp|h|hpp)$"
+                },
+                "java": {
+                    "checker_sets": {
+                        "CRITICAL": [
+                            "CHECKER_NAME",
+                        ],
+                        "MODERATE": [
+                            "CHECKER_NAME",
+                        ]
+                    },
+                    "exclude": "/test/",
+                    "include": "\\.java$"
+                }
+            }
+        }
